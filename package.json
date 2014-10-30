@@ -4,7 +4,6 @@
   "description": "",
   "main": "src/transhand.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
     "build": "browserify src/transhand.js --standalone Transhand --debug | exorcist build/transhand.js.map > build/transhand.js"
   },
   "repository": {
@@ -17,12 +16,7 @@
     "url": "https://github.com/animachine/transhand/issues"
   },
   "homepage": "https://github.com/animachine/transhand",
-  "dependencies": {
-    "browserify": "^6.2.0"
-  },
   "devDependencies": {
-    "exorcist": "^0.1.6",
-    "browserify": "^6.2.0",
-    "path": "^0.4.9"
+    "browserify": "^6.2.0"
   }
 }
