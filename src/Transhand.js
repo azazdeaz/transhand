@@ -1,6 +1,7 @@
 'use strict';
 
 var Transformer = require('./hands/Transformer');
+var Boxer = require('./hands/Boxer');
 var EventEmitter = require('events').EventEmitter;
 var inherits = require('inherits');
 
@@ -10,7 +11,7 @@ function Transhand() {
 
     this.hands = {};
 
-    [Transformer].forEach(function (Hand) {
+    [Transformer, Boxer].forEach(function (Hand) {
 
         var hand = new Hand();
 

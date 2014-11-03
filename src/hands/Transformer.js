@@ -18,18 +18,27 @@ var MOUSESTATES = {
     '1001': 'nwse-resize',
 };
 
+var INIT_PARAMS = {
+    tx: 0, ty: 0,
+    sx: 1, sy: 1,
+    rz: 0,
+    ox: 0.5, oy: 0.5,
+};
+
+var INIT_BASE = {
+    x: 0, 
+    y: 0, 
+    w: 0, 
+    h: 0,
+};
+
 
 function Transformer() {
 
     EventEmitter.call(this);
 
-    this._params = {
-        tx: 0, ty: 0,
-        sx: 1, sy: 1,
-        rz: 0,
-        ox: 0.5, oy: 0.5
-    };
-    this._base = {x: 0, y: 0, w: 0, h: 0};
+    this._params = _.clone(INIT_PARAMS);
+    this._base = _.clone(INIT_BASE);
     this._points = [{}, {}, {}, {}];
     this._pOrigin = {};
     this._originRadius = 6;
@@ -56,8 +65,8 @@ p.setup = function (opt) {
         this.createGraphics();
     }
 
-    _.extend(this._params, opt.params);
-    _.extend(this._base, opt.base);
+    _.extend(this._params, INIT_PARAMS, opt.params);
+    _.extend(this._base, INIT_BASE, opt.base);
     this._refreshPoints();
     this._renderHandler();
     this._refreshHitbox();
