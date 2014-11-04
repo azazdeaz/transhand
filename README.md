@@ -41,7 +41,7 @@ handler.setup({
 
 handler.on('change', function (changedParams) {
   
-  //The handler don't refresh itself,
+  //The handler doesn't refresh itself,
   //you can make modifications on the dom using the "changedParams"
   //and setup the handler again.
   ```
