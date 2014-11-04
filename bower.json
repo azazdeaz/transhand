@@ -1,0 +1,29 @@
+{
+  "name": "transhand",
+  "version": "0.0.3",
+  "homepage": "https://github.com/animachine/transhand",
+  "authors": [
+    "azazdeaz <azazdeaz@gmail.com>"
+  ],
+  "description": "A transform tool for web applications",
+  "main": "build/transhand.js",
+  "moduleType": [
+    "globals",
+    "node"
+  ],
+  "keywords": [
+    "transform",
+    "tool",
+    "handler",
+    "css",
+    "transformation"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}
