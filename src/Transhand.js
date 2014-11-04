@@ -11,6 +11,8 @@ function Transhand() {
 
     this.hands = {};
 
+    this._createDomElem();
+
     [Transformer, Boxer].forEach(function (Hand) {
 
         var hand = new Hand();
@@ -22,17 +24,21 @@ function Transhand() {
 }
 
 inherits(Transhand, EventEmitter);
-
 var p = Transhand.prototype;
+module.exports = Transhand;
 
 p.setup = function (opt) {
 
     var hand = this.hands[opt.hand.type];
 
+    if (this._currHand && this._currHand !== hand) {
+
+        this.deactivate();
+    }
+
     if (hand) {
 
         hand.setup(opt.hand);
-        this.domElem = hand.domElem;
         this._currHand = hand;
     }
     else {
@@ -53,6 +59,8 @@ p.activate = function () {
     if (this._currHand) {
 
         this._currHand.activate();
+        
+        this.domElem.appendChild(this._currHand.domElem);
     }
 };
 
@@ -61,7 +69,21 @@ p.deactivate = function () {
     if (this._currHand) {
 
         this._currHand.deactivate();
+
+        if (this._currHand.domElem.parentNode === this.domElem) {
+
+            this.domElem.removeChild(this._currHand.domElem);
+        }
     }
 };
 
-module.exports = Transhand;
+
+
+p._createDomElem = function () {
+
+    this.domElem = document.createElement('div');
+    this.domElem.style.position = 'fixed';
+    this.domElem.style.pointerEvents = 'none';
+    this.domElem.style.left = '0px';
+    this.domElem.style.top = '0px';
+}

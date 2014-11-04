@@ -6,38 +6,24 @@ scatterThings();
 
 handler.on('change', onChangeHandler);
 
-function onClickItem() {
+document.body.appendChild(handler.domElem);
 
-    currDomElem = this;
+window.addEventListener('click', onClickWindow)
 
-    focusHandler();
-}
+function onClickWindow(e) {
 
-function onChangeHandler(change) {
+    if (e.target._handlerDemo) {
 
-    console.log(change);
-
-    var cssTransform = '';
-
-    Object.keys(change).forEach(function (name) {
-
-        currDomElem._handlerParams[name] = change[name];
-    });
-
-    focusHandler();
-
-    if (currDomElem._handlerDemo === 'transformer') {
-
-        applyTransform(currDomElem);
+        currDomElem = e.target;
+        focusHandler();
     }
-    else if (currDomElem._handlerDemo === 'boxer') {
-        
-        applyLayout(currDomElem);
+    else if (e.target.nodeName === 'BODY') {
+        currDomElem = undefined;
+        handler.deactivate();
     }
 }
 
 function focusHandler() {
-    
 
     if (currDomElem._handlerDemo === 'transformer') {
         
@@ -60,8 +46,27 @@ function focusHandler() {
     }
 
     handler.activate();
+}
 
-    document.body.appendChild(handler.domElem);
+function onChangeHandler(change) {
+
+    console.log('change event:', change);
+
+    Object.keys(change).forEach(function (name) {
+
+        currDomElem._handlerParams[name] = change[name];
+    });
+
+    focusHandler();
+
+    if (currDomElem._handlerDemo === 'transformer') {
+
+        applyTransform(currDomElem);
+    }
+    else if (currDomElem._handlerDemo === 'boxer') {
+        
+        applyLayout(currDomElem);
+    }
 }
 
 function applyTransform(de) {
@@ -112,6 +117,7 @@ function scatterThings() {
         div.style.width = (32 + 132 * Math.random()) + 'px';
         div.style.height = (32 + 132 * Math.random()) + 'px';
         div.style.background = '#' + Math.random().toString(16).substr(-3);
+        div.style.boxShadow = '1px 1px 4px 0px rgba(50, 50, 50, 0.75)';
 
         place(div);
 
@@ -172,14 +178,5 @@ function scatterThings() {
         de.style.position = 'absolute';
         de.style.cursor = 'pointer';
         document.body.appendChild(de);
-        
-
-        de._handlerBase = getBase(de);
-
-        de.addEventListener('click', onClickItem);
-    }
-
-    function getBase(de) {
-
     }
 }

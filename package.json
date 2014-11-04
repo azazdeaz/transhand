@@ -1,7 +1,7 @@
 {
   "name": "transhand",
-  "version": "0.0.0",
-  "description": "",
+  "version": "0.0.2",
+  "description": "A transform tool for web applications",
   "main": "src/transhand.js",
   "scripts": {
     "build": "browserify src/transhand.js --standalone Transhand --debug | exorcist build/transhand.js.map > build/transhand.js"
