@@ -1,4 +1,4 @@
-![](https://img.shields.io/badge/stability-experimental-orange.svg?style=flat-square)
+![](http://img.shields.io/badge/status-draft-red.svg?style=flat-square)
 
 Transhand is a transform tool for web applications.
 
