@@ -6,10 +6,16 @@ Work in progress.
 
 Developed as part of the [Animachine project](https://github.com/animachine/animachine).
 
-###[Demo](https://animachine.github.io/transhand/demos/0/)
+####[Demo](https://animachine.github.io/transhand/demos/0/)
 ![](http://fat.gfycat.com/SilverExhaustedEquestrian.gif)
 
-###Usage
+####Install
+```
+bower install --save transhand
+npm install --save transhand
+```
+
+####Usage
 ```javascript
 var handler = new Transhand(),
     de = document.querySelector('#mazsola'),
