@@ -86,4 +86,6 @@ p._createDomElem = function () {
     this.domElem.style.pointerEvents = 'none';
     this.domElem.style.left = '0px';
     this.domElem.style.top = '0px';
+    this.domElem.style.width = '100%';
+    this.domElem.style.height = '100%';
 }

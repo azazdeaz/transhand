@@ -1,6 +1,6 @@
 {
   "name": "transhand",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "A transform tool for web applications",
   "main": "src/transhand.js",
   "scripts": {

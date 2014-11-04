@@ -7535,6 +7535,7 @@ p.activate = function () {
 
     window.addEventListener('mousemove', this._onMouseMove);
     this._deHitbox.addEventListener('mousedown', this._onMouseDown);
+    this._deOriginHit.addEventListener('mousedown', this._onMouseDown);
 };
 
 p.deactivate = function () {
@@ -7544,6 +7545,7 @@ p.deactivate = function () {
     
     window.removeEventListener('mousemove', this._onMouseMove);
     this._deHitbox.removeEventListener('mousedown', this._onMouseDown);
+    this._deOriginHit.removeEventListener('mousedown', this._onMouseDown);
 };
 
 
@@ -7703,6 +7705,7 @@ p._refreshHitbox = function () {
 
     var base = this._base, 
         params = this._params,
+        po = this._pOrigin,
         rfd = this._rotateFingerDist,
         leftScale = (base.w * params.ox * (params.sx-1)),
         topScale = (base.h * params.oy * (params.sy-1)),
@@ -7710,6 +7713,9 @@ p._refreshHitbox = function () {
         h = (base.h * params.sy),
         ox = rfd + (w * params.ox),
         oy = rfd + (h * params.oy);
+
+    this._deOriginHit.style.left = (po.x - rfd) + 'px';
+    this._deOriginHit.style.top = (po.y - rfd) + 'px';
 
     this._deHitbox.style.left = (-rfd + base.x + params.tx - leftScale) + 'px';
     this._deHitbox.style.top = (-rfd + base.y + params.ty - topScale) + 'px';
@@ -7970,7 +7976,7 @@ p._setFinger = function (e) {
 
         this._finger = 'move';
     }
-    else if (dTop < rDiff || dRight < rDiff || dBottom < rDiff || dLeft < rDiff) {
+    else if (dTop < rDiff || dRight < rDiff || dBottom < rDiff || dLeft < rDiff || dOrigin < rDiff) {
 
         this._finger = 'rotate';
     }
@@ -8011,6 +8017,7 @@ p._setFinger = function (e) {
 p._setCursor = function (cursor) {
 
     this._deHitbox.style.cursor = cursor;
+    this._deOriginHit.style.cursor = cursor;
     this._deFullHit.style.cursor = cursor
 };
 
@@ -8059,18 +8066,26 @@ p.createGraphics = function () {
 
         this._onOverHitbox();
         this._deHitbox.removeEventListener('mousemove', onFitstMove);
+        this._deOriginHit.removeEventListener('mousemove', onFitstMove);
     }.bind(this);
 
-    this._deHitbox = document.createElement('div');
-    this._deHitbox.style.position = 'absolute';
-    this._deHitbox.style.pointerEvents = 'auto';
-    this._deHitbox.style.border = this._rotateFingerDist + 'px solid rgba(0,0,0,0)';
-    this._deHitbox.style.borderRadius = this._rotateFingerDist + 'px';
-    this._deHitbox.addEventListener('mouseenter', this._onOverHitbox);
-    this._deHitbox.addEventListener('mouseleave', this._onOutHitbox);
-    this._deHitbox.addEventListener('mousemove', onFitstMove);
-    this.domElem.appendChild(this._deHitbox);
+    var createHitbox = function () {
 
+        var de = document.createElement('div');
+        de.style.position = 'absolute';
+        de.style.pointerEvents = 'auto';
+        de.style.border = this._rotateFingerDist + 'px solid rgba(0,0,0,0)';
+        de.style.borderRadius = this._rotateFingerDist + 'px';
+        de.addEventListener('mouseenter', this._onOverHitbox);
+        de.addEventListener('mouseleave', this._onOutHitbox);
+        de.addEventListener('mousemove', onFitstMove);
+        this.domElem.appendChild(de);
+
+        return de;
+    }.bind(this);
+
+    this._deOriginHit = createHitbox();
+    this._deHitbox = createHitbox();
 };
 
 
@@ -8246,6 +8261,8 @@ p._createDomElem = function () {
     this.domElem.style.pointerEvents = 'none';
     this.domElem.style.left = '0px';
     this.domElem.style.top = '0px';
+    this.domElem.style.width = '100%';
+    this.domElem.style.height = '100%';
 }
 
 },{"./hands/Boxer":4,"./hands/Transformer":5,"events":3,"inherits":1}]},{},[6])(6)
