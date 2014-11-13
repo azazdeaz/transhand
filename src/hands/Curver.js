@@ -18,12 +18,14 @@ var MOUSESTATES = {
 
 var INIT_PARAMS = [];
 
-
 function Curver() {
 
     EventEmitter.call(this);
 
     this._params = _.clone(INIT_PARAMS);
+
+    this._buffPoint = [];
+    this._buffPath = [];
 
     this._handlerRadius = 2;
     this._color = 'aqua';
@@ -48,7 +50,9 @@ p.setup = function (opt) {
         this.createGraphics();
     }
 
-    _.extend(this._params, INIT_PARAMS, opt.params);
+    this._recyclePath(this._path);
+    this._path = this._clonePath(opt.path);
+
     this._renderHandler();
 };
 
@@ -72,7 +76,79 @@ p.deactivate = function () {
 
 
 
+this._clonePath = function (srcPath) {
 
+    var path = this._buffPath.pop() || [];
+
+    srcPath.forEach(function (srcPoint) {
+
+        var point = this._buffPoint.pop() || {};
+        point.x = srcPoint.x;
+        point.y = srcPoint.y;
+        path.push(point);
+    }, this);
+
+    return path;
+};
+
+this._recyclePath = function (path) {
+
+    this._buffPoint.push.apply(this._buffPoint, path.splice(0));
+    this._buffPath.push(path);
+};
+
+
+
+
+
+
+
+p._onMouseMove = function (e) {
+
+    if (!this._isHandle && this._isOverHitbox) {
+        
+        this._setFinger(e);
+    }
+};
+
+p._setFinger = function (e) {
+
+    var shift = e.shiftKey,
+        alt = e.altKey,
+        ctrl = e.ctrlKey,
+        mx = e.clientX,
+        my = e.clientY,
+        hitCurve = !!ctx.getImageData(mx, my, 1, 1).data[3],
+        hitPoint = this._gtHitPoint(mx, my),
+        hitPointIdx = this._path.indexOf(hitPoint),
+        hitAnchor = hitPointIdx !== -1 && hitPointIdx % 3 === 0,
+        hitHandler = hitPointIdx !== -1 && hitPointIdx % 3 !== 0;
+
+    }, this);
+
+    var finger = false;
+
+    if (hitAnchor) {
+
+        if (alt) finger = 'reset_handlers';
+        else if (ctrl) finger = 'delete_anchor';
+        else finger = 'move_anchor';
+    }
+    else if (hitHandler) {
+
+        else if (ctrl) finger = 'break_handler';
+        else finger = 'move_handler';
+    }
+    else if (hitCurve) {
+
+        if (ctrl && alt) finger = 'scale_path';
+        else if (alt) finger = 'rotate_path';
+        else if (ctrl) finger = 'drag_path';
+        else finger = 'add_anchor';
+    }
+
+    this._finger = finger;
+};
 
 p._onMouseDown = function (e) {
 
@@ -83,10 +159,15 @@ p._onMouseDown = function (e) {
     e.stopPropagation();
     e.preventDefault();
 
-    var handlerRadius = this._handlerRadius,
-        shift = e.shiftKey,
-        alt = e.altKey,
-        ctrl = e.ctrlKey;
+    var mx = e.clientX,
+        my = e.clientY,
+        hitPoint = this._gtHitPoint(mx, my),
+        hitPointIdx = this._path.indexOf(hitPoint);
+
+    if (finger === 'add_anchor') {
+
+        // this.emit('addAnchore'//...?
+    }
 
     var hitCurve = !!ctx.getImageData(x, y, 1, 1).data[3];
     var hitPoint = this._params.find(function (point) {
@@ -113,13 +194,69 @@ p._onMouseDown = function (e) {
     window.addEventListener('mousemove', this._onDrag);
 };
 
-p._onMouseMove = function (e) {
+p._onDrag = function (e) {
 
-    if (!this._isHandle && this._isOverHitbox) {
-        
-        this._setFinger(e);
+    this._onDragMe = e;
+
+    if (!this._rafOnDragRafId) {
+
+        this._rafOnDragRafId = requestAnimationFrame(this._rafOnDrag);
     }
-}; 
+};
+
+p._rafOnDrag = function () {
+
+    var e = this._onDragMe;
+    this._onDragMe = undefined;
+
+    window.cancelAnimationFrame(this._rafOnDragRafId);
+    this._rafOnDragRafId = undefined;
+
+    var params = this._params,
+        md = this._mdPos,
+        finger = this._finger,
+        mx = e.clientX, 
+        my = e.clientY,
+        dx = mx - md.mx,
+        dy = my - md.my,
+        change = {};
+
+
+        
+    if (finger === 'move') {
+
+        change.x = md.params.x + dx;
+        change.y = md.params.y + dy;
+    }
+    
+    if (finger.charAt(0) === '1') {
+
+        change.y = md.params.y + dy;
+        change.h = md.params.h - dy;
+    }
+
+    if (finger.charAt(1) === '1') {
+
+        change.w = md.params.w + dx;
+    }
+
+    if (finger.charAt(2) === '1') {
+
+        change.h = md.params.h + dy;
+    }
+
+    if (finger.charAt(3) === '1') {
+
+        change.x = md.params.x + dx;
+        change.w = md.params.w - dx;
+    }
+
+
+
+    this.emit('change', change, 'transform');
+};
+
+
 
 p._onMouseUp = function () {
 
@@ -154,7 +291,19 @@ p._onOutHitbox = function () {
 
 
 
+p._getHitPoint = function (x, y) {
 
+    var handlerRadius = this._handlerRadius;
+
+    return this._points.find(function (point, idx) {
+
+        var dx = point.x - x,
+            dy = point.y - y,
+            dist = Math.sqrt(dx*dx + dy*dy);
+
+        return dist <= handlerRadius;
+    });
+}
 
 p._renderHandler = function () {
 
@@ -225,125 +374,9 @@ p._renderHandler = function () {
 
 
 
-p._onDrag = function (e) {
-
-    this._onDragMe = e;
-
-    if (!this._rafOnDragRafId) {
-
-        this._rafOnDragRafId = requestAnimationFrame(this._rafOnDrag);
-    }
-};
-
-p._rafOnDrag = function () {
-
-    var e = this._onDragMe;
-    this._onDragMe = undefined;
-
-    window.cancelAnimationFrame(this._rafOnDragRafId);
-    this._rafOnDragRafId = undefined;
-
-    var params = this._params,
-        md = this._mdPos,
-        finger = this._finger,
-        mx = e.clientX, 
-        my = e.clientY,
-        dx = mx - md.mx,
-        dy = my - md.my,
-        change = {};
-
-
-        
-    if (finger === 'move') {
-
-        change.x = md.params.x + dx;
-        change.y = md.params.y + dy;
-    }
-    
-    if (finger.charAt(0) === '1') {
-
-        change.y = md.params.y + dy;
-        change.h = md.params.h - dy;
-    }
-
-    if (finger.charAt(1) === '1') {
-
-        change.w = md.params.w + dx;
-    }
-
-    if (finger.charAt(2) === '1') {
-
-        change.h = md.params.h + dy;
-    }
-
-    if (finger.charAt(3) === '1') {
-
-        change.x = md.params.x + dx;
-        change.w = md.params.w - dx;
-    }
 
 
 
-    this.emit('change', change, 'transform');
-};
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-p._setFinger = function (e) {
-
-    var params = this._params,
-        mx = e.clientX,
-        my = e.clientY,
-        diff = 6,
-        dTop = Math.abs(params.y - my),
-        dRight = Math.abs((params.x + params.w) - mx),
-        dBottom = Math.abs((params.y + params.h) - my),
-        dLeft = Math.abs(params.x - mx),
-        top = dTop < diff,
-        right = dRight < diff,
-        bottom = dBottom < diff,
-        left = dLeft < diff,
-        inside = mx > params.x && mx < params.x + params.w && my > params.y && my < params.y + params.h;
-
-    if (params.w * params.sx < diff * 2 && inside) {
-        
-        left = false;
-        right = false;
-    }
-
-    if (params.h * params.sy < diff * 2 && inside) {
-    
-        top = false;
-        bottom = false;
-    }
-    
-    if (top || right || bottom || left) {
-        this._finger = ('000' + (top * 1000 + right * 100 + bottom * 10 + left * 1)).substr(-4);
-    }
-    else if (inside) {
-
-        this._finger = 'move';
-    }
-    
-    if (this._finger) {
-
-        this._setCursor(MOUSESTATES[this._finger]);
-    }
-    else {
-        this._setCursor('auto');
-    }
-};
 
 
 
