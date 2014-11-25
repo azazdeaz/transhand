@@ -3,6 +3,7 @@
 var EventEmitter = require('events').EventEmitter;
 var inherits = require('inherits');
 var _ = require('lodash');
+var jsBezier = require('./jsBezier');
 
 var MOUSESTATES = {
     'move': 'move',
