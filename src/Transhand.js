@@ -102,36 +102,25 @@ p.G2L = function (p) {
         return p;
     }
 
-    var x = 0,
-        y = 0,
-        px = p.x,
-        py = p.y,
-        tx = Math.pow(2, 18),
-        ty = Math.pow(2, 18),
-        br;
+    document.body.appendChild(this._deLocalRootPicker);
+    var ret = nastyLocal2Global(p, this._deLocalRootPicker);
+    document.body.removeChild(this._deLocalRootPicker);
 
-    while (tx > 1) {
-
-        tx /= 2;
-        x += tx;
-
-        this._deLocalRootPicker.style.left = p.x + 'px';
-        br = this._deLocalRootPicker.getBoundingClientRect();
-        
-        if (x + tx > px) x += tx;
-    }
+    return ret;
 };
 
 p.setLocalRoot = function (de) {
 
     var that = this, deRoot = getDiv();
 
-    disassemble(this._deLocalRoot);
+    if (this._deLocalRoot) {
+        disassemble(this._deLocalRoot);
+    }
     assemble(de);
 
     this._deLocalRoot = deRoot;
     this._deLocalRootPicker = this._deLocalRootPicker || getDiv();
-    this._deLocalRoot.appendChild(_deLocalRootPicker);
+    this._deLocalRoot.appendChild(this._deLocalRootPicker);
 
     function assemble(de) {
 
@@ -172,8 +161,8 @@ p.setLocalRoot = function (de) {
             deRoot = parent;
         }
 
-        if (de.offsetParent) {
-            assemble(de.offsetParent);
+        if (de.parentNode &&  de.parentNode.nodeName !== '#document' && de.parentNode.nodeName !== 'HTML') {
+            assemble(de.parentNode);
         }
     }
 
@@ -206,4 +195,127 @@ p._createDomElem = function () {
     this.domElem.style.top = '0px';
     this.domElem.style.width = '100%';
     this.domElem.style.height = '100%';
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+function nastyLocal2Global (mPos, dePicker) {
+
+    var tweakDist = 128,
+        tweakDistStep = 0,
+        tweakRad = Math.PI / 2,
+        dist = tweakDist * 2,
+        rad = 0,
+        nullPos = {x:0, y: 0},
+        globalNullPos = L2G(nullPos),
+        globalRad = getRad(globalNullPos, mPos),
+        globalDist = posDist(globalNullPos, mPos);
+
+    while (tweakRad > .000001) {
+
+        var globalTestRad = getRad(mPos, L2G(Rad2Pos(rad, tweakDist)));
+
+        if (radDiff(globalRad, globalTestRad) < 0) {
+
+            rad += tweakRad;
+        }
+        else {
+            rad -= tweakRad;
+        }
+
+        tweakRad /= 2;
+    }
+
+
+    while (posDist(globalNullPos, L2G(Rad2Pos(rad, dist + 2*tweakDist))) < globalDist && dist < tweakDist * 64) {
+
+        dist += 4*tweakDist;
+    }
+    
+    while (tweakDist > 1) {
+
+        if (posDist(globalNullPos, L2G(Rad2Pos(rad, dist))) < globalDist) {
+
+            dist += tweakDist;
+        }
+        else {
+            dist -= tweakDist;
+        }
+
+        tweakDist /= 2;
+    }
+  
+    return Rad2Pos(rad, dist);
+  
+    
+  
+  
+    function closestRad(aRad, bRad) {
+
+        var aPos = L2G(Rad2Pos(aRad, tweakDist)),
+            bPos = L2G(Rad2Pos(bRad, tweakDist)),
+            gARad = getRad(globalNullPos, aPos),
+            gBRad = getRad(globalNullPos, bPos);
+
+      
+        $('#s0').css('left', aPos.x);
+        $('#s0').css('top', aPos.y);
+        $('#s1').css('left', bPos.x);
+        $('#s1').css('top', bPos.y);
+
+      return radDiff(gARad, globalRad) < radDiff(gBRad, globalRad) ? aRad : bRad;
+    }
+  
+    function getRad(aPos, bPos) {
+      
+       return Math.atan2(bPos.y - aPos.y, bPos.x - aPos.x);
+    }
+
+    function Rad2Pos(rad, dist) {
+
+        return {
+            x: Math.cos(rad) * dist,
+            y: Math.sin(rad) * dist,
+        };
+    }
+
+    function L2G(pos) {
+
+        dePicker.style.left = pos.x + 'px';
+        dePicker.style.top = pos.y + 'px';
+
+        var br = dePicker.getBoundingClientRect();
+
+        return {x: br.left, y: br.top};
+    }
+  
+    function radDiff(aRad, bRad) {
+
+      bRad -= aRad;
+      bRad %= Math.PI*2;
+
+      if (bRad > Math.PI) bRad -= 2*Math.PI;
+      else if (bRad < -Math.PI) bRad += 2*Math.PI;
+      
+      return bRad;
+    }
+
+    function posDist(aP, bP) {
+
+        var dx = aP.x - bP.x,
+            dy = aP.y - bP.y;
+
+        return Math.sqrt(dx*dx+ dy*dy);
+    }
 }

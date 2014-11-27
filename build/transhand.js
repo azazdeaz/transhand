@@ -7489,10 +7489,11 @@ var INIT_BASE = {
 };
 
 
-function Transformer() {
+function Transformer(transhand) {
 
     EventEmitter.call(this);
 
+    this._th = transhand;
     this._params = _.clone(INIT_PARAMS);
     this._base = _.clone(INIT_BASE);
     this._points = [{}, {}, {}, {}];
@@ -7566,7 +7567,7 @@ p._onMouseDown = function (e) {
     this._deFullHit.style.pointerEvents = 'auto';
 
     this._mdPos = {
-        pMouse: {x: e.clientX, y: e.clientY},
+        m: this._th.G2L({x: e.clientX, y: e.clientY}),
         params: _.cloneDeep(this._params),
         points: _.cloneDeep(this._points),
         pOrigin: _.cloneDeep(this._pOrigin)
@@ -7658,8 +7659,8 @@ p._refreshPoints = function () {
 
 p._renderHandler = function () {
 
-    var p = this._points,
-        po = this._pOrigin,
+    var p = this._points.map(this._th.L2G, this._th),
+        po = this._th.L2G(this._pOrigin),
         c = this._deCanvas,
         or = this._originRadius,
         ctx = c.getContext('2d'),
@@ -7668,6 +7669,8 @@ p._renderHandler = function () {
         maxX = Math.max(p[0].x, p[1].x, p[2].x, p[3].x, po.x),
         minY = Math.min(p[0].y, p[1].y, p[2].y, p[3].y, po.y),
         maxY = Math.max(p[0].y, p[1].y, p[2].y, p[3].y, po.y);
+
+    this._points.forEach
 
     c.style.left = (minX - margin) + 'px';
     c.style.top = (minY - margin) + 'px';
@@ -7765,9 +7768,9 @@ p._rafOnDrag = function () {
         pOrigin = this._pOrigin,
         md = this._mdPos,
         finger = this._finger,
-        pMouse = {x: e.clientX, y: e.clientY},
-        dx = pMouse.x - md.pMouse.x,
-        dy = pMouse.y - md.pMouse.y,
+        m = this._th.G2L({x: e.clientX, y: e.clientY}),
+        dx = m.x - md.m.x,
+        dy = m.y - md.m.y,
         alt = e.altKey,
         shift = e.shiftKey,
         change = {};
@@ -7822,8 +7825,8 @@ p._rafOnDrag = function () {
     function setScale(r, sN, way) {
 
         var rad = r + md.params.rz,
-            mdDist = distToPointInAngle(md.pOrigin, md.pMouse, rad),
-            dragDist = distToPointInAngle(md.pOrigin, pMouse, rad),
+            mdDist = distToPointInAngle(md.pOrigin, md.m, rad),
+            dragDist = distToPointInAngle(md.pOrigin, m, rad),
             scale = (dragDist / mdDist) * md.params[sN];
 
         if (alt) {
@@ -7840,8 +7843,8 @@ p._rafOnDrag = function () {
 
     function fixProportion() {
 
-        var mx = pMouse.x - pOrigin.x,
-            my = pMouse.y - pOrigin.y,
+        var mx = m.x - pOrigin.x,
+            my = m.y - pOrigin.y,
             mr = Math.abs(radDiff(params.rz, Math.atan2(my, mx))),
             isVertical = mr > Math.PI/4 && mr < Math.PI/4 * 3,
             spx = params.sx / md.params.sx,
@@ -7858,11 +7861,11 @@ p._rafOnDrag = function () {
 
     function setRotation() {
 
-        var mdx = md.pMouse.x - pOrigin.x,
-            mdy = md.pMouse.y - pOrigin.y,
+        var mdx = md.m.x - pOrigin.x,
+            mdy = md.m.y - pOrigin.y,
             mdr = Math.atan2(mdy, mdx),
-            mx = pMouse.x - pOrigin.x,
-            my = pMouse.y - pOrigin.y,
+            mx = m.x - pOrigin.x,
+            my = m.y - pOrigin.y,
             mr = Math.atan2(my, mx),
             r = mr - mdr;
 
@@ -7896,8 +7899,8 @@ p._rafOnDrag = function () {
 
     function setOrigin() {
 
-        var mx = pMouse.x - md.pOrigin.x,
-            my = pMouse.y - md.pOrigin.y,
+        var mx = m.x - md.pOrigin.x,
+            my = m.y - md.pOrigin.y,
             dist = Math.sqrt(mx*mx + my*my),
             r = Math.atan2(my, mx) - params.rz,
             x = (Math.cos(r) * dist) / params.sx,
@@ -7934,21 +7937,19 @@ p._setFinger = function (e) {
         po = this._pOrigin,
         diff = 3,
         rDiff = 16,
-        mx = e.clientX,
-        my = e.clientY,
-        mp = {x: mx, y: my},
-        dox = po.x - mx,
-        doy = po.y - my,
+        m = this._th.G2L({x: e.clientX, y: e.clientY}),
+        dox = po.x - m.x,
+        doy = po.y - m.y,
         dOrigin = Math.sqrt(dox*dox + doy*doy),
-        dTop = distToSegment(mp, p[0], p[1]),
-        dLeft = distToSegment(mp, p[1], p[2]),
-        dBottom = distToSegment(mp, p[2], p[3]),
-        dRight = distToSegment(mp, p[3], p[0]),
+        dTop = distToSegment(m, p[0], p[1]),
+        dLeft = distToSegment(m, p[1], p[2]),
+        dBottom = distToSegment(m, p[2], p[3]),
+        dRight = distToSegment(m, p[3], p[0]),
         top = dTop < diff,
         left = dLeft < diff,
         bottom = dBottom < diff,
         right = dRight < diff,
-        inside = isInside(mp, p),
+        inside = isInside(m, p),
         cursorScale;
 
     if (base.w * params.sx < diff * 2 && inside) {
@@ -8188,9 +8189,11 @@ function Transhand() {
 
     this._createDomElem();
 
+    this._buffMockDiv = [];
+
     [Transformer, Boxer].forEach(function (Hand) {
 
-        var hand = new Hand();
+        var hand = new Hand(this);
 
         hand.on('change', this.emit.bind(this, 'change'));
 
@@ -8252,6 +8255,111 @@ p.deactivate = function () {
     }
 };
 
+p.L2G = function (p) {
+
+    if (!this._deLocalRootPicker) {
+        return p;
+    }
+
+    this._deLocalRootPicker.style.left = p.x + 'px';
+    this._deLocalRootPicker.style.top = p.y + 'px';
+
+    var br = this._deLocalRootPicker.getBoundingClientRect();
+
+    return {
+        x: br.left,
+        y: br.top,
+    }
+};
+
+p.G2L = function (p) {
+
+    if (!this._deLocalRootPicker) {
+        return p;
+    }
+
+    document.body.appendChild(this._deLocalRootPicker);
+    var ret = nastyLocal2Global(p, this._deLocalRootPicker);
+    document.body.removeChild(this._deLocalRootPicker);
+
+    return ret;
+};
+
+p.setLocalRoot = function (de) {
+
+    var that = this, deRoot = getDiv();
+
+    if (this._deLocalRoot) {
+        disassemble(this._deLocalRoot);
+    }
+    assemble(de);
+
+    this._deLocalRoot = deRoot;
+    this._deLocalRootPicker = this._deLocalRootPicker || getDiv();
+    this._deLocalRoot.appendChild(this._deLocalRootPicker);
+
+    function assemble(de) {
+
+        var transformed;
+
+        if (de.offsetLeft) {
+            deRoot.style.left = (parseInt(deRoot.style.left || 0) + de.offsetLeft) + 'px'
+        }
+        if (de.offsetTop) {
+            deRoot.style.top = (parseInt(deRoot.style.top || 0) + de.offsetTop) + 'px'
+        }
+
+        if (de.style.transform) {
+            transformed = true;
+            deRoot.style.transform = de.style.transform;
+            
+            if (de.style.transformOrigin) {
+                deRoot.style.transformOrigin = de.style.transformOrigin;
+            }
+        }
+        if (de.style.prespective) {
+            transformed = true;
+            deRoot.style.prespective = de.style.prespective;
+            
+            if (de.style.prespectiveOrigin) {
+                deRoot.style.prespectiveOrigin = de.style.prespectiveOrigin;
+            }
+        }
+        if (de.style.transformStyle) {
+            transformed = true;
+            deRoot.style.transformStyle = de.style.transformStyle;
+        }
+
+        if (transformed) {
+
+            var parent = getDiv();
+            parent.appendChild(deRoot);
+            deRoot = parent;
+        }
+
+        if (de.parentNode &&  de.parentNode.nodeName !== '#document' && de.parentNode.nodeName !== 'HTML') {
+            assemble(de.parentNode);
+        }
+    }
+
+    function disassemble(de) {
+
+        de.removeAttribute('style');
+        that._buffMockDiv.push(de);
+
+        var parent = de.parentNode;
+        if (parent) {
+            parent.removeChild(de);            
+            disassemble(parent);
+        }
+    }
+
+    function getDiv() {
+        
+        return that._buffMockDiv.pop() || document.createElement('div');
+    }
+}
+
 
 
 p._createDomElem = function () {
@@ -8265,6 +8373,128 @@ p._createDomElem = function () {
     this.domElem.style.height = '100%';
 }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+function nastyLocal2Global (mPos, dePicker) {
+
+    var tweakDist = 128,
+        tweakDistStep = 0,
+        tweakRad = Math.PI / 2,
+        dist = tweakDist * 2,
+        rad = 0,
+        nullPos = {x:0, y: 0},
+        globalNullPos = L2G(nullPos),
+        globalRad = getRad(globalNullPos, mPos),
+        globalDist = posDist(globalNullPos, mPos);
+
+    while (tweakRad > .000001) {
+
+        var globalTestRad = getRad(mPos, L2G(Rad2Pos(rad, tweakDist)));
+
+        if (radDiff(globalRad, globalTestRad) < 0) {
+
+            rad += tweakRad;
+        }
+        else {
+            rad -= tweakRad;
+        }
+
+        tweakRad /= 2;
+    }
+
+
+    while (posDist(globalNullPos, L2G(Rad2Pos(rad, dist + 2*tweakDist))) < globalDist && dist < tweakDist * 64) {
+
+        dist += 4*tweakDist;
+    }
+    
+    while (tweakDist > 1) {
+
+        if (posDist(globalNullPos, L2G(Rad2Pos(rad, dist))) < globalDist) {
+
+            dist += tweakDist;
+        }
+        else {
+            dist -= tweakDist;
+        }
+
+        tweakDist /= 2;
+    }
+  
+    return Rad2Pos(rad, dist);
+  
+    
+  
+  
+    function closestRad(aRad, bRad) {
+
+        var aPos = L2G(Rad2Pos(aRad, tweakDist)),
+            bPos = L2G(Rad2Pos(bRad, tweakDist)),
+            gARad = getRad(globalNullPos, aPos),
+            gBRad = getRad(globalNullPos, bPos);
+
+      
+        $('#s0').css('left', aPos.x);
+        $('#s0').css('top', aPos.y);
+        $('#s1').css('left', bPos.x);
+        $('#s1').css('top', bPos.y);
+
+      return radDiff(gARad, globalRad) < radDiff(gBRad, globalRad) ? aRad : bRad;
+    }
+  
+    function getRad(aPos, bPos) {
+      
+       return Math.atan2(bPos.y - aPos.y, bPos.x - aPos.x);
+    }
+
+    function Rad2Pos(rad, dist) {
+
+        return {
+            x: Math.cos(rad) * dist,
+            y: Math.sin(rad) * dist,
+        };
+    }
+
+    function L2G(pos) {
+
+        dePicker.style.left = pos.x + 'px';
+        dePicker.style.top = pos.y + 'px';
+
+        var br = dePicker.getBoundingClientRect();
+
+        return {x: br.left, y: br.top};
+    }
+  
+    function radDiff(aRad, bRad) {
+
+      bRad -= aRad;
+      bRad %= Math.PI*2;
+
+      if (bRad > Math.PI) bRad -= 2*Math.PI;
+      else if (bRad < -Math.PI) bRad += 2*Math.PI;
+      
+      return bRad;
+    }
+
+    function posDist(aP, bP) {
+
+        var dx = aP.x - bP.x,
+            dy = aP.y - bP.y;
+
+        return Math.sqrt(dx*dx+ dy*dy);
+    }
+}
 },{"./hands/Boxer":4,"./hands/Transformer":5,"events":3,"inherits":1}]},{},[6])(6)
 });
 
