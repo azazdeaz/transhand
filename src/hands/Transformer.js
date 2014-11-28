@@ -214,8 +214,6 @@ p._renderHandler = function () {
         minY = Math.min(p[0].y, p[1].y, p[2].y, p[3].y, po.y),
         maxY = Math.max(p[0].y, p[1].y, p[2].y, p[3].y, po.y);
 
-    this._points.forEach
-
     c.style.left = (minX - margin) + 'px';
     c.style.top = (minY - margin) + 'px';
     c.width = (maxX - minX) + (margin * 2);
@@ -246,30 +244,40 @@ p._renderHandler = function () {
     ctx.stroke();
     ctx.restore();
 
+
+
+    //hitboxes
+
+    this._deOriginHit.style.left = (po.x - this._rotateFingerDist) + 'px';
+    this._deOriginHit.style.top = (po.y - this._rotateFingerDist) + 'px';
+
+    var hbp = '';
+    hbp += p[0].x + ',' + p[0].y + ' ';
+    hbp += p[1].x + ',' + p[1].y + ' ';
+    hbp += p[2].x + ',' + p[2].y + ' ';
+    hbp += p[3].x + ',' + p[3].y;
+    this._deHitbox.setAttribute('points', hbp);
 };
 
 p._refreshHitbox = function () {
 
-    var base = this._base, 
-        params = this._params,
-        po = this._pOrigin,
-        rfd = this._rotateFingerDist,
-        leftScale = (base.w * params.ox * (params.sx-1)),
-        topScale = (base.h * params.oy * (params.sy-1)),
-        w = (base.w * params.sx),
-        h = (base.h * params.sy),
-        ox = rfd + (w * params.ox),
-        oy = rfd + (h * params.oy);
+    // var base = this._base, 
+    //     params = this._params,
+    //     po = this._pOrigin,
+    //     leftScale = (base.w * params.ox * (params.sx-1)),
+    //     topScale = (base.h * params.oy * (params.sy-1)),
+    //     w = (base.w * params.sx),
+    //     h = (base.h * params.sy),
+    //     ox = rfd + (w * params.ox),
+    //     oy = rfd + (h * params.oy);
 
-    this._deOriginHit.style.left = (po.x - rfd) + 'px';
-    this._deOriginHit.style.top = (po.y - rfd) + 'px';
 
-    this._deHitbox.style.left = (-rfd + base.x + params.tx - leftScale) + 'px';
-    this._deHitbox.style.top = (-rfd + base.y + params.ty - topScale) + 'px';
-    this._deHitbox.style.width = w + 'px';
-    this._deHitbox.style.height = h + 'px';
-    this._deHitbox.style.transformOrigin = ox + 'px ' + oy + 'px';
-    this._deHitbox.style.transform = 'rotate(' + this._params.rz + 'rad)'; 
+    // this._deHitbox.style.left = (-rfd + base.x + params.tx - leftScale) + 'px';
+    // this._deHitbox.style.top = (-rfd + base.y + params.ty - topScale) + 'px';
+    // this._deHitbox.style.width = w + 'px';
+    // this._deHitbox.style.height = h + 'px';
+    // this._deHitbox.style.transformOrigin = ox + 'px ' + oy + 'px';
+    // this._deHitbox.style.transform = 'rotate(' + this._params.rz + 'rad)'; 
 };
 
 
@@ -568,7 +576,9 @@ p._setCursor = function (cursor) {
 
 p._getRotateCursor = function (mx, my) {
 
-    var r = Math.atan2(my - this._pOrigin.y, mx - this._pOrigin.x) / Math.PI * 180;
+    var po = this._th.L2G(this._pOrigin),
+        r = Math.atan2(my - po.y, mx - po.x) / Math.PI * 180;
+
     return 'url(\'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" ><path transform="rotate('+r+', 16, 16)" d="M18.907 3.238l-7.54-2.104s8.35 3.9 8.428 15.367c.08 11.794-7.807 14.49-7.807 14.49l7.363-1.725" stroke="#000" stroke-width="2.054" fill="none"/></svg>\') 16 16, auto';
 };
 
@@ -578,9 +588,14 @@ p._getScaleCursor = (function () {
 
     return function () {
 
-        var rBase = FINGERS.indexOf(this._finger) * 45;
+        var sideDeg = FINGERS.indexOf(this._finger) * 45,
+            po = this._th.L2G(this._pOrigin),
+            oTweak = {x: this._pOrigin.x + 1234, y: this._pOrigin.y},
+            pot = this._th.L2G(oTweak),
+            baseRad = Math.atan2(pot.y - po.y, pot.x - po.x) + this._params.rz,
+            r = sideDeg + (baseRad / Math.PI * 180);
 
-        var r = rBase + (this._params.rz / Math.PI * 180);
+
         return 'url(\'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32"><path transform="rotate('+r+', 16, 16)" d="M22.406 12.552l5.88 4.18H3.677l5.728 4.36" stroke="#000" stroke-width="2.254" fill="none"/></svg>\') 16 16, auto';
     };
 }());
@@ -607,32 +622,39 @@ p.createGraphics = function () {
     this._deFullHit.style.height = '100%';
     this.domElem.appendChild(this._deFullHit);
 
-    var onFitstMove = function () {
+    var onFirstMove = function () {
 
         this._onOverHitbox();
-        this._deHitbox.removeEventListener('mousemove', onFitstMove);
-        this._deOriginHit.removeEventListener('mousemove', onFitstMove);
+        this._deHitbox.removeEventListener('mousemove', onFirstMove);
+        this._deOriginHit.removeEventListener('mousemove', onFirstMove);
     }.bind(this);
 
-    var createHitbox = function () {
+    var addHitboxEvents = function (de) {
 
-        var de = document.createElement('div');
-        de.style.position = 'absolute';
         de.style.pointerEvents = 'auto';
-        de.style.border = this._rotateFingerDist + 'px solid rgba(0,0,0,0)';
-        de.style.borderRadius = this._rotateFingerDist + 'px';
         de.addEventListener('mouseenter', this._onOverHitbox);
         de.addEventListener('mouseleave', this._onOutHitbox);
-        de.addEventListener('mousemove', onFitstMove);
-        this.domElem.appendChild(de);
+        de.addEventListener('mousemove', onFirstMove);
 
         return de;
     }.bind(this);
 
-    this._deOriginHit = createHitbox();
-    this._deHitbox = createHitbox();
-};
+    this._deOriginHit = addHitboxEvents(document.createElement('div'));
+    this._deOriginHit.style.position = 'absolute';
+    this._deOriginHit.style.border = this._rotateFingerDist + 'px solid rgba(234,0,0,0)';
+    this._deOriginHit.style.borderRadius = this._rotateFingerDist + 'px';
+    this.domElem.appendChild(this._deOriginHit);
 
+    this._svgRoot = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    this._svgRoot.style.overflow = 'visible';
+    this.domElem.appendChild(this._svgRoot);
+
+    this._deHitbox = addHitboxEvents(document.createElementNS('http://www.w3.org/2000/svg', 'polygon'));
+    this._deHitbox.style.strokeWidth = this._rotateFingerDist * 2;
+    this._deHitbox.style.stroke = 'rgb(234,0,0)';
+    this._deHitbox.style.strokeLinejoin = 'round';
+    this._svgRoot.appendChild(this._deHitbox);
+};
 
 module.exports = Transformer;
 

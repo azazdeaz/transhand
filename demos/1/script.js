@@ -6,9 +6,11 @@ var div0 = createDiv({top: '123px', left: '123px', width: '223px', height: '223p
     {tx: 0, ty: 0, sx: 1, sy: 1, rz: 1, ox: 0.5, oy: 0.5},
     document.body);
 
-createDiv({top: '123px', left: '123px', width: '123px', height: '123px', background: 'darkred'},
+var div1 = createDiv({top: '123px', left: '123px', width: '123px', height: '123px', background: 'darkred'},
     {tx: 0, ty: 0, sx: 1, sy: 1, rz: 1, ox: 0.5, oy: 0.5},
     div0);
+
+handler.setLocalRoot(div1);
 
 handler.on('change', onChangeHandler);
 
@@ -22,6 +24,9 @@ function onClickWindow(e) {
     if (e.target._handlerDemo) {
 
         currDomElem = e.target;
+        
+
+        handler.setLocalRoot(currDomElem.parentNode);
         focusHandler();
     }
     else if (e.target.nodeName === 'BODY') {
@@ -33,8 +38,6 @@ function onClickWindow(e) {
 function focusHandler() {
 
     if (currDomElem._handlerDemo === 'transformer') {
-
-        handler.setLocalRoot(currDomElem.parentNode);
         
         handler.setup({
             hand: {

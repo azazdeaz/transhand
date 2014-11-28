@@ -131,7 +131,8 @@ p._setFinger = function (e) {
 
     if (hitAnchor) {
 
-        if (alt) finger = 'reset_handlers';
+        if (alt && ctrl) finger = 'convert_anchore';
+        else if (alt) finger = 'reset_handlers';
         else if (ctrl) finger = 'delete_anchor';
         else finger = 'move_anchor';
     }

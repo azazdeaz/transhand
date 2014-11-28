@@ -88,7 +88,9 @@ p.L2G = function (p) {
     this._deLocalRootPicker.style.left = p.x + 'px';
     this._deLocalRootPicker.style.top = p.y + 'px';
 
+    document.body.appendChild(this._deLocalRoot);
     var br = this._deLocalRootPicker.getBoundingClientRect();
+    document.body.removeChild(this._deLocalRoot);
 
     return {
         x: br.left,
@@ -102,16 +104,20 @@ p.G2L = function (p) {
         return p;
     }
 
-    document.body.appendChild(this._deLocalRootPicker);
+    document.body.appendChild(this._deLocalRoot);
     var ret = nastyLocal2Global(p, this._deLocalRootPicker);
-    document.body.removeChild(this._deLocalRootPicker);
-
+    document.body.removeChild(this._deLocalRoot);
+    console.log('G2L', p, '>', ret)
     return ret;
 };
 
 p.setLocalRoot = function (de) {
 
-    var that = this, deRoot = getDiv();
+    var that = this, 
+        deRoot = getDiv(), 
+        dePicker = getDiv();
+
+    deRoot.appendChild(dePicker);
 
     if (this._deLocalRoot) {
         disassemble(this._deLocalRoot);
@@ -119,8 +125,9 @@ p.setLocalRoot = function (de) {
     assemble(de);
 
     this._deLocalRoot = deRoot;
-    this._deLocalRootPicker = this._deLocalRootPicker || getDiv();
-    this._deLocalRoot.appendChild(this._deLocalRootPicker);
+    this._deLocalRootPicker = dePicker;
+    this._deLocalRootPicker.setAttribute('picker', 1);
+    // document.body.appendChild(this._deLocalRoot);
 
     function assemble(de) {
 
@@ -136,6 +143,9 @@ p.setLocalRoot = function (de) {
         if (de.style.transform) {
             transformed = true;
             deRoot.style.transform = de.style.transform;
+            //for the transform-origin
+            deRoot.style.width = (parseInt(deRoot.style.width || 0) + de.offsetWidth) + 'px';
+            deRoot.style.height = (parseInt(deRoot.style.height || 0) + de.offsetHeight) + 'px';
             
             if (de.style.transformOrigin) {
                 deRoot.style.transformOrigin = de.style.transformOrigin;
@@ -171,16 +181,20 @@ p.setLocalRoot = function (de) {
         de.removeAttribute('style');
         that._buffMockDiv.push(de);
 
-        var parent = de.parentNode;
-        if (parent) {
-            parent.removeChild(de);            
-            disassemble(parent);
+        var child = de.firstChild;
+        if (child) {
+            de.removeChild(child);            
+            disassemble(child);
         }
     }
 
     function getDiv() {
         
-        return that._buffMockDiv.pop() || document.createElement('div');
+        var de = that._buffMockDiv.pop() || document.createElement('div');
+        de.style.position = 'absolute';
+        de.setAttribute('mock', 1);
+
+        return de;
     }
 }
 
