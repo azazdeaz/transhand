@@ -651,7 +651,8 @@ p.createGraphics = function () {
 
     this._deHitbox = addHitboxEvents(document.createElementNS('http://www.w3.org/2000/svg', 'polygon'));
     this._deHitbox.style.strokeWidth = this._rotateFingerDist * 2;
-    this._deHitbox.style.stroke = 'rgb(234,0,0)';
+    this._deHitbox.style.stroke = 'rgba(0,0,0,0)';
+    this._deHitbox.style.fill = 'rgba(0,0,0,0)';
     this._deHitbox.style.strokeLinejoin = 'round';
     this._svgRoot.appendChild(this._deHitbox);
 };
@@ -690,16 +691,17 @@ function dist2(v, w) {
 }
 
 function distToSegmentSquared(p, v, w) {
-  var l2 = dist2(v, w);
-    
-  if (l2 === 0) return dist2(p, v);
-    
-  var t = ((p.x - v.x) * (w.x - v.x) + (p.y - v.y) * (w.y - v.y)) / l2;
-    
-  if (t < 0) return dist2(p, v);
-  if (t > 1) return dist2(p, w);
-    
-  return dist2(p, { x: v.x + t * (w.x - v.x), y: v.y + t * (w.y - v.y) });
+
+    var l2 = dist2(v, w);
+
+    if (l2 === 0) return dist2(p, v);
+
+    var t = ((p.x - v.x) * (w.x - v.x) + (p.y - v.y) * (w.y - v.y)) / l2;
+
+    if (t < 0) return dist2(p, v);
+    if (t > 1) return dist2(p, w);
+
+    return dist2(p, { x: v.x + t * (w.x - v.x), y: v.y + t * (w.y - v.y) });
 }
 
 function distToSegment(p, v, w) { 
