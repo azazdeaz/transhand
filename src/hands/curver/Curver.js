@@ -31,6 +31,18 @@ function Curver() {
     this._handlerRadius = 2;
     this._color = 'aqua';
 
+    this._actionMap = {
+        {target: 'anchor', action: 'move_anchor'},
+        {target: 'anchor', action: 'delete_anchor', ctrl: true},
+        {target: 'anchor', action: 'reset_anchor', alt: true},
+        {target: 'handler', action: 'move_handler'},
+        {target: 'handler', action: 'break_handler', ctrl: true},
+        {target: 'curve', action: 'add_anchor'},
+        {target: 'curve', action: 'drag_path', ctrl: true},
+        {target: 'curve', action: 'rotate_path', alt: true},
+        {target: 'curve', action: 'scale_path', ctrl: true, alt: true},
+    };
+
     this._onDrag = this._onDrag.bind(this);
     this._onMouseUp = this._onMouseUp.bind(this);
     this._onMouseMove = this._onMouseMove.bind(this);
@@ -83,7 +95,7 @@ this._clonePath = function (srcPath) {
 
     srcPath.forEach(function (srcPoint) {
 
-        var point = this._buffPoint.pop() || {};
+        var point = this._createPoint();
         point.x = srcPoint.x;
         point.y = srcPoint.y;
         path.push(point);
@@ -96,6 +108,11 @@ this._recyclePath = function (path) {
 
     this._buffPoint.push.apply(this._buffPoint, path.splice(0));
     this._buffPath.push(path);
+};
+
+this._createPoint = function () {
+
+    return this._buffPoint.pop() || {};
 };
 
 
@@ -119,38 +136,38 @@ p._setFinger = function (e) {
         ctrl = e.ctrlKey,
         mx = e.clientX,
         my = e.clientY,
-        hitCurve = !!ctx.getImageData(mx, my, 1, 1).data[3],
-        hitPoint = this._gtHitPoint(mx, my),
+        hitCurve = this._getHitCurve(mx, my),
+        hitPoint = this._getHitPoint(mx, my),
         hitPointIdx = this._path.indexOf(hitPoint),
         hitAnchor = hitPointIdx !== -1 && hitPointIdx % 3 === 0,
         hitHandler = hitPointIdx !== -1 && hitPointIdx % 3 !== 0;
 
     }, this);
 
-    var finger = false;
+    var target = false;
 
     if (hitAnchor) {
 
-        if (alt && ctrl) finger = 'convert_anchore';
-        else if (alt) finger = 'reset_handlers';
-        else if (ctrl) finger = 'delete_anchor';
-        else finger = 'move_anchor';
+        target = 'anchor';
     }
     else if (hitHandler) {
 
-        else if (ctrl) finger = 'break_handler';
-        else finger = 'move_handler';
+        target = 'handler';
     }
     else if (hitCurve) {
-
-        if (ctrl && alt) finger = 'scale_path';
-        else if (alt) finger = 'rotate_path';
-        else if (ctrl) finger = 'drag_path';
-        else finger = 'add_anchor';
+     
+        target = 'curve';
     }
 
-    this._finger = finger;
+    this._finger = _.where(this._actions, {
+        target: target,
+        ctrl: ctrl,
+        alt: alt,
+        shift: shift,
+    });
 };
+
+
 
 p._onMouseDown = function (e) {
 
@@ -163,12 +180,15 @@ p._onMouseDown = function (e) {
 
     var mx = e.clientX,
         my = e.clientY,
+        finger = this._finger,
         hitPoint = this._gtHitPoint(mx, my),
         hitPointIdx = this._path.indexOf(hitPoint);
 
-    if (finger === 'add_anchor') {
+    if (finger.action === 'add_anchor') {
 
-        // this.emit('addAnchore'//...?
+        this._insertAnchore(this._currCurveIdx, mx, my);
+
+        this._currPointIdx = 
     }
 
     var hitCurve = !!ctx.getImageData(x, y, 1, 1).data[3];
@@ -195,6 +215,20 @@ p._onMouseDown = function (e) {
     window.addEventListener('mouseleave', this._onMouseUp);
     window.addEventListener('mousemove', this._onDrag);
 };
+
+p._insertAnchor = function(idx, x, y) {
+
+
+
+    this.emit('splice', {
+        idx: this._hitCurveIdx + 1,
+        points: [
+            {x: mx, y: my},
+            {x: mx, y: my},
+            {x: mx, y: my},
+        ],
+    };
+}
 
 p._onDrag = function (e) {
 
@@ -253,8 +287,6 @@ p._rafOnDrag = function () {
         change.w = md.params.w - dx;
     }
 
-
-
     this.emit('change', change, 'transform');
 };
 
@@ -305,7 +337,34 @@ p._getHitPoint = function (x, y) {
 
         return dist <= handlerRadius;
     });
-}
+};
+
+p._getHitCurve = function (x, y) {
+
+    var minDist = 3, 
+        points = this._points,
+        dist, curveIdx,
+        currDist,
+        curve = [];
+
+    for (var i = 0, l = points.length; i < l; i += 3) {
+
+        curve[0] = points[i];
+        curve[1] = points[i+1];
+        curve[2] = points[i+2];
+        curve[3] = points[i+3];
+
+        currDist = jsBezier.distanceFromCurve(point, curve).distance;
+
+        if (currDist <= minDist && (dist === undefined || currDist < dist)) {
+
+            curveIdx = i;
+            dist = currDist;
+        }
+    }
+
+    return curveIdx;
+};
 
 p._renderHandler = function () {
 
