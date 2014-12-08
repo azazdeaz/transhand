@@ -2,6 +2,7 @@
 
 var Transformer = require('./hands/Transformer');
 var Boxer = require('./hands/Boxer');
+var Curver = require('./hands/curver/Curver');
 var EventEmitter = require('events').EventEmitter;
 var inherits = require('inherits');
 
@@ -15,7 +16,7 @@ function Transhand() {
 
     this._buffMockDiv = [];
 
-    [Transformer, Boxer].forEach(function (Hand) {
+    [Transformer, Boxer, Curver].forEach(function (Hand) {
 
         var hand = new Hand(this);
 

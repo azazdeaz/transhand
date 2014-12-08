@@ -31,7 +31,7 @@ function Curver() {
     this._handlerRadius = 2;
     this._color = 'aqua';
 
-    this._actionMap = {
+    this._actions = [
         {target: 'anchor', action: 'move_anchor'},
         {target: 'anchor', action: 'delete_anchor', ctrl: true},
         {target: 'anchor', action: 'reset_anchor', alt: true},
@@ -41,7 +41,7 @@ function Curver() {
         {target: 'curve', action: 'drag_path', ctrl: true},
         {target: 'curve', action: 'rotate_path', alt: true},
         {target: 'curve', action: 'scale_path', ctrl: true, alt: true},
-    };
+    ];
 
     this._onDrag = this._onDrag.bind(this);
     this._onMouseUp = this._onMouseUp.bind(this);
@@ -142,8 +142,6 @@ p._setFinger = function (e) {
         hitAnchor = hitPointIdx !== -1 && hitPointIdx % 3 === 0,
         hitHandler = hitPointIdx !== -1 && hitPointIdx % 3 !== 0;
 
-    }, this);
-
     var target = false;
 
     if (hitAnchor) {
@@ -159,12 +157,15 @@ p._setFinger = function (e) {
         target = 'curve';
     }
 
-    this._finger = _.where(this._actions, {
-        target: target,
-        ctrl: ctrl,
-        alt: alt,
-        shift: shift,
+    this._finger = this._actions.find(function (action) {
+
+        return action.target === target &&
+            (!!action.ctrl) === ctrl &&
+            (!!action.alt) === alt &&
+            (!!action.shift) === shift;
     });
+
+    this.setCursor((this._finger && this._finger.cursor) || 'auto');
 };
 
 
@@ -188,7 +189,7 @@ p._onMouseDown = function (e) {
 
         this._insertAnchore(this._currCurveIdx, mx, my);
 
-        this._currPointIdx = 
+        // this._currPointIdx = 
     }
 
     var hitCurve = !!ctx.getImageData(x, y, 1, 1).data[3];
@@ -227,7 +228,7 @@ p._insertAnchor = function(idx, x, y) {
             {x: mx, y: my},
             {x: mx, y: my},
         ],
-    };
+    });
 }
 
 p._onDrag = function (e) {
@@ -399,7 +400,7 @@ p._renderHandler = function () {
     ctxCH.lineWidth = 2;
 
     ctx.moveTo(param[0].x, param[0].y);
-    for (i = 1, l = params.length; i < l; += 3) {
+    for (i = 1, l = params.length; i < l; i += 3) {
 
         ctx.bezierCurveTo(
             param[i].x, param[i].y,
@@ -412,7 +413,7 @@ p._renderHandler = function () {
             param[i+2].x, param[i+2].y);
     }
 
-    for (i = 1, l = params.length; i < l; += 2) {
+    for (i = 1, l = params.length; i < l; i += 2) {
 
         ctx.beginPath();
         ctx.moveTo(param[i].x, param[i].y);
