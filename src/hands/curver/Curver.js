@@ -66,6 +66,7 @@ Curver.id = 'curver';
 
 inherits(Curver, EventEmitter);
 var p = Curver.prototype;
+module.exports = Curver;
 
 p.setup = function (opt) {
 
@@ -137,7 +138,7 @@ this._emitChange = (function () {
     function flat () {/*TODO*/}
     function svgPath () {/*TODO*/}
     function clone () {/*TODO*/}
-};
+}());
 
 
 
@@ -405,7 +406,7 @@ p._renderHandler = function () {
         if (!point.leftHandler.de) createHandler(point.leftHandler);
         if (!point.rightHandler.de) createHandler(point.rightHandler);
 
-        cmd = 'M' + point[0].anchore.x + ',' + point[0].anchore.y + ' ';{
+        cmd = 'M' + point[0].anchore.x + ',' + point[0].anchore.y + ' ';
         cmd += 'C' + point.handlerRight.x + ',' + point.handlerRight.y + ' ';
         cmd += pointB.handlerLeft.x + ',' + pointB.handlerLeft.y + ' ';
         cmd += pointB.anchore.x + ',' + pointB.anchore.y + ' ';
@@ -505,8 +506,7 @@ p._renderHandler = function () {
 
 p._setCursor = function (cursor) {
 
-    this._deBox.style.cursor = cursor;
-    this._deFullHit.style.cursor = cursor
+    this.domElem.style.cursor = cursor;
 };
 
 
@@ -517,9 +517,6 @@ p._setCursor = function (cursor) {
 
 p.createGraphics = function () {
 
-    this._domElem = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-    this._domElem.style.overflow = 'visible';
+    this.domElem = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    this.domElem.style.overflow = 'visible';
 };
-
-
-module.exports = Curver;

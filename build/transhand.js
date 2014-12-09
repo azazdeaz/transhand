@@ -7118,6 +7118,343 @@ function isUndefined(arg) {
 },{}],4:[function(require,module,exports){
 'use strict';
 
+var Transformer = require('./hands/Transformer');
+var Boxer = require('./hands/Boxer');
+var Curver = require('./hands/curver/Curver');
+var EventEmitter = require('events').EventEmitter;
+var inherits = require('inherits');
+
+function Transhand() {
+
+    EventEmitter.call(this);
+
+    this.hands = {};
+
+    this._createDomElem();
+
+    this._buffMockDiv = [];
+
+    [Transformer, Boxer, Curver].forEach(function (Hand) {
+
+        var hand = new Hand(this);
+
+        hand.on('change', this.emit.bind(this, 'change'));
+
+        this.hands[Hand.id] = hand;
+    }, this);
+}
+
+inherits(Transhand, EventEmitter);
+var p = Transhand.prototype;
+module.exports = Transhand;
+
+p.setup = function (opt) {
+
+    var hand = this.hands[opt.hand.type];
+
+    if (this._currHand && this._currHand !== hand) {
+
+        this.deactivate();
+    }
+
+    if (hand) {
+
+        hand.setup(opt.hand);
+        this._currHand = hand;
+    }
+    else {
+        throw 'Unknown hand type: ' + opt.hand.type;
+    }
+
+    if (typeof(opt.on) === 'object') {
+
+        Object.keys(opt.on).forEach(function (eventType) {
+
+            this.on(eventType, opt.on[eventType]);
+        }, this);
+    }
+};
+
+p.activate = function () {
+
+    if (this._currHand) {
+
+        this._currHand.activate();
+        
+        this.domElem.appendChild(this._currHand.domElem);
+    }
+};
+
+p.deactivate = function () {
+
+    if (this._currHand) {
+
+        this._currHand.deactivate();
+
+        if (this._currHand.domElem.parentNode === this.domElem) {
+
+            this.domElem.removeChild(this._currHand.domElem);
+        }
+    }
+};
+
+p.L2G = function (p) {
+
+    if (!this._deLocalRootPicker) {
+        return p;
+    }
+
+    this._deLocalRootPicker.style.left = p.x + 'px';
+    this._deLocalRootPicker.style.top = p.y + 'px';
+
+    document.body.appendChild(this._deLocalRoot);
+    var br = this._deLocalRootPicker.getBoundingClientRect();
+    document.body.removeChild(this._deLocalRoot);
+
+    return {
+        x: br.left,
+        y: br.top,
+    }
+};
+
+p.G2L = function (p) {
+
+    if (!this._deLocalRootPicker) {
+        return p;
+    }
+
+    document.body.appendChild(this._deLocalRoot);
+    var ret = nastyLocal2Global(p, this._deLocalRootPicker);
+    document.body.removeChild(this._deLocalRoot);
+    console.log('G2L', p, '>', ret)
+    return ret;
+};
+
+p.setLocalRoot = function (de) {
+
+    var that = this, 
+        deRoot = getDiv(), 
+        dePicker = getDiv();
+
+    deRoot.appendChild(dePicker);
+
+    if (this._deLocalRoot) {
+        disassemble(this._deLocalRoot);
+    }
+    assemble(de);
+
+    this._deLocalRoot = deRoot;
+    this._deLocalRootPicker = dePicker;
+    this._deLocalRootPicker.setAttribute('picker', 1);
+    // document.body.appendChild(this._deLocalRoot);
+
+    function assemble(de) {
+
+        var transformed;
+
+        if (de.offsetLeft) {
+            deRoot.style.left = (parseInt(deRoot.style.left || 0) + de.offsetLeft) + 'px'
+        }
+        if (de.offsetTop) {
+            deRoot.style.top = (parseInt(deRoot.style.top || 0) + de.offsetTop) + 'px'
+        }
+
+        if (de.style.transform) {
+            transformed = true;
+            deRoot.style.transform = de.style.transform;
+            //for the transform-origin
+            deRoot.style.width = (parseInt(deRoot.style.width || 0) + de.offsetWidth) + 'px';
+            deRoot.style.height = (parseInt(deRoot.style.height || 0) + de.offsetHeight) + 'px';
+            
+            if (de.style.transformOrigin) {
+                deRoot.style.transformOrigin = de.style.transformOrigin;
+            }
+        }
+        if (de.style.prespective) {
+            transformed = true;
+            deRoot.style.prespective = de.style.prespective;
+            
+            if (de.style.prespectiveOrigin) {
+                deRoot.style.prespectiveOrigin = de.style.prespectiveOrigin;
+            }
+        }
+        if (de.style.transformStyle) {
+            transformed = true;
+            deRoot.style.transformStyle = de.style.transformStyle;
+        }
+
+        if (transformed) {
+
+            var parent = getDiv();
+            parent.appendChild(deRoot);
+            deRoot = parent;
+        }
+
+        if (de.parentNode &&  de.parentNode.nodeName !== '#document' && de.parentNode.nodeName !== 'HTML') {
+            assemble(de.parentNode);
+        }
+    }
+
+    function disassemble(de) {
+
+        de.removeAttribute('style');
+        that._buffMockDiv.push(de);
+
+        var child = de.firstChild;
+        if (child) {
+            de.removeChild(child);            
+            disassemble(child);
+        }
+    }
+
+    function getDiv() {
+        
+        var de = that._buffMockDiv.pop() || document.createElement('div');
+        de.style.position = 'absolute';
+        de.setAttribute('mock', 1);
+
+        return de;
+    }
+}
+
+
+
+p._createDomElem = function () {
+
+    this.domElem = document.createElement('div');
+    this.domElem.style.position = 'fixed';
+    this.domElem.style.pointerEvents = 'none';
+    this.domElem.style.left = '0px';
+    this.domElem.style.top = '0px';
+    this.domElem.style.width = '100%';
+    this.domElem.style.height = '100%';
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+function nastyLocal2Global (mPos, dePicker) {
+
+    var tweakDist = 128,
+        tweakDistStep = 0,
+        tweakRad = Math.PI / 2,
+        dist = tweakDist * 2,
+        rad = 0,
+        nullPos = {x:0, y: 0},
+        globalNullPos = L2G(nullPos),
+        globalRad = getRad(globalNullPos, mPos),
+        globalDist = posDist(globalNullPos, mPos);
+
+    while (tweakRad > .000001) {
+
+        var globalTestRad = getRad(mPos, L2G(Rad2Pos(rad, tweakDist)));
+
+        if (radDiff(globalRad, globalTestRad) < 0) {
+
+            rad += tweakRad;
+        }
+        else {
+            rad -= tweakRad;
+        }
+
+        tweakRad /= 2;
+    }
+
+
+    while (posDist(globalNullPos, L2G(Rad2Pos(rad, dist + 2*tweakDist))) < globalDist && dist < tweakDist * 64) {
+
+        dist += 4*tweakDist;
+    }
+    
+    while (tweakDist > 1) {
+
+        if (posDist(globalNullPos, L2G(Rad2Pos(rad, dist))) < globalDist) {
+
+            dist += tweakDist;
+        }
+        else {
+            dist -= tweakDist;
+        }
+
+        tweakDist /= 2;
+    }
+  
+    return Rad2Pos(rad, dist);
+  
+    
+  
+  
+    function closestRad(aRad, bRad) {
+
+        var aPos = L2G(Rad2Pos(aRad, tweakDist)),
+            bPos = L2G(Rad2Pos(bRad, tweakDist)),
+            gARad = getRad(globalNullPos, aPos),
+            gBRad = getRad(globalNullPos, bPos);
+
+      
+        $('#s0').css('left', aPos.x);
+        $('#s0').css('top', aPos.y);
+        $('#s1').css('left', bPos.x);
+        $('#s1').css('top', bPos.y);
+
+      return radDiff(gARad, globalRad) < radDiff(gBRad, globalRad) ? aRad : bRad;
+    }
+  
+    function getRad(aPos, bPos) {
+      
+       return Math.atan2(bPos.y - aPos.y, bPos.x - aPos.x);
+    }
+
+    function Rad2Pos(rad, dist) {
+
+        return {
+            x: Math.cos(rad) * dist,
+            y: Math.sin(rad) * dist,
+        };
+    }
+
+    function L2G(pos) {
+
+        dePicker.style.left = pos.x + 'px';
+        dePicker.style.top = pos.y + 'px';
+
+        var br = dePicker.getBoundingClientRect();
+
+        return {x: br.left, y: br.top};
+    }
+  
+    function radDiff(aRad, bRad) {
+
+      bRad -= aRad;
+      bRad %= Math.PI*2;
+
+      if (bRad > Math.PI) bRad -= 2*Math.PI;
+      else if (bRad < -Math.PI) bRad += 2*Math.PI;
+      
+      return bRad;
+    }
+
+    function posDist(aP, bP) {
+
+        var dx = aP.x - bP.x,
+            dy = aP.y - bP.y;
+
+        return Math.sqrt(dx*dx+ dy*dy);
+    }
+}
+},{"./hands/Boxer":5,"./hands/Transformer":6,"./hands/curver/Curver":7,"events":3,"inherits":1}],5:[function(require,module,exports){
+'use strict';
+
 var EventEmitter = require('events').EventEmitter;
 var inherits = require('inherits');
 var _ = require('lodash');
@@ -7453,7 +7790,7 @@ p.createGraphics = function () {
 
 
 module.exports = Boxer;
-},{"events":3,"inherits":1,"lodash":2}],5:[function(require,module,exports){
+},{"events":3,"inherits":1,"lodash":2}],6:[function(require,module,exports){
 'use strict';
 
 var EventEmitter = require('events').EventEmitter;
@@ -8107,7 +8444,8 @@ p.createGraphics = function () {
 
     this._deHitbox = addHitboxEvents(document.createElementNS('http://www.w3.org/2000/svg', 'polygon'));
     this._deHitbox.style.strokeWidth = this._rotateFingerDist * 2;
-    this._deHitbox.style.stroke = 'rgb(234,0,0)';
+    this._deHitbox.style.stroke = 'rgba(0,0,0,0)';
+    this._deHitbox.style.fill = 'rgba(0,0,0,0)';
     this._deHitbox.style.strokeLinejoin = 'round';
     this._svgRoot.appendChild(this._deHitbox);
 };
@@ -8146,16 +8484,17 @@ function dist2(v, w) {
 }
 
 function distToSegmentSquared(p, v, w) {
-  var l2 = dist2(v, w);
-    
-  if (l2 === 0) return dist2(p, v);
-    
-  var t = ((p.x - v.x) * (w.x - v.x) + (p.y - v.y) * (w.y - v.y)) / l2;
-    
-  if (t < 0) return dist2(p, v);
-  if (t > 1) return dist2(p, w);
-    
-  return dist2(p, { x: v.x + t * (w.x - v.x), y: v.y + t * (w.y - v.y) });
+
+    var l2 = dist2(v, w);
+
+    if (l2 === 0) return dist2(p, v);
+
+    var t = ((p.x - v.x) * (w.x - v.x) + (p.y - v.y) * (w.y - v.y)) / l2;
+
+    if (t < 0) return dist2(p, v);
+    if (t > 1) return dist2(p, w);
+
+    return dist2(p, { x: v.x + t * (w.x - v.x), y: v.y + t * (w.y - v.y) });
 }
 
 function distToSegment(p, v, w) { 
@@ -8195,343 +8534,955 @@ function isInside(point, vs) {
     
     return inside;
 }
-},{"events":3,"inherits":1,"lodash":2}],6:[function(require,module,exports){
+},{"events":3,"inherits":1,"lodash":2}],7:[function(require,module,exports){
 'use strict';
 
-var Transformer = require('./hands/Transformer');
-var Boxer = require('./hands/Boxer');
 var EventEmitter = require('events').EventEmitter;
 var inherits = require('inherits');
+var _ = require('lodash');
+var jsBezier = require('./jsBezier');
 
-function Transhand() {
+var MOUSESTATES = {
+    'move': 'move',
+    '1000': 'ns-resize',
+    '1100': 'nesw-resize',
+    '0100': 'ew-resize',
+    '0110': 'nwse-resize',
+    '0010': 'ns-resize',
+    '0011': 'nesw-resize',
+    '0001': 'ew-resize',
+    '1001': 'nwse-resize',
+};
+
+// point: {
+//     anchore: {x: 0, y: 0, color: 'deepskyblue'},
+//     leftHandler: {x: 0, y: 0, color: 'tomato'},
+//     rightHandler: {x: 0, y: 0, color: 'tomato'},
+//     linked: true,
+//     close: true,
+// }
+
+var INIT_PARAMS = [];
+
+function Curver() {
 
     EventEmitter.call(this);
 
-    this.hands = {};
+    this._params = _.clone(INIT_PARAMS);
 
-    this._createDomElem();
+    this._buffPoint = [];
+    this._buffPath = [];
 
-    this._buffMockDiv = [];
+    this._handlerRadius = 2;
+    this._pathColor = 'aqua';
+    this._pathAnchore = 'aqua';
+    this._pathHandler = 'aqua';
 
-    [Transformer, Boxer].forEach(function (Hand) {
+    this._actions = [
+        {target: 'anchor', action: 'move_anchor'},
+        {target: 'anchor', action: 'delete_anchor', ctrl: true},
+        {target: 'anchor', action: 'reset_anchor', alt: true},
+        {target: 'handler', action: 'move_handler'},
+        {target: 'handler', action: 'break_handler', ctrl: true},
+        {target: 'curve', action: 'add_anchor'},
+        {target: 'curve', action: 'drag_path', ctrl: true},
+        {target: 'curve', action: 'rotate_path', alt: true},
+        {target: 'curve', action: 'scale_path', ctrl: true, alt: true},
+    ];
 
-        var hand = new Hand(this);
-
-        hand.on('change', this.emit.bind(this, 'change'));
-
-        this.hands[Hand.id] = hand;
-    }, this);
+    this._onDrag = this._onDrag.bind(this);
+    this._onMouseUp = this._onMouseUp.bind(this);
+    this._onMouseMove = this._onMouseMove.bind(this);
+    this._onMouseDown = this._onMouseDown.bind(this);
+    this._rafOnDrag = this._rafOnDrag.bind(this);
+    this._onOverHitbox = this._onOverHitbox.bind(this);
+    this._onOutHitbox = this._onOutHitbox.bind(this);
 }
 
-inherits(Transhand, EventEmitter);
-var p = Transhand.prototype;
-module.exports = Transhand;
+Curver.id = 'curver';
+
+inherits(Curver, EventEmitter);
+var p = Curver.prototype;
+module.exports = Curver;
 
 p.setup = function (opt) {
 
-    var hand = this.hands[opt.hand.type];
-
-    if (this._currHand && this._currHand !== hand) {
-
-        this.deactivate();
+    if (!this.domElem) {
+        this.createGraphics();
     }
 
-    if (hand) {
+    this._path = opt.path;
 
-        hand.setup(opt.hand);
-        this._currHand = hand;
-    }
-    else {
-        throw 'Unknown hand type: ' + opt.hand.type;
-    }
-
-    if (typeof(opt.on) === 'object') {
-
-        Object.keys(opt.on).forEach(function (eventType) {
-
-            this.on(eventType, opt.on[eventType]);
-        }, this);
-    }
+    this._renderHandler();
 };
 
 p.activate = function () {
 
-    if (this._currHand) {
+    if (this._isActivated) return;
+    this._isActivated = true;
 
-        this._currHand.activate();
-        
-        this.domElem.appendChild(this._currHand.domElem);
-    }
+    window.addEventListener('mousemove', this._onMouseMove);
+    this._deBox.addEventListener('mousedown', this._onMouseDown);
 };
 
 p.deactivate = function () {
 
-    if (this._currHand) {
-
-        this._currHand.deactivate();
-
-        if (this._currHand.domElem.parentNode === this.domElem) {
-
-            this.domElem.removeChild(this._currHand.domElem);
-        }
-    }
+    if (!this._isActivated) return;
+    this._isActivated = false;
+    
+    window.removeEventListener('mousemove', this._onMouseMove);
+    this._deBox.removeEventListener('mousedown', this._onMouseDown);
 };
 
-p.L2G = function (p) {
 
-    if (!this._deLocalRootPicker) {
-        return p;
+
+this._emitChange = (function () {
+
+    return function (detailes) {
+
+        this.emit('change', {
+            path: this._path,
+            detailes: detailes,
+            flatPoints: flatPoints,
+            flat: flat,
+            svgPath: svgPath,
+            clone: clone,
+        });
     }
 
-    this._deLocalRootPicker.style.left = p.x + 'px';
-    this._deLocalRootPicker.style.top = p.y + 'px';
+    function flatPoints() {
 
-    document.body.appendChild(this._deLocalRoot);
-    var br = this._deLocalRootPicker.getBoundingClientRect();
-    document.body.removeChild(this._deLocalRoot);
-
-    return {
-        x: br.left,
-        y: br.top,
-    }
-};
-
-p.G2L = function (p) {
-
-    if (!this._deLocalRootPicker) {
-        return p;
-    }
-
-    document.body.appendChild(this._deLocalRoot);
-    var ret = nastyLocal2Global(p, this._deLocalRootPicker);
-    document.body.removeChild(this._deLocalRoot);
-    console.log('G2L', p, '>', ret)
-    return ret;
-};
-
-p.setLocalRoot = function (de) {
-
-    var that = this, 
-        deRoot = getDiv(), 
-        dePicker = getDiv();
-
-    deRoot.appendChild(dePicker);
-
-    if (this._deLocalRoot) {
-        disassemble(this._deLocalRoot);
-    }
-    assemble(de);
-
-    this._deLocalRoot = deRoot;
-    this._deLocalRootPicker = dePicker;
-    this._deLocalRootPicker.setAttribute('picker', 1);
-    // document.body.appendChild(this._deLocalRoot);
-
-    function assemble(de) {
-
-        var transformed;
-
-        if (de.offsetLeft) {
-            deRoot.style.left = (parseInt(deRoot.style.left || 0) + de.offsetLeft) + 'px'
-        }
-        if (de.offsetTop) {
-            deRoot.style.top = (parseInt(deRoot.style.top || 0) + de.offsetTop) + 'px'
-        }
-
-        if (de.style.transform) {
-            transformed = true;
-            deRoot.style.transform = de.style.transform;
-            //for the transform-origin
-            deRoot.style.width = (parseInt(deRoot.style.width || 0) + de.offsetWidth) + 'px';
-            deRoot.style.height = (parseInt(deRoot.style.height || 0) + de.offsetHeight) + 'px';
-            
-            if (de.style.transformOrigin) {
-                deRoot.style.transformOrigin = de.style.transformOrigin;
-            }
-        }
-        if (de.style.prespective) {
-            transformed = true;
-            deRoot.style.prespective = de.style.prespective;
-            
-            if (de.style.prespectiveOrigin) {
-                deRoot.style.prespectiveOrigin = de.style.prespectiveOrigin;
-            }
-        }
-        if (de.style.transformStyle) {
-            transformed = true;
-            deRoot.style.transformStyle = de.style.transformStyle;
-        }
-
-        if (transformed) {
-
-            var parent = getDiv();
-            parent.appendChild(deRoot);
-            deRoot = parent;
-        }
-
-        if (de.parentNode &&  de.parentNode.nodeName !== '#document' && de.parentNode.nodeName !== 'HTML') {
-            assemble(de.parentNode);
-        }
-    }
-
-    function disassemble(de) {
-
-        de.removeAttribute('style');
-        that._buffMockDiv.push(de);
-
-        var child = de.firstChild;
-        if (child) {
-            de.removeChild(child);            
-            disassemble(child);
-        }
-    }
-
-    function getDiv() {
+        var ret = [];
         
-        var de = that._buffMockDiv.pop() || document.createElement('div');
-        de.style.position = 'absolute';
-        de.setAttribute('mock', 1);
+        this.path.forEach(function (point) {
+
+            ret.push({
+                x: point.handlerLeft.x,
+                y: point.handlerLeft.y 
+            });
+            ret.push({
+                x: point.anchore.x,
+                y: point.anchore.y 
+            });
+            ret.push({
+                x: point.handlerright.x,
+                y: point.handlerright.y 
+            });
+        });
+
+        return ret;
+    }
+    function flat () {/*TODO*/}
+    function svgPath () {/*TODO*/}
+    function clone () {/*TODO*/}
+}());
+
+
+
+
+
+
+
+p._onMouseMove = function (e) {
+
+    if (!this._isHandle && this._isOverHitbox) {
+        
+        this._setFinger(e);
+    }
+};
+
+p._setFinger = function (e) {
+
+    var shift = e.shiftKey,
+        alt = e.altKey,
+        ctrl = e.ctrlKey,
+        mx = e.clientX,
+        my = e.clientY,
+        hitCurve = this._getHitCurve(mx, my),
+        hitPoint = this._getHitPoint(mx, my),
+        hitPointIdx = this._path.indexOf(hitPoint),
+        hitAnchor = hitPointIdx !== -1 && hitPointIdx % 3 === 0,
+        hitHandler = hitPointIdx !== -1 && hitPointIdx % 3 !== 0;
+
+    var target = false;
+
+    if (hitAnchor) {
+
+        target = 'anchor';
+    }
+    else if (hitHandler) {
+
+        target = 'handler';
+    }
+    else if (hitCurve) {
+     
+        target = 'curve';
+    }
+
+    this._finger = this._actions.find(function (action) {
+
+        return action.target === target &&
+            (!!action.ctrl) === ctrl &&
+            (!!action.alt) === alt &&
+            (!!action.shift) === shift;
+    });
+
+    this.setCursor((this._finger && this._finger.cursor) || 'auto');
+};
+
+
+
+p._onMouseDown = function (e) {
+
+    if (!this._finger) {
+        return;
+    }
+
+    e.stopPropagation();
+    e.preventDefault();
+
+    var mx = e.clientX,
+        my = e.clientY,
+        finger = this._finger,
+        hitPoint = this._gtHitPoint(mx, my),
+        hitPointIdx = this._path.indexOf(hitPoint);
+
+    if (finger.action === 'add_anchor') {
+
+        this._insertAnchore(this._currCurveIdx, mx, my);
+
+        // this._currPointIdx = 
+    }
+
+    var hitCurve = !!ctx.getImageData(x, y, 1, 1).data[3];
+    var hitPoint = this._params.find(function (point) {
+
+        var dx = point.x - e.clientX,
+            dy = point.y - e.clientY,
+            dist = Math.sqrt(dx*dx + dy*dy);
+
+        return dist <= handlerRadius;
+    });
+
+    this._isHandle = true;
+
+    this._deFullHit.style.pointerEvents = 'auto';
+
+    this._mdPos = {
+        mx: e.clientX, 
+        my: e.clientY,
+        params: _.clone(this._params),
+    };
+
+    window.addEventListener('mouseup', this._onMouseUp);
+    window.addEventListener('mouseleave', this._onMouseUp);
+    window.addEventListener('mousemove', this._onDrag);
+};
+
+p._insertAnchor = function(idx, x, y) {
+
+
+
+    this.emit('splice', {
+        idx: this._hitCurveIdx + 1,
+        points: [
+            {x: mx, y: my},
+            {x: mx, y: my},
+            {x: mx, y: my},
+        ],
+    });
+}
+
+p._onDrag = function (e) {
+
+    this._onDragMe = e;
+
+    if (!this._rafOnDragRafId) {
+
+        this._rafOnDragRafId = requestAnimationFrame(this._rafOnDrag);
+    }
+};
+
+p._rafOnDrag = function () {
+
+    var e = this._onDragMe;
+    this._onDragMe = undefined;
+
+    window.cancelAnimationFrame(this._rafOnDragRafId);
+    this._rafOnDragRafId = undefined;
+
+    var params = this._params,
+        md = this._mdPos,
+        finger = this._finger,
+        mx = e.clientX, 
+        my = e.clientY,
+        dx = mx - md.mx,
+        dy = my - md.my,
+        change = {};
+
+
+        
+    if (finger === 'move') {
+
+        change.x = md.params.x + dx;
+        change.y = md.params.y + dy;
+    }
+    
+    if (finger.charAt(0) === '1') {
+
+        change.y = md.params.y + dy;
+        change.h = md.params.h - dy;
+    }
+
+    if (finger.charAt(1) === '1') {
+
+        change.w = md.params.w + dx;
+    }
+
+    if (finger.charAt(2) === '1') {
+
+        change.h = md.params.h + dy;
+    }
+
+    if (finger.charAt(3) === '1') {
+
+        change.x = md.params.x + dx;
+        change.w = md.params.w - dx;
+    }
+
+    this.emit('change', change, 'transform');
+};
+
+
+
+p._onMouseUp = function () {
+
+    window.removeEventListener('mouseup', this._onMouseUp);
+    window.removeEventListener('mouseleave', this._onMouseUp);
+    window.removeEventListener('mousemove', this._onDrag);
+
+    if (this._rafOnDragRafId) {
+        this._rafOnDrag();
+    }
+    
+    this._isHandle = false;
+
+    this._deFullHit.style.pointerEvents = 'none';
+};
+
+p._onOverHitbox = function () {
+
+    this._isOverHitbox = true;
+};
+
+p._onOutHitbox = function () {
+
+    this._isOverHitbox = false;
+};
+
+
+
+
+
+
+
+
+
+p._getHitPoint = function (x, y) {
+
+    var handlerRadius = this._handlerRadius;
+
+    return this._points.find(function (point, idx) {
+
+        var dx = point.x - x,
+            dy = point.y - y,
+            dist = Math.sqrt(dx*dx + dy*dy);
+
+        return dist <= handlerRadius;
+    });
+};
+
+p._getHitCurve = function (x, y) {
+
+    var minDist = 3, 
+        points = this._points,
+        dist, curveIdx,
+        currDist,
+        curve = [];
+
+    for (var i = 0, l = points.length; i < l; i += 3) {
+
+        curve[0] = points[i];
+        curve[1] = points[i+1];
+        curve[2] = points[i+2];
+        curve[3] = points[i+3];
+
+        currDist = jsBezier.distanceFromCurve(point, curve).distance;
+
+        if (currDist <= minDist && (dist === undefined || currDist < dist)) {
+
+            curveIdx = i;
+            dist = currDist;
+        }
+    }
+
+    return curveIdx;
+};
+
+p._renderHandler = function () {
+
+    var that = this, i, l, point, pointB, cmd;
+
+    for (i = 0, l = this._path.length - 1; i < l; ++i) {
+
+        point = this._path[i];
+        pointB = this._path[i+1];
+
+        if (!point.de) createPath(point);
+        if (!point.anchore.de) createAnchore(point.anchore);
+        if (!point.leftHandler.de) createHandler(point.leftHandler);
+        if (!point.rightHandler.de) createHandler(point.rightHandler);
+
+        cmd = 'M' + point[0].anchore.x + ',' + point[0].anchore.y + ' ';
+        cmd += 'C' + point.handlerRight.x + ',' + point.handlerRight.y + ' ';
+        cmd += pointB.handlerLeft.x + ',' + pointB.handlerLeft.y + ' ';
+        cmd += pointB.anchore.x + ',' + pointB.anchore.y + ' ';
+        point.de.setAttribute('d', cmd);
+
+        moveCircle(point.anchore);
+
+        moveCircle(point.leftHandler);
+        moveLine(point.leftHandler, point.anchore);
+
+        moveCircle(point.rightHandler);
+        moveLine(point.rightHandler, point.anchore);
+    }
+
+
+
+
+    function createPath(opt) {
+
+        opt._de = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        opt._de.style.stroke = opt.color || that._pathColor;
+        opt._de.style.strokeWidth = '5';
+        opt._de.style.fill = 'none';
+        that._dePathCont.appendChild(opt._de);
+    }
+
+    function createAnchore(opt) {
+
+        opt._de = createCircle(opt.color || that._anchoreColor);
+        that._deAnchoreCont.appendChild(opt._de);
+    }
+
+    function createHandler(opt) {
+
+        opt._de = createCircle(opt.color || that._handlerColor);
+        that._deHandlerCont.appendChild(opt._de);
+
+        opt._deLine = createLine(opt.color || that._handlerColor);
+        that._deHandlerCont.appendChild(opt._deLine);
+    }
+
+    function createCircle(color) {
+
+        var de = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        de.setAttribute('r', 12);
+        de.style.fill = color;
 
         return de;
     }
-}
 
+    function createLine(color) {
 
+        var de = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        de.style.stroke = opt.color || that._pathColor;
+        de.style.strokeWidth = '1';
+        de.style.pointerEvents = 'none';
 
-p._createDomElem = function () {
-
-    this.domElem = document.createElement('div');
-    this.domElem.style.position = 'fixed';
-    this.domElem.style.pointerEvents = 'none';
-    this.domElem.style.left = '0px';
-    this.domElem.style.top = '0px';
-    this.domElem.style.width = '100%';
-    this.domElem.style.height = '100%';
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-function nastyLocal2Global (mPos, dePicker) {
-
-    var tweakDist = 128,
-        tweakDistStep = 0,
-        tweakRad = Math.PI / 2,
-        dist = tweakDist * 2,
-        rad = 0,
-        nullPos = {x:0, y: 0},
-        globalNullPos = L2G(nullPos),
-        globalRad = getRad(globalNullPos, mPos),
-        globalDist = posDist(globalNullPos, mPos);
-
-    while (tweakRad > .000001) {
-
-        var globalTestRad = getRad(mPos, L2G(Rad2Pos(rad, tweakDist)));
-
-        if (radDiff(globalRad, globalTestRad) < 0) {
-
-            rad += tweakRad;
-        }
-        else {
-            rad -= tweakRad;
-        }
-
-        tweakRad /= 2;
+        return de;
     }
 
+    function moveCircle(pt) {
 
-    while (posDist(globalNullPos, L2G(Rad2Pos(rad, dist + 2*tweakDist))) < globalDist && dist < tweakDist * 64) {
+        pt._de.setAttribute('cx', pt.x);
+        pt._de.setAttribute('cy', pt.y);
+    }
 
-        dist += 4*tweakDist;
+    function moveLine(pt1, pt2) {
+
+        pt1._deLine.setAttribute('x1', pt1.x);
+        pt1._deLine.setAttribute('y1', pt1.y);
+        pt1._deLine.setAttribute('x2', pt2.x);
+        pt1._deLine.setAttribute('y2', pt2.y);
+    }
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+p._setCursor = function (cursor) {
+
+    this.domElem.style.cursor = cursor;
+};
+
+
+
+
+
+
+
+p.createGraphics = function () {
+
+    this.domElem = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    this.domElem.style.overflow = 'visible';
+};
+},{"./jsBezier":8,"events":3,"inherits":1,"lodash":2}],8:[function(require,module,exports){
+/**
+* jsBezier-0.6
+*
+* Copyright (c) 2010 - 2013 Simon Porritt (simon.porritt@gmail.com)
+*
+* licensed under the MIT license.
+* 
+* a set of Bezier curve functions that deal with Beziers, used by jsPlumb, and perhaps useful for other people.  These functions work with Bezier
+* curves of arbitrary degree.
+*
+* - functions are all in the 'jsBezier' namespace.  
+* 
+* - all input points should be in the format {x:.., y:..}. all output points are in this format too.
+* 
+* - all input curves should be in the format [ {x:.., y:..}, {x:.., y:..}, {x:.., y:..}, {x:.., y:..} ]
+* 
+* - 'location' as used as an input here refers to a decimal in the range 0-1 inclusive, which indicates a point some proportion along the length
+* of the curve.  location as output has the same format and meaning.
+* 
+* 
+* Function List:
+* --------------
+* 
+* distanceFromCurve(point, curve)
+* 
+*   Calculates the distance that the given point lies from the given Bezier.  Note that it is computed relative to the center of the Bezier,
+* so if you have stroked the curve with a wide pen you may wish to take that into account!  The distance returned is relative to the values 
+* of the curve and the point - it will most likely be pixels.
+* 
+* gradientAtPoint(curve, location)
+* 
+*   Calculates the gradient to the curve at the given location, as a decimal between 0 and 1 inclusive.
+*
+* gradientAtPointAlongCurveFrom (curve, location)
+*
+*   Calculates the gradient at the point on the given curve that is 'distance' units from location. 
+* 
+* nearestPointOnCurve(point, curve) 
+* 
+*   Calculates the nearest point to the given point on the given curve.  The return value of this is a JS object literal, containing both the
+*point's coordinates and also the 'location' of the point (see above), for example:  { point:{x:551,y:150}, location:0.263365 }.
+* 
+* pointOnCurve(curve, location)
+* 
+*   Calculates the coordinates of the point on the given Bezier curve at the given location.  
+*       
+* pointAlongCurveFrom(curve, location, distance)
+* 
+*   Calculates the coordinates of the point on the given curve that is 'distance' units from location.  'distance' should be in the same coordinate
+* space as that used to construct the Bezier curve.  For an HTML Canvas usage, for example, distance would be a measure of pixels.
+*
+* locationAlongCurveFrom(curve, location, distance)
+* 
+*   Calculates the location on the given curve that is 'distance' units from location.  'distance' should be in the same coordinate
+* space as that used to construct the Bezier curve.  For an HTML Canvas usage, for example, distance would be a measure of pixels.
+* 
+* perpendicularToCurveAt(curve, location, length, distance)
+* 
+*   Calculates the perpendicular to the given curve at the given location.  length is the length of the line you wish for (it will be centered
+* on the point at 'location'). distance is optional, and allows you to specify a point along the path from the given location as the center of
+* the perpendicular returned.  The return value of this is an array of two points: [ {x:...,y:...}, {x:...,y:...} ].  
+*  
+* 
+*/
+
+(function() {
+    
+    if(typeof Math.sgn == "undefined") {
+        Math.sgn = function(x) { return x == 0 ? 0 : x > 0 ? 1 :-1; };
     }
     
-    while (tweakDist > 1) {
+    var Vectors = {
+            subtract    :   function(v1, v2) { return {x:v1.x - v2.x, y:v1.y - v2.y }; },
+            dotProduct  :   function(v1, v2) { return (v1.x * v2.x)  + (v1.y * v2.y); },
+            square      :   function(v) { return Math.sqrt((v.x * v.x) + (v.y * v.y)); },
+            scale       :   function(v, s) { return {x:v.x * s, y:v.y * s }; }
+        },
+        
+        maxRecursion = 64, 
+        flatnessTolerance = Math.pow(2.0,-maxRecursion-1);
 
-        if (posDist(globalNullPos, L2G(Rad2Pos(rad, dist))) < globalDist) {
+    /**
+     * Calculates the distance that the point lies from the curve.
+     * 
+     * @param point a point in the form {x:567, y:3342}
+     * @param curve a Bezier curve in the form [{x:..., y:...}, {x:..., y:...}, {x:..., y:...}, {x:..., y:...}].  note that this is currently
+     * hardcoded to assume cubiz beziers, but would be better off supporting any degree. 
+     * @return a JS object literal containing location and distance, for example: {location:0.35, distance:10}.  Location is analogous to the location
+     * argument you pass to the pointOnPath function: it is a ratio of distance travelled along the curve.  Distance is the distance in pixels from
+     * the point to the curve. 
+     */
+    var _distanceFromCurve = function(point, curve) {
+        var candidates = [],     
+            w = _convertToBezier(point, curve),
+            degree = curve.length - 1, higherDegree = (2 * degree) - 1,
+            numSolutions = _findRoots(w, higherDegree, candidates, 0),
+            v = Vectors.subtract(point, curve[0]), dist = Vectors.square(v), t = 0.0;
 
-            dist += tweakDist;
+        for (var i = 0; i < numSolutions; i++) {
+            v = Vectors.subtract(point, _bezier(curve, degree, candidates[i], null, null));
+            var newDist = Vectors.square(v);
+            if (newDist < dist) {
+                dist = newDist;
+                t = candidates[i];
+            }
         }
-        else {
-            dist -= tweakDist;
+        v = Vectors.subtract(point, curve[degree]);
+        newDist = Vectors.square(v);
+        if (newDist < dist) {
+            dist = newDist;
+            t = 1.0;
         }
-
-        tweakDist /= 2;
-    }
-  
-    return Rad2Pos(rad, dist);
-  
+        return {location:t, distance:dist};
+    };
+    /**
+     * finds the nearest point on the curve to the given point.
+     */
+    var _nearestPointOnCurve = function(point, curve) {    
+        var td = _distanceFromCurve(point, curve);
+        return {point:_bezier(curve, curve.length - 1, td.location, null, null), location:td.location};
+    };
+    var _convertToBezier = function(point, curve) {
+        var degree = curve.length - 1, higherDegree = (2 * degree) - 1,
+            c = [], d = [], cdTable = [], w = [],
+            z = [ [1.0, 0.6, 0.3, 0.1], [0.4, 0.6, 0.6, 0.4], [0.1, 0.3, 0.6, 1.0] ];   
+            
+        for (var i = 0; i <= degree; i++) c[i] = Vectors.subtract(curve[i], point);
+        for (var i = 0; i <= degree - 1; i++) { 
+            d[i] = Vectors.subtract(curve[i+1], curve[i]);
+            d[i] = Vectors.scale(d[i], 3.0);
+        }
+        for (var row = 0; row <= degree - 1; row++) {
+            for (var column = 0; column <= degree; column++) {
+                if (!cdTable[row]) cdTable[row] = [];
+                cdTable[row][column] = Vectors.dotProduct(d[row], c[column]);
+            }
+        }
+        for (i = 0; i <= higherDegree; i++) {
+            if (!w[i]) w[i] = [];
+            w[i].y = 0.0;
+            w[i].x = parseFloat(i) / higherDegree;
+        }
+        var n = degree, m = degree-1;
+        for (var k = 0; k <= n + m; k++) {
+            var lb = Math.max(0, k - m),
+                ub = Math.min(k, n);
+            for (i = lb; i <= ub; i++) {
+                j = k - i;
+                w[i+j].y += cdTable[j][i] * z[j][i];
+            }
+        }
+        return w;
+    };
+    /**
+     * counts how many roots there are.
+     */
+    var _findRoots = function(w, degree, t, depth) {  
+        var left = [], right = [],  
+            left_count, right_count,    
+            left_t = [], right_t = [];
+            
+        switch (_getCrossingCount(w, degree)) {
+            case 0 : {  
+                return 0;   
+            }
+            case 1 : {  
+                if (depth >= maxRecursion) {
+                    t[0] = (w[0].x + w[degree].x) / 2.0;
+                    return 1;
+                }
+                if (_isFlatEnough(w, degree)) {
+                    t[0] = _computeXIntercept(w, degree);
+                    return 1;
+                }
+                break;
+            }
+        }
+        _bezier(w, degree, 0.5, left, right);
+        left_count  = _findRoots(left,  degree, left_t, depth+1);
+        right_count = _findRoots(right, degree, right_t, depth+1);
+        for (var i = 0; i < left_count; i++) t[i] = left_t[i];
+        for (var i = 0; i < right_count; i++) t[i+left_count] = right_t[i];    
+        return (left_count+right_count);
+    };
+    var _getCrossingCount = function(curve, degree) {
+        var n_crossings = 0, sign, old_sign;                
+        sign = old_sign = Math.sgn(curve[0].y);
+        for (var i = 1; i <= degree; i++) {
+            sign = Math.sgn(curve[i].y);
+            if (sign != old_sign) n_crossings++;
+            old_sign = sign;
+        }
+        return n_crossings;
+    };
+    var _isFlatEnough = function(curve, degree) {
+        var  error,
+            intercept_1, intercept_2, left_intercept, right_intercept,
+            a, b, c, det, dInv, a1, b1, c1, a2, b2, c2;
+        a = curve[0].y - curve[degree].y;
+        b = curve[degree].x - curve[0].x;
+        c = curve[0].x * curve[degree].y - curve[degree].x * curve[0].y;
     
-  
-  
-    function closestRad(aRad, bRad) {
+        var max_distance_above = max_distance_below = 0.0;
+        
+        for (var i = 1; i < degree; i++) {
+            var value = a * curve[i].x + b * curve[i].y + c;       
+            if (value > max_distance_above)
+                max_distance_above = value;
+            else if (value < max_distance_below)
+                max_distance_below = value;
+        }
+        
+        a1 = 0.0; b1 = 1.0; c1 = 0.0; a2 = a; b2 = b;
+        c2 = c - max_distance_above;
+        det = a1 * b2 - a2 * b1;
+        dInv = 1.0/det;
+        intercept_1 = (b1 * c2 - b2 * c1) * dInv;
+        a2 = a; b2 = b; c2 = c - max_distance_below;
+        det = a1 * b2 - a2 * b1;
+        dInv = 1.0/det;
+        intercept_2 = (b1 * c2 - b2 * c1) * dInv;
+        left_intercept = Math.min(intercept_1, intercept_2);
+        right_intercept = Math.max(intercept_1, intercept_2);
+        error = right_intercept - left_intercept;
+        return (error < flatnessTolerance)? 1 : 0;
+    };
+    var _computeXIntercept = function(curve, degree) {
+        var XLK = 1.0, YLK = 0.0,
+            XNM = curve[degree].x - curve[0].x, YNM = curve[degree].y - curve[0].y,
+            XMK = curve[0].x - 0.0, YMK = curve[0].y - 0.0,
+            det = XNM*YLK - YNM*XLK, detInv = 1.0/det,
+            S = (XNM*YMK - YNM*XMK) * detInv; 
+        return 0.0 + XLK * S;
+    };
+    var _bezier = function(curve, degree, t, left, right) {
+        var temp = [[]];
+        for (var j =0; j <= degree; j++) temp[0][j] = curve[j];
+        for (var i = 1; i <= degree; i++) { 
+            for (var j =0 ; j <= degree - i; j++) {
+                if (!temp[i]) temp[i] = [];
+                if (!temp[i][j]) temp[i][j] = {};
+                temp[i][j].x = (1.0 - t) * temp[i-1][j].x + t * temp[i-1][j+1].x;
+                temp[i][j].y = (1.0 - t) * temp[i-1][j].y + t * temp[i-1][j+1].y;
+            }
+        }    
+        if (left != null) 
+            for (j = 0; j <= degree; j++) left[j]  = temp[j][0];
+        if (right != null)
+            for (j = 0; j <= degree; j++) right[j] = temp[degree-j][j];
+        
+        return (temp[degree][0]);
+    };
+    
+    var _curveFunctionCache = {};
+    var _getCurveFunctions = function(order) {
+        var fns = _curveFunctionCache[order];
+        if (!fns) {
+            fns = [];           
+            var f_term = function() { return function(t) { return Math.pow(t, order); }; },
+                l_term = function() { return function(t) { return Math.pow((1-t), order); }; },
+                c_term = function(c) { return function(t) { return c; }; },
+                t_term = function() { return function(t) { return t; }; },
+                one_minus_t_term = function() { return function(t) { return 1-t; }; },
+                _termFunc = function(terms) {
+                    return function(t) {
+                        var p = 1;
+                        for (var i = 0; i < terms.length; i++) p = p * terms[i](t);
+                        return p;
+                    };
+                };
+            
+            fns.push(new f_term());  // first is t to the power of the curve order      
+            for (var i = 1; i < order; i++) {
+                var terms = [new c_term(order)];
+                for (var j = 0 ; j < (order - i); j++) terms.push(new t_term());
+                for (var j = 0 ; j < i; j++) terms.push(new one_minus_t_term());
+                fns.push(new _termFunc(terms));
+            }
+            fns.push(new l_term());  // last is (1-t) to the power of the curve order
+        
+            _curveFunctionCache[order] = fns;
+        }
+            
+        return fns;
+    };
+    
+    
+    /**
+     * calculates a point on the curve, for a Bezier of arbitrary order.
+     * @param curve an array of control points, eg [{x:10,y:20}, {x:50,y:50}, {x:100,y:100}, {x:120,y:100}].  For a cubic bezier this should have four points.
+     * @param location a decimal indicating the distance along the curve the point should be located at.  this is the distance along the curve as it travels, taking the way it bends into account.  should be a number from 0 to 1, inclusive.
+     */
+    var _pointOnPath = function(curve, location) {      
+        var cc = _getCurveFunctions(curve.length - 1),
+            _x = 0, _y = 0;
+        for (var i = 0; i < curve.length ; i++) {
+            _x = _x + (curve[i].x * cc[i](location));
+            _y = _y + (curve[i].y * cc[i](location));
+        }
+        
+        return {x:_x, y:_y};
+    };
+    
+    var _dist = function(p1,p2) {
+        return Math.sqrt(Math.pow(p1.x - p2.x, 2) + Math.pow(p1.y - p2.y, 2));
+    };
 
-        var aPos = L2G(Rad2Pos(aRad, tweakDist)),
-            bPos = L2G(Rad2Pos(bRad, tweakDist)),
-            gARad = getRad(globalNullPos, aPos),
-            gBRad = getRad(globalNullPos, bPos);
+    var _isPoint = function(curve) {
+        return curve[0].x == curve[1].x && curve[0].y == curve[1].y;
+    };
+    
+    /**
+     * finds the point that is 'distance' along the path from 'location'.  this method returns both the x,y location of the point and also
+     * its 'location' (proportion of travel along the path); the method below - _pointAlongPathFrom - calls this method and just returns the
+     * point.
+     */
+    var _pointAlongPath = function(curve, location, distance) {
 
-      
-        $('#s0').css('left', aPos.x);
-        $('#s0').css('top', aPos.y);
-        $('#s1').css('left', bPos.x);
-        $('#s1').css('top', bPos.y);
+        if (_isPoint(curve)) {
+            return {
+                point:curve[0],
+                location:location
+            };
+        }
 
-      return radDiff(gARad, globalRad) < radDiff(gBRad, globalRad) ? aRad : bRad;
-    }
-  
-    function getRad(aPos, bPos) {
-      
-       return Math.atan2(bPos.y - aPos.y, bPos.x - aPos.x);
-    }
+        var prev = _pointOnPath(curve, location), 
+            tally = 0, 
+            curLoc = location, 
+            direction = distance > 0 ? 1 : -1, 
+            cur = null;
+            
+        while (tally < Math.abs(distance)) {
+            curLoc += (0.005 * direction);
+            cur = _pointOnPath(curve, curLoc);
+            tally += _dist(cur, prev);  
+            prev = cur;
+        }
+        return {point:cur, location:curLoc};            
+    };
+    
+    var _length = function(curve) {
+        if (_isPoint(curve)) return 0;
 
-    function Rad2Pos(rad, dist) {
+        var prev = _pointOnPath(curve, 0),
+            tally = 0,
+            curLoc = 0,
+            direction = 1,
+            cur = null;
+            
+        while (curLoc < 1) {
+            curLoc += (0.005 * direction);
+            cur = _pointOnPath(curve, curLoc);
+            tally += _dist(cur, prev);  
+            prev = cur;
+        }
+        return tally;
+    };
+    
+    /**
+     * finds the point that is 'distance' along the path from 'location'.  
+     */
+    var _pointAlongPathFrom = function(curve, location, distance) {
+        return _pointAlongPath(curve, location, distance).point;
+    };
 
-        return {
-            x: Math.cos(rad) * dist,
-            y: Math.sin(rad) * dist,
-        };
-    }
+    /**
+     * finds the location that is 'distance' along the path from 'location'.  
+     */
+    var _locationAlongPathFrom = function(curve, location, distance) {
+        return _pointAlongPath(curve, location, distance).location;
+    };
+    
+    /**
+     * returns the gradient of the curve at the given location, which is a decimal between 0 and 1 inclusive.
+     * 
+     * thanks // http://bimixual.org/AnimationLibrary/beziertangents.html
+     */
+    var _gradientAtPoint = function(curve, location) {
+        var p1 = _pointOnPath(curve, location), 
+            p2 = _pointOnPath(curve.slice(0, curve.length - 1), location),
+            dy = p2.y - p1.y, dx = p2.x - p1.x;
+        return dy == 0 ? Infinity : Math.atan(dy / dx);     
+    };
+    
+    /**
+    returns the gradient of the curve at the point which is 'distance' from the given location.
+    if this point is greater than location 1, the gradient at location 1 is returned.
+    if this point is less than location 0, the gradient at location 0 is returned.
+    */
+    var _gradientAtPointAlongPathFrom = function(curve, location, distance) {
+        var p = _pointAlongPath(curve, location, distance);
+        if (p.location > 1) p.location = 1;
+        if (p.location < 0) p.location = 0;     
+        return _gradientAtPoint(curve, p.location);     
+    };
 
-    function L2G(pos) {
+    /**
+     * calculates a line that is 'length' pixels long, perpendicular to, and centered on, the path at 'distance' pixels from the given location.
+     * if distance is not supplied, the perpendicular for the given location is computed (ie. we set distance to zero).
+     */
+    var _perpendicularToPathAt = function(curve, location, length, distance) {
+        distance = distance == null ? 0 : distance;
+        var p = _pointAlongPath(curve, location, distance),
+            m = _gradientAtPoint(curve, p.location),
+            _theta2 = Math.atan(-1 / m),
+            y =  length / 2 * Math.sin(_theta2),
+            x =  length / 2 * Math.cos(_theta2);
+        return [{x:p.point.x + x, y:p.point.y + y}, {x:p.point.x - x, y:p.point.y - y}];
+    };
+    
+    var jsBezier = window.jsBezier = {
+        distanceFromCurve : _distanceFromCurve,
+        gradientAtPoint : _gradientAtPoint,
+        gradientAtPointAlongCurveFrom : _gradientAtPointAlongPathFrom,
+        nearestPointOnCurve : _nearestPointOnCurve,
+        pointOnCurve : _pointOnPath,        
+        pointAlongCurveFrom : _pointAlongPathFrom,
+        perpendicularToCurveAt : _perpendicularToPathAt,
+        locationAlongCurveFrom:_locationAlongPathFrom,
+        getLength:_length
+    };
 
-        dePicker.style.left = pos.x + 'px';
-        dePicker.style.top = pos.y + 'px';
-
-        var br = dePicker.getBoundingClientRect();
-
-        return {x: br.left, y: br.top};
-    }
-  
-    function radDiff(aRad, bRad) {
-
-      bRad -= aRad;
-      bRad %= Math.PI*2;
-
-      if (bRad > Math.PI) bRad -= 2*Math.PI;
-      else if (bRad < -Math.PI) bRad += 2*Math.PI;
-      
-      return bRad;
-    }
-
-    function posDist(aP, bP) {
-
-        var dx = aP.x - bP.x,
-            dy = aP.y - bP.y;
-
-        return Math.sqrt(dx*dx+ dy*dy);
-    }
-}
-},{"./hands/Boxer":4,"./hands/Transformer":5,"events":3,"inherits":1}]},{},[6])(6)
+    module.exports = jsBezier;
+})();
+},{}]},{},[4])(4)
 });
 
 

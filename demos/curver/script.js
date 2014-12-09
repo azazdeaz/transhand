@@ -21,7 +21,7 @@ var handler = new Transhand(),
         rightHandler: {x: 425, y: 200, color: 'tomato'},
     }];
 
-svg.node.appendChild(document.body);
+document.body.appendChild(svg.node);
 
 handler.setLocalRoot(document.body);
 

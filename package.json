@@ -4,7 +4,7 @@
   "description": "A transform tool for web applications",
   "main": "src/Transhand.js",
   "scripts": {
-    "build": "browserify src/transhand.js --standalone Transhand --debug | exorcist build/transhand.js.map > build/transhand.js"
+    "build": "browserify src/Transhand.js --standalone Transhand --debug | exorcist build/transhand.js.map > build/transhand.js"
   },
   "repository": {
     "type": "git",
