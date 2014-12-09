@@ -1,61 +1,45 @@
 
 var handler = new Transhand(),
     currDomElem;
+    svg = new Snap(),
+    svgPath = svg.path(),
+    path = [{
+        anchore: {x: 100, y: 100, color: 'deepskyblue'},
+        leftHandler: {x: 75, y: 100, color: 'tomato'},
+        rightHandler: {x: 125, y: 100, color: 'tomato'},
+    }, {
+        anchore: {x: 200, y: 200, color: 'deepskyblue'},
+        leftHandler: {x: 175, y: 200, color: 'tomato'},
+        rightHandler: {x: 225, y: 200, color: 'tomato'},
+    }, {
+        anchore: {x: 300, y: 100, color: 'deepskyblue'},
+        leftHandler: {x: 275, y: 100, color: 'tomato'},
+        rightHandler: {x: 325, y: 100, color: 'tomato'},
+    }, {
+        anchore: {x: 400, y: 200, color: 'deepskyblue'},
+        leftHandler: {x: 375, y: 200, color: 'tomato'},
+        rightHandler: {x: 425, y: 200, color: 'tomato'},
+    }];
 
-var div0 = createDiv({top: '123px', left: '123px', width: '223px', height: '223px', background: 'deepskyblue'},
-    {tx: 0, ty: 0, sx: 1, sy: 1, rz: 1, ox: 0.5, oy: 0.5},
-    document.body);
+svg.node.appendChild(document.body);
 
-var div1 = createDiv({top: '123px', left: '123px', width: '123px', height: '123px', background: 'darkred'},
-    {tx: 0, ty: 0, sx: 1, sy: 1, rz: 1, ox: 0.5, oy: 0.5},
-    div0);
-
-handler.setLocalRoot(div1);
+handler.setLocalRoot(document.body);
 
 handler.on('change', onChangeHandler);
 
+focusHandler()
+
 document.body.appendChild(handler.domElem);
-
-window.addEventListener('click', onClickWindow)
-
-
-function onClickWindow(e) {
-
-    if (e.target._handlerDemo) {
-
-        currDomElem = e.target;
-        
-
-        handler.setLocalRoot(currDomElem.parentNode);
-        focusHandler();
-    }
-    else if (e.target.nodeName === 'BODY') {
-        currDomElem = undefined;
-        handler.deactivate();
-    }
-}
 
 function focusHandler() {
 
-    if (currDomElem._handlerDemo === 'transformer') {
-        
-        handler.setup({
-            hand: {
-                type: 'transformer',
-                base: currDomElem._handlerBase,
-                params: currDomElem._handlerParams
-            }
-        });
-    }
-    else if (currDomElem._handlerDemo === 'boxer') {
-
-        handler.setup({
-            hand: {
-                type: 'boxer',
-                params: currDomElem._handlerParams
-            }
-        });
-    }
+    handler.setup({
+        hand: {
+            type: 'curver',
+            autoRefresh: true,
+            path: path
+        }
+    });
 
     handler.activate();
 }
@@ -64,82 +48,25 @@ function onChangeHandler(change) {
 
     console.log('change event:', change);
 
-    Object.keys(change).forEach(function (name) {
+    path = change;
 
-        currDomElem._handlerParams[name] = change[name];
-    });
-
-    focusHandler();
-
-    if (currDomElem._handlerDemo === 'transformer') {
-
-        applyTransform(currDomElem);
-    }
-    else if (currDomElem._handlerDemo === 'boxer') {
-        
-        applyLayout(currDomElem);
-    }
+    this.renderPath(path);
 }
 
-function applyTransform(de) {
+function renderPath(path) {
 
-    var params = de._handlerParams,
-        cssTransform = '';
+    var p = shape.points, pa, pb,
+        cmd = 'M' + p[0].anchore.x + ',' + p[0].anchore.y + ' ';
 
-    cssTransform += ' translateX(' + params.tx + 'px)';
-    cssTransform += ' translateY(' + params.ty + 'px)';
-    cssTransform += ' rotate(' + params.rz + 'rad)';
-    cssTransform += ' scaleX(' + params.sx + ')';
-    cssTransform += ' scaleY(' + params.sy + ')';
+    for (var i = 1; i < p.length; ++i) {
 
-    de.style.transform = cssTransform;
-    de.style.transformOrigin = (params.ox * 100) + '% ' + (params.oy * 100) + '%';
-}
+        pa = p[i-1];
+        pb = p[i];
 
-function applyLayout(de) {
-
-    var params = de._handlerParams;
-
-    de.style.left = params.x + 'px';
-    de.style.top = params.y + 'px';
-    de.style.width = params.w + 'px';
-    de.style.height = params.h + 'px';
-}
-
-function createShape (color, points) {
-
-    var s = new Snap();
-
-    for (var paramName in css) {
-
-        div.style[paramName] = css[paramName];
+        cmd += 'C' + pa.handlerRight.x + ',' + pa.handlerRight.y + ' ';
+        cmd += pb.handlerLeft.x + ',' + pb.handlerLeft.y + ' ';
+        cmd += pb.anchore.x + ',' + pb.anchore.y + ' ';
     }
-    div.style.position = 'absolute';
-        
-    div._handlerBase = {
-        x: div.offsetLeft,
-        y: div.offsetTop,
-        w: div.offsetWidth,
-        h: div.offsetHeight,
-    };
 
-    div._handlerDemo = 'transformer';
-    div._handlerParams = params;
-
-    applyTransform(div);
-
-    return div;
-};
-
-function renderShape(shape) {
-
-    var p = shape.points,
-        cmd = 'M' + p[0].x + ',' + p[0].y + ' ';
-
-    for (var i = 1; i < shape.points.length; i += 3) {
-
-        cmd += 'C' + p[i].x + ',' + p[i].y + ' ';
-        cmd += p[i+1].x + ',' + p[i+1].y + ' ';
-        cmd += p[i+2].x + ',' + p[i+2].y + ' ';
-    }
+    svgPath.attr({d: cmd});
 }

@@ -17,6 +17,14 @@ var MOUSESTATES = {
     '1001': 'nwse-resize',
 };
 
+// point: {
+//     anchore: {x: 0, y: 0, color: 'deepskyblue'},
+//     leftHandler: {x: 0, y: 0, color: 'tomato'},
+//     rightHandler: {x: 0, y: 0, color: 'tomato'},
+//     linked: true,
+//     close: true,
+// }
+
 var INIT_PARAMS = [];
 
 function Curver() {
@@ -29,7 +37,9 @@ function Curver() {
     this._buffPath = [];
 
     this._handlerRadius = 2;
-    this._color = 'aqua';
+    this._pathColor = 'aqua';
+    this._pathAnchore = 'aqua';
+    this._pathHandler = 'aqua';
 
     this._actions = [
         {target: 'anchor', action: 'move_anchor'},
@@ -63,8 +73,7 @@ p.setup = function (opt) {
         this.createGraphics();
     }
 
-    this._recyclePath(this._path);
-    this._path = this._clonePath(opt.path);
+    this._path = opt.path;
 
     this._renderHandler();
 };
@@ -89,30 +98,45 @@ p.deactivate = function () {
 
 
 
-this._clonePath = function (srcPath) {
+this._emitChange = (function () {
 
-    var path = this._buffPath.pop() || [];
+    return function (detailes) {
 
-    srcPath.forEach(function (srcPoint) {
+        this.emit('change', {
+            path: this._path,
+            detailes: detailes,
+            flatPoints: flatPoints,
+            flat: flat,
+            svgPath: svgPath,
+            clone: clone,
+        });
+    }
 
-        var point = this._createPoint();
-        point.x = srcPoint.x;
-        point.y = srcPoint.y;
-        path.push(point);
-    }, this);
+    function flatPoints() {
 
-    return path;
-};
+        var ret = [];
+        
+        this.path.forEach(function (point) {
 
-this._recyclePath = function (path) {
+            ret.push({
+                x: point.handlerLeft.x,
+                y: point.handlerLeft.y 
+            });
+            ret.push({
+                x: point.anchore.x,
+                y: point.anchore.y 
+            });
+            ret.push({
+                x: point.handlerright.x,
+                y: point.handlerright.y 
+            });
+        });
 
-    this._buffPoint.push.apply(this._buffPoint, path.splice(0));
-    this._buffPath.push(path);
-};
-
-this._createPoint = function () {
-
-    return this._buffPoint.pop() || {};
+        return ret;
+    }
+    function flat () {/*TODO*/}
+    function svgPath () {/*TODO*/}
+    function clone () {/*TODO*/}
 };
 
 
@@ -369,62 +393,92 @@ p._getHitCurve = function (x, y) {
 
 p._renderHandler = function () {
 
-    var params = this._params,
-        canvas = this.domElem,
-        ctx = this.ctxDomElem,
-        canvasCH = this._canvasCurveHit,
-        ctxCH = this._ctxCurveHit,
-        minX, minY, maxX, maxY,
-        handlerRadius = this._handlerRadius,
-        PI2 = Math.PI * 2;
-        i, buff = [];
+    var that = this, i, l, point, pointB, cmd;
 
-    params.forEach(function (point) {
+    for (i = 0, l = this._path.length - 1; i < l; ++i) {
 
-        if (minX === undefined || point.x < minX) minX = point.x;
-        if (minY === undefined || point.y < minY) minY = point.y;
-        if (maxX === undefined || point.x < maxX) maxX = point.x;
-        if (maxY === undefined || point.y < maxY) maxY = point.y;
-    });
+        point = this._path[i];
+        pointB = this._path[i+1];
 
-    canvas.style.left = minX + 'px';
-    canvas.style.top = minY + 'px';
-    canvas.width = maxX - minX;
-    canvas.height = maxY - minY;
+        if (!point.de) createPath(point);
+        if (!point.anchore.de) createAnchore(point.anchore);
+        if (!point.leftHandler.de) createHandler(point.leftHandler);
+        if (!point.rightHandler.de) createHandler(point.rightHandler);
 
-    canvasCH.width = maxX - minX;
-    canvasCH.height = maxY - minY;
+        cmd = 'M' + point[0].anchore.x + ',' + point[0].anchore.y + ' ';{
+        cmd += 'C' + point.handlerRight.x + ',' + point.handlerRight.y + ' ';
+        cmd += pointB.handlerLeft.x + ',' + pointB.handlerLeft.y + ' ';
+        cmd += pointB.anchore.x + ',' + pointB.anchore.y + ' ';
+        point.de.setAttribute('d', cmd);
 
-    ctx.strokeStyle = this._color;
+        moveCircle(point.anchore);
 
-    ctxCH.lineWidth = 2;
+        moveCircle(point.leftHandler);
+        moveLine(point.leftHandler, point.anchore);
 
-    ctx.moveTo(param[0].x, param[0].y);
-    for (i = 1, l = params.length; i < l; i += 3) {
-
-        ctx.bezierCurveTo(
-            param[i].x, param[i].y,
-            param[i+1].x, param[i+1].y,
-            param[i+2].x, param[i+2].y);
-        
-        ctxCH.bezierCurveTo(
-            param[i].x, param[i].y,
-            param[i+1].x, param[i+1].y,
-            param[i+2].x, param[i+2].y);
+        moveCircle(point.rightHandler);
+        moveLine(point.rightHandler, point.anchore);
     }
 
-    for (i = 1, l = params.length; i < l; i += 2) {
 
-        ctx.beginPath();
-        ctx.moveTo(param[i].x, param[i].y);
-        ctx.lineTo(param[i+1].x, param[i+1].y);
+
+
+    function createPath(opt) {
+
+        opt._de = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        opt._de.style.stroke = opt.color || that._pathColor;
+        opt._de.style.strokeWidth = '5';
+        opt._de.style.fill = 'none';
+        that._dePathCont.appendChild(opt._de);
     }
 
-    params.forEach(function (point) {
+    function createAnchore(opt) {
 
-        ctx.arc(point.x, point.y, handlerRadius, 0, PI2);
-    });
-    ctx.stroke();
+        opt._de = createCircle(opt.color || that._anchoreColor);
+        that._deAnchoreCont.appendChild(opt._de);
+    }
+
+    function createHandler(opt) {
+
+        opt._de = createCircle(opt.color || that._handlerColor);
+        that._deHandlerCont.appendChild(opt._de);
+
+        opt._deLine = createLine(opt.color || that._handlerColor);
+        that._deHandlerCont.appendChild(opt._deLine);
+    }
+
+    function createCircle(color) {
+
+        var de = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        de.setAttribute('r', 12);
+        de.style.fill = color;
+
+        return de;
+    }
+
+    function createLine(color) {
+
+        var de = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        de.style.stroke = opt.color || that._pathColor;
+        de.style.strokeWidth = '1';
+        de.style.pointerEvents = 'none';
+
+        return de;
+    }
+
+    function moveCircle(pt) {
+
+        pt._de.setAttribute('cx', pt.x);
+        pt._de.setAttribute('cy', pt.y);
+    }
+
+    function moveLine(pt1, pt2) {
+
+        pt1._deLine.setAttribute('x1', pt1.x);
+        pt1._deLine.setAttribute('y1', pt1.y);
+        pt1._deLine.setAttribute('x2', pt2.x);
+        pt1._deLine.setAttribute('y2', pt2.y);
+    }
 };
 
 
@@ -463,13 +517,8 @@ p._setCursor = function (cursor) {
 
 p.createGraphics = function () {
 
-    this.domElem = document.createElement('canvas');
-    this.domElem.style.pointerEvents = 'none';
-    this.ctxDomElem = this.domElem.getContext('2d');
-
-    this._canvasCurveHit = document.createElement('canvas');
-    this._canvasCurveHit.style.pointerEvents = 'none';
-    this._ctxCurveHit.getContext('2d');
+    this._domElem = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    this._domElem.style.overflow = 'visible';
 };
 
 
