@@ -4,21 +4,22 @@ var handler = new Transhand(),
     svg = new Snap(),
     svgPath = svg.path(),
     path = [{
-        anchore: {x: 100, y: 100, color: 'deepskyblue'},
-        leftHandler: {x: 75, y: 100, color: 'tomato'},
-        rightHandler: {x: 125, y: 100, color: 'tomato'},
+        anchor: {x: 100, y: 100, color: 'deepskyblue'},
+        handlerLeft: {x: 75, y: 100, color: 'tomato'},
+        handlerRight: {x: 125, y: 100, color: 'tomato'},
     }, {
-        anchore: {x: 200, y: 200, color: 'deepskyblue'},
-        leftHandler: {x: 175, y: 200, color: 'tomato'},
-        rightHandler: {x: 225, y: 200, color: 'tomato'},
+        anchor: {x: 200, y: 200, color: 'deepskyblue'},
+        handlerLeft: {x: 175, y: 200, color: 'tomato'},
+        handlerRight: {x: 225, y: 200, color: 'tomato'},
     }, {
-        anchore: {x: 300, y: 100, color: 'deepskyblue'},
-        leftHandler: {x: 275, y: 100, color: 'tomato'},
-        rightHandler: {x: 325, y: 100, color: 'tomato'},
+        anchor: {x: 300, y: 100, color: 'deepskyblue'},
+        handlerLeft: {x: 275, y: 100, color: 'tomato'},
+        handlerRight: {x: 325, y: 100, color: 'tomato'},
+        linked: true,
     }, {
-        anchore: {x: 400, y: 200, color: 'deepskyblue'},
-        leftHandler: {x: 375, y: 200, color: 'tomato'},
-        rightHandler: {x: 425, y: 200, color: 'tomato'},
+        anchor: {x: 400, y: 200, color: 'deepskyblue'},
+        handlerLeft: {x: 375, y: 200, color: 'tomato'},
+        handlerRight: {x: 425, y: 200, color: 'tomato'},
     }];
 
 document.body.appendChild(svg.node);
@@ -50,7 +51,7 @@ function onChangeHandler(change) {
 
     path = change;
 
-    this.renderPath(path);
+    // this.renderPath(path);
 }
 
 function renderPath(path) {

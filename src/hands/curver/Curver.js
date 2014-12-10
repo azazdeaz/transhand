@@ -3,7 +3,7 @@
 var EventEmitter = require('events').EventEmitter;
 var inherits = require('inherits');
 var _ = require('lodash');
-var jsBezier = require('./jsBezier');
+var makeDraggable = require('../../make-draggable');
 
 var MOUSESTATES = {
     'move': 'move',
@@ -18,28 +18,26 @@ var MOUSESTATES = {
 };
 
 // point: {
-//     anchore: {x: 0, y: 0, color: 'deepskyblue'},
-//     leftHandler: {x: 0, y: 0, color: 'tomato'},
-//     rightHandler: {x: 0, y: 0, color: 'tomato'},
+//     anchor: {x: 0, y: 0, color: 'deepskyblue'},
+//     handlerLeft: {x: 0, y: 0, color: 'tomato'},
+//     handlerRight: {x: 0, y: 0, color: 'tomato'},
 //     linked: true,
 //     close: true,
 // }
 
-var INIT_PARAMS = [];
 
 function Curver() {
 
     EventEmitter.call(this);
 
-    this._params = _.clone(INIT_PARAMS);
+    this._points = [];
 
-    this._buffPoint = [];
-    this._buffPath = [];
-
-    this._handlerRadius = 2;
-    this._pathColor = 'aqua';
-    this._pathAnchore = 'aqua';
-    this._pathHandler = 'aqua';
+    this._handlerRadius = 3;
+    this._color = {
+        path: 'aqua',
+        anchor: 'aqua',
+        handler: 'aqua',
+    };
 
     this._actions = [
         {target: 'anchor', action: 'move_anchor'},
@@ -52,14 +50,6 @@ function Curver() {
         {target: 'curve', action: 'rotate_path', alt: true},
         {target: 'curve', action: 'scale_path', ctrl: true, alt: true},
     ];
-
-    this._onDrag = this._onDrag.bind(this);
-    this._onMouseUp = this._onMouseUp.bind(this);
-    this._onMouseMove = this._onMouseMove.bind(this);
-    this._onMouseDown = this._onMouseDown.bind(this);
-    this._rafOnDrag = this._rafOnDrag.bind(this);
-    this._onOverHitbox = this._onOverHitbox.bind(this);
-    this._onOutHitbox = this._onOutHitbox.bind(this);
 }
 
 Curver.id = 'curver';
@@ -74,37 +64,39 @@ p.setup = function (opt) {
         this.createGraphics();
     }
 
-    this._path = opt.path;
+    while (this._points.length) {
 
-    this._renderHandler();
+        this._removePoint(0);
+    }
+
+    opt.path.forEach(function (point, idx) {
+
+        this._addPoint(point, idx);
+    }, this);
+
+    this.render();
 };
 
 p.activate = function () {
 
     if (this._isActivated) return;
     this._isActivated = true;
-
-    window.addEventListener('mousemove', this._onMouseMove);
-    this._deBox.addEventListener('mousedown', this._onMouseDown);
 };
 
 p.deactivate = function () {
 
     if (!this._isActivated) return;
     this._isActivated = false;
-    
-    window.removeEventListener('mousemove', this._onMouseMove);
-    this._deBox.removeEventListener('mousedown', this._onMouseDown);
 };
 
 
 
-this._emitChange = (function () {
+p._emitChange = (function () {
 
     return function (detailes) {
 
         this.emit('change', {
-            path: this._path,
+            path: this._points,
             detailes: detailes,
             flatPoints: flatPoints,
             flat: flat,
@@ -124,8 +116,8 @@ this._emitChange = (function () {
                 y: point.handlerLeft.y 
             });
             ret.push({
-                x: point.anchore.x,
-                y: point.anchore.y 
+                x: point.anchor.x,
+                y: point.anchor.y 
             });
             ret.push({
                 x: point.handlerright.x,
@@ -146,325 +138,32 @@ this._emitChange = (function () {
 
 
 
-p._onMouseMove = function (e) {
+p.render = function () {
 
-    if (!this._isHandle && this._isOverHitbox) {
+    var i, l, point, pointB, cmd;
+
+    for (i = 0, l = this._points.length; i < l; ++i) {
         
-        this._setFinger(e);
-    }
-};
-
-p._setFinger = function (e) {
-
-    var shift = e.shiftKey,
-        alt = e.altKey,
-        ctrl = e.ctrlKey,
-        mx = e.clientX,
-        my = e.clientY,
-        hitCurve = this._getHitCurve(mx, my),
-        hitPoint = this._getHitPoint(mx, my),
-        hitPointIdx = this._path.indexOf(hitPoint),
-        hitAnchor = hitPointIdx !== -1 && hitPointIdx % 3 === 0,
-        hitHandler = hitPointIdx !== -1 && hitPointIdx % 3 !== 0;
-
-    var target = false;
-
-    if (hitAnchor) {
-
-        target = 'anchor';
-    }
-    else if (hitHandler) {
-
-        target = 'handler';
-    }
-    else if (hitCurve) {
-     
-        target = 'curve';
-    }
-
-    this._finger = this._actions.find(function (action) {
-
-        return action.target === target &&
-            (!!action.ctrl) === ctrl &&
-            (!!action.alt) === alt &&
-            (!!action.shift) === shift;
-    });
-
-    this.setCursor((this._finger && this._finger.cursor) || 'auto');
-};
-
-
-
-p._onMouseDown = function (e) {
-
-    if (!this._finger) {
-        return;
-    }
-
-    e.stopPropagation();
-    e.preventDefault();
-
-    var mx = e.clientX,
-        my = e.clientY,
-        finger = this._finger,
-        hitPoint = this._gtHitPoint(mx, my),
-        hitPointIdx = this._path.indexOf(hitPoint);
-
-    if (finger.action === 'add_anchor') {
-
-        this._insertAnchore(this._currCurveIdx, mx, my);
-
-        // this._currPointIdx = 
-    }
-
-    var hitCurve = !!ctx.getImageData(x, y, 1, 1).data[3];
-    var hitPoint = this._params.find(function (point) {
-
-        var dx = point.x - e.clientX,
-            dy = point.y - e.clientY,
-            dist = Math.sqrt(dx*dx + dy*dy);
-
-        return dist <= handlerRadius;
-    });
-
-    this._isHandle = true;
-
-    this._deFullHit.style.pointerEvents = 'auto';
-
-    this._mdPos = {
-        mx: e.clientX, 
-        my: e.clientY,
-        params: _.clone(this._params),
-    };
-
-    window.addEventListener('mouseup', this._onMouseUp);
-    window.addEventListener('mouseleave', this._onMouseUp);
-    window.addEventListener('mousemove', this._onDrag);
-};
-
-p._insertAnchor = function(idx, x, y) {
-
-
-
-    this.emit('splice', {
-        idx: this._hitCurveIdx + 1,
-        points: [
-            {x: mx, y: my},
-            {x: mx, y: my},
-            {x: mx, y: my},
-        ],
-    });
-}
-
-p._onDrag = function (e) {
-
-    this._onDragMe = e;
-
-    if (!this._rafOnDragRafId) {
-
-        this._rafOnDragRafId = requestAnimationFrame(this._rafOnDrag);
-    }
-};
-
-p._rafOnDrag = function () {
-
-    var e = this._onDragMe;
-    this._onDragMe = undefined;
-
-    window.cancelAnimationFrame(this._rafOnDragRafId);
-    this._rafOnDragRafId = undefined;
-
-    var params = this._params,
-        md = this._mdPos,
-        finger = this._finger,
-        mx = e.clientX, 
-        my = e.clientY,
-        dx = mx - md.mx,
-        dy = my - md.my,
-        change = {};
-
-
-        
-    if (finger === 'move') {
-
-        change.x = md.params.x + dx;
-        change.y = md.params.y + dy;
-    }
-    
-    if (finger.charAt(0) === '1') {
-
-        change.y = md.params.y + dy;
-        change.h = md.params.h - dy;
-    }
-
-    if (finger.charAt(1) === '1') {
-
-        change.w = md.params.w + dx;
-    }
-
-    if (finger.charAt(2) === '1') {
-
-        change.h = md.params.h + dy;
-    }
-
-    if (finger.charAt(3) === '1') {
-
-        change.x = md.params.x + dx;
-        change.w = md.params.w - dx;
-    }
-
-    this.emit('change', change, 'transform');
-};
-
-
-
-p._onMouseUp = function () {
-
-    window.removeEventListener('mouseup', this._onMouseUp);
-    window.removeEventListener('mouseleave', this._onMouseUp);
-    window.removeEventListener('mousemove', this._onDrag);
-
-    if (this._rafOnDragRafId) {
-        this._rafOnDrag();
-    }
-    
-    this._isHandle = false;
-
-    this._deFullHit.style.pointerEvents = 'none';
-};
-
-p._onOverHitbox = function () {
-
-    this._isOverHitbox = true;
-};
-
-p._onOutHitbox = function () {
-
-    this._isOverHitbox = false;
-};
-
-
-
-
-
-
-
-
-
-p._getHitPoint = function (x, y) {
-
-    var handlerRadius = this._handlerRadius;
-
-    return this._points.find(function (point, idx) {
-
-        var dx = point.x - x,
-            dy = point.y - y,
-            dist = Math.sqrt(dx*dx + dy*dy);
-
-        return dist <= handlerRadius;
-    });
-};
-
-p._getHitCurve = function (x, y) {
-
-    var minDist = 3, 
-        points = this._points,
-        dist, curveIdx,
-        currDist,
-        curve = [];
-
-    for (var i = 0, l = points.length; i < l; i += 3) {
-
-        curve[0] = points[i];
-        curve[1] = points[i+1];
-        curve[2] = points[i+2];
-        curve[3] = points[i+3];
-
-        currDist = jsBezier.distanceFromCurve(point, curve).distance;
-
-        if (currDist <= minDist && (dist === undefined || currDist < dist)) {
-
-            curveIdx = i;
-            dist = currDist;
+        point = this._points[i];
+
+        if (i !== l - 1) {
+            
+            pointB = this._points[i+1];
+            
+            cmd = 'M' + point.anchor.x + ',' + point.anchor.y + ' ';
+            cmd += 'C' + point.handlerRight.x + ',' + point.handlerRight.y + ' ';
+            cmd += pointB.handlerLeft.x + ',' + pointB.handlerLeft.y + ' ';
+            cmd += pointB.anchor.x + ',' + pointB.anchor.y + ' ';
+            point._de.setAttribute('d', cmd);
         }
-    }
 
-    return curveIdx;
-};
+        moveCircle(point.anchor);
 
-p._renderHandler = function () {
+        moveCircle(point.handlerLeft);
+        moveLine(point.handlerLeft, point.anchor);
 
-    var that = this, i, l, point, pointB, cmd;
-
-    for (i = 0, l = this._path.length - 1; i < l; ++i) {
-
-        point = this._path[i];
-        pointB = this._path[i+1];
-
-        if (!point.de) createPath(point);
-        if (!point.anchore.de) createAnchore(point.anchore);
-        if (!point.leftHandler.de) createHandler(point.leftHandler);
-        if (!point.rightHandler.de) createHandler(point.rightHandler);
-
-        cmd = 'M' + point[0].anchore.x + ',' + point[0].anchore.y + ' ';
-        cmd += 'C' + point.handlerRight.x + ',' + point.handlerRight.y + ' ';
-        cmd += pointB.handlerLeft.x + ',' + pointB.handlerLeft.y + ' ';
-        cmd += pointB.anchore.x + ',' + pointB.anchore.y + ' ';
-        point.de.setAttribute('d', cmd);
-
-        moveCircle(point.anchore);
-
-        moveCircle(point.leftHandler);
-        moveLine(point.leftHandler, point.anchore);
-
-        moveCircle(point.rightHandler);
-        moveLine(point.rightHandler, point.anchore);
-    }
-
-
-
-
-    function createPath(opt) {
-
-        opt._de = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-        opt._de.style.stroke = opt.color || that._pathColor;
-        opt._de.style.strokeWidth = '5';
-        opt._de.style.fill = 'none';
-        that._dePathCont.appendChild(opt._de);
-    }
-
-    function createAnchore(opt) {
-
-        opt._de = createCircle(opt.color || that._anchoreColor);
-        that._deAnchoreCont.appendChild(opt._de);
-    }
-
-    function createHandler(opt) {
-
-        opt._de = createCircle(opt.color || that._handlerColor);
-        that._deHandlerCont.appendChild(opt._de);
-
-        opt._deLine = createLine(opt.color || that._handlerColor);
-        that._deHandlerCont.appendChild(opt._deLine);
-    }
-
-    function createCircle(color) {
-
-        var de = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-        de.setAttribute('r', 12);
-        de.style.fill = color;
-
-        return de;
-    }
-
-    function createLine(color) {
-
-        var de = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-        de.style.stroke = opt.color || that._pathColor;
-        de.style.strokeWidth = '1';
-        de.style.pointerEvents = 'none';
-
-        return de;
+        moveCircle(point.handlerRight);
+        moveLine(point.handlerRight, point.anchor);
     }
 
     function moveCircle(pt) {
@@ -482,36 +181,145 @@ p._renderHandler = function () {
     }
 };
 
+p._addPoint = function (point, idx) {
 
+    var that = this;
 
+    this._points.splice(idx, 0, point);
 
+    createPath();
+    createAnchor();
+    createHandler(point.handlerLeft);
+    createHandler(point.handlerRight);
 
+    return point;
 
+    function createPath() {
 
+        point._de = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        point._de.style.stroke = point.color || that._color.path;
+        point._de.style.strokeWidth = '2';
+        point._de.style.fill = 'none';
+        point._de.style.pointerEvents = 'auto';
+        that._dePathCont.appendChild(point._de);
 
+        point._de.addEventListener('mousedown', function (e) {
 
+            var newPoint = this._addPoint({
+                anchor: {x: e.x, y: e.y},
+                handlerLeft: {x: e.x - 25, y: e.y},
+                handlerRight: {x: e.x + 25, y: e.y},
+            }, this._points.indexOf(point) + 1);
 
+            newPoint.anchor._dragger.emitDown(e);
+        }.bind(that));
+    }
 
+    function createAnchor() {
 
+        point.anchor._de = createCircle(point.anchor.color || that._color.anchor);
+        that._deAnchorCont.appendChild(point.anchor._de);
 
+        point.anchor._dragger = makeDraggable({
+            deTarget: point.anchor._de,
+            thisArg: that,
+            onDown: function () {
+                return {
+                    axStart: point.anchor.x,
+                    ayStart: point.anchor.y,
+                    hlxStart: point.handlerLeft.x,
+                    hlyStart: point.handlerLeft.y,
+                    hrxStart: point.handlerRight.x,
+                    hryStart: point.handlerRight.y,
+                }   
+            },
+            onDrag: function (md) {
 
+                point.anchor.x = md.axStart + md.dx;
+                point.anchor.y = md.ayStart + md.dy;
+                point.handlerLeft.x = md.hlxStart + md.dx;
+                point.handlerLeft.y = md.hlyStart + md.dy;
+                point.handlerRight.x = md.hrxStart + md.dx;
+                point.handlerRight.y = md.hryStart + md.dy;
 
+                this._emitChange({type: 'move_anchor'});
+                this.render();
+            }
+        });
+    }
 
+    function createHandler(handler) {
 
+        var oppositeHandler = point.handlerLeft === handler ? point.handlerRight : point.handlerLeft;
 
+        handler._de = createCircle(handler.color || that._color.handler);
+        that._deHandlerCont.appendChild(handler._de);
 
+        handler._deLine = createLine(handler.color || that._color.handler);
+        that._deHandlerCont.appendChild(handler._deLine);
 
+        handler._dragger = makeDraggable({
+            deTarget: handler._de,
+            thisArg: that,
+            onDown: function () {
 
+                var ox = oppositeHandler.x - point.anchor.x,
+                    oy = oppositeHandler.y - point.anchor.y,
+                    oppositeLength = Math.sqrt(ox*ox + oy*oy);
 
+                return {
+                    xStart: handler.x,
+                    yStart: handler.y,
+                    oppositeLength: oppositeLength
+                }   
+            },
+            onDrag: function (md) {
 
-p._setCursor = function (cursor) {
+                handler.x = md.xStart + md.dx;
+                handler.y = md.yStart + md.dy;
 
-    this.domElem.style.cursor = cursor;
-};
+                if (point.linked) {
 
+                    var dx = handler.x - point.anchor.x,
+                        dy = handler.y - point.anchor.y,
+                        rad = Math.atan2(dy, dx);
 
+                    oppositeHandler.x = point.anchor.x - (md.oppositeLength * Math.cos(rad));
+                    oppositeHandler.y = point.anchor.y - (md.oppositeLength * Math.sin(rad));
+                }
 
+                this._emitChange({type: 'move_anchor'});
+                this.render();
+            }
+        })
+    }
 
+    function createCircle(color) {
+
+        var de = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        de.setAttribute('r', that._handlerRadius);
+        de.style.fill = color;
+        de.style.cursor = 'pointer';
+        de.style.pointerEvents = 'auto';
+
+        return de;
+    }
+
+    function createLine(color) {
+
+        var de = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        de.style.stroke = color;
+        de.style.strokeWidth = '1';
+        de.style.pointerEvents = 'none';
+
+        return de;
+    }
+}
+
+p._removePoint = function (idx) {
+
+    this._points.splice(idx, 1);
+}
 
 
 
@@ -519,4 +327,13 @@ p.createGraphics = function () {
 
     this.domElem = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     this.domElem.style.overflow = 'visible';
+
+    this._dePathCont = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+    this.domElem.appendChild(this._dePathCont);
+
+    this._deHandlerCont = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+    this.domElem.appendChild(this._deHandlerCont);
+
+    this._deAnchorCont = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+    this.domElem.appendChild(this._deAnchorCont);
 };
