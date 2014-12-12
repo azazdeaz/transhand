@@ -1,40 +1,40 @@
 
-var handler = new Transhand(),
+var handle = new Transhand(),
     currDomElem;
     svg = new Snap(),
     svgPath = svg.path(),
     path = [{
         anchor: {x: 100, y: 100, color: 'deepskyblue'},
-        handlerLeft: {x: 75, y: 100, color: 'tomato'},
-        handlerRight: {x: 125, y: 100, color: 'tomato'},
+        handleLeft: {x: 75, y: 100, color: 'tomato'},
+        handleRight: {x: 125, y: 100, color: 'tomato'},
     }, {
         anchor: {x: 200, y: 200, color: 'deepskyblue'},
-        handlerLeft: {x: 175, y: 200, color: 'tomato'},
-        handlerRight: {x: 225, y: 200, color: 'tomato'},
+        handleLeft: {x: 175, y: 200, color: 'tomato'},
+        handleRight: {x: 225, y: 200, color: 'tomato'},
     }, {
         anchor: {x: 300, y: 100, color: 'deepskyblue'},
-        handlerLeft: {x: 275, y: 100, color: 'tomato'},
-        handlerRight: {x: 325, y: 100, color: 'tomato'},
+        handleLeft: {x: 275, y: 100, color: 'tomato'},
+        handleRight: {x: 325, y: 100, color: 'tomato'},
         linked: true,
     }, {
         anchor: {x: 400, y: 200, color: 'deepskyblue'},
-        handlerLeft: {x: 375, y: 200, color: 'tomato'},
-        handlerRight: {x: 425, y: 200, color: 'tomato'},
+        handleLeft: {x: 375, y: 200, color: 'tomato'},
+        handleRight: {x: 425, y: 200, color: 'tomato'},
     }];
 
 document.body.appendChild(svg.node);
 
-handler.setLocalRoot(document.body);
+handle.setLocalRoot(document.body);
 
-handler.on('change', onChangeHandler);
+handle.on('change', onChangeHandle);
 
-focusHandler()
+focusHandle()
 
-document.body.appendChild(handler.domElem);
+document.body.appendChild(handle.domElem);
 
-function focusHandler() {
+function focusHandle() {
 
-    handler.setup({
+    handle.setup({
         hand: {
             type: 'curver',
             autoRefresh: true,
@@ -42,12 +42,12 @@ function focusHandler() {
         }
     });
 
-    handler.activate();
+    handle.activate();
 }
 
-function onChangeHandler(change) {
+function onChangeHandle(change) {
 
-    console.log('change event:', change);
+    // console.log('change event:', change);
 
     path = change;
 
@@ -64,8 +64,8 @@ function renderPath(path) {
         pa = p[i-1];
         pb = p[i];
 
-        cmd += 'C' + pa.handlerRight.x + ',' + pa.handlerRight.y + ' ';
-        cmd += pb.handlerLeft.x + ',' + pb.handlerLeft.y + ' ';
+        cmd += 'C' + pa.handleRight.x + ',' + pa.handleRight.y + ' ';
+        cmd += pb.handleLeft.x + ',' + pb.handleLeft.y + ' ';
         cmd += pb.anchore.x + ',' + pb.anchore.y + ' ';
     }
 

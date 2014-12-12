@@ -31,7 +31,14 @@ module.exports = function makeDraggable(opt) {
 
         isDrag = true;
 
-        md = call('onDown', [e]) || {};
+        var custom = call('onDown', [e]);
+
+        if (custom === false) {//prevent dragging
+
+            return;
+        }
+
+        md = custom || {};
 
         md.mx = e.clientX;
         md.my = e.clientY;

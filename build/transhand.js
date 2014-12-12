@@ -8556,8 +8556,8 @@ var MOUSESTATES = {
 
 // point: {
 //     anchor: {x: 0, y: 0, color: 'deepskyblue'},
-//     handlerLeft: {x: 0, y: 0, color: 'tomato'},
-//     handlerRight: {x: 0, y: 0, color: 'tomato'},
+//     handleLeft: {x: 0, y: 0, color: 'tomato'},
+//     handleRight: {x: 0, y: 0, color: 'tomato'},
 //     linked: true,
 //     close: true,
 // }
@@ -8569,20 +8569,20 @@ function Curver() {
 
     this._points = [];
 
-    this._handlerRadius = 3;
+    this._handleRadius = 3;
     this._color = {
         path: 'aqua',
         anchor: 'aqua',
-        handler: 'aqua',
+        handle: 'aqua',
     };
 
-    this._actions = [
+    this._clickActions = [
         {target: 'anchor', action: 'move_anchor'},
-        {target: 'anchor', action: 'delete_anchor', ctrl: true},
+        {target: 'anchor', action: 'remove_point', ctrl: true},
         {target: 'anchor', action: 'reset_anchor', alt: true},
-        {target: 'handler', action: 'move_handler'},
-        {target: 'handler', action: 'break_handler', ctrl: true},
-        {target: 'curve', action: 'add_anchor'},
+        {target: 'handle', action: 'move_handle'},
+        {target: 'handle', action: 'unlink_handle', alt: true},
+        {target: 'curve', action: 'add_point'},
         {target: 'curve', action: 'drag_path', ctrl: true},
         {target: 'curve', action: 'rotate_path', alt: true},
         {target: 'curve', action: 'scale_path', ctrl: true, alt: true},
@@ -8603,7 +8603,7 @@ p.setup = function (opt) {
 
     while (this._points.length) {
 
-        this._removePoint(0);
+        this._splicePoint(0);
     }
 
     opt.path.forEach(function (point, idx) {
@@ -8649,16 +8649,16 @@ p._emitChange = (function () {
         this.path.forEach(function (point) {
 
             ret.push({
-                x: point.handlerLeft.x,
-                y: point.handlerLeft.y 
+                x: point.handleLeft.x,
+                y: point.handleLeft.y 
             });
             ret.push({
                 x: point.anchor.x,
                 y: point.anchor.y 
             });
             ret.push({
-                x: point.handlerright.x,
-                y: point.handlerright.y 
+                x: point.handleright.x,
+                y: point.handleright.y 
             });
         });
 
@@ -8668,6 +8668,28 @@ p._emitChange = (function () {
     function svgPath () {/*TODO*/}
     function clone () {/*TODO*/}
 }());
+
+p._getClickAction = function (target, e) {
+
+    var ctrl = e.ctrlKey,
+        shift = e.shiftlKey,
+        alt = e.altKey,
+        ret;
+console.log('_getClickAction', target, ctrl, alt, shift);
+    this._clickActions.some(function (clickAction) {
+
+        if (clickAction.target === target &&
+            !!clickAction.ctrl === !!ctrl &&
+            !!clickAction.shift === !!shift &&
+            !!clickAction.alt === !!alt)
+        {
+            ret = clickAction.action;
+            return true;
+        }
+    });
+
+    return ret;
+}
 
 
 
@@ -8688,19 +8710,19 @@ p.render = function () {
             pointB = this._points[i+1];
             
             cmd = 'M' + point.anchor.x + ',' + point.anchor.y + ' ';
-            cmd += 'C' + point.handlerRight.x + ',' + point.handlerRight.y + ' ';
-            cmd += pointB.handlerLeft.x + ',' + pointB.handlerLeft.y + ' ';
+            cmd += 'C' + point.handleRight.x + ',' + point.handleRight.y + ' ';
+            cmd += pointB.handleLeft.x + ',' + pointB.handleLeft.y + ' ';
             cmd += pointB.anchor.x + ',' + pointB.anchor.y + ' ';
             point._de.setAttribute('d', cmd);
         }
 
         moveCircle(point.anchor);
 
-        moveCircle(point.handlerLeft);
-        moveLine(point.handlerLeft, point.anchor);
+        moveCircle(point.handleLeft);
+        moveLine(point.handleLeft, point.anchor);
 
-        moveCircle(point.handlerRight);
-        moveLine(point.handlerRight, point.anchor);
+        moveCircle(point.handleRight);
+        moveLine(point.handleRight, point.anchor);
     }
 
     function moveCircle(pt) {
@@ -8726,8 +8748,8 @@ p._addPoint = function (point, idx) {
 
     createPath();
     createAnchor();
-    createHandler(point.handlerLeft);
-    createHandler(point.handlerRight);
+    createHandle(point.handleLeft);
+    createHandle(point.handleRight);
 
     return point;
 
@@ -8744,8 +8766,8 @@ p._addPoint = function (point, idx) {
 
             var newPoint = this._addPoint({
                 anchor: {x: e.x, y: e.y},
-                handlerLeft: {x: e.x - 25, y: e.y},
-                handlerRight: {x: e.x + 25, y: e.y},
+                handleLeft: {x: e.x - 25, y: e.y},
+                handleRight: {x: e.x + 25, y: e.y},
             }, this._points.indexOf(point) + 1);
 
             newPoint.anchor._dragger.emitDown(e);
@@ -8760,24 +8782,51 @@ p._addPoint = function (point, idx) {
         point.anchor._dragger = makeDraggable({
             deTarget: point.anchor._de,
             thisArg: that,
-            onDown: function () {
+            onDown: function (e) {
+
+                var action = this._getClickAction('anchor', e);
+
+                if (action === 'reset_anchor') {
+
+                    point.handleLeft.x = point.anchor.x;
+                    point.handleLeft.y = point.anchor.y;
+                    point.handleRight.x = point.anchor.x;
+                    point.handleRight.y = point.anchor.y;
+                    point.linked = true;
+
+                    this.render();
+
+                    e = Object.create(e);
+                    e.syncronSize = true;
+
+                    point.handleLeft._dragger.emitDown(e);
+
+                    return false;
+                }
+                else if (action === 'remove_point') {
+
+                    this._splicePoint(point);
+
+                    return false;
+                }
+
                 return {
                     axStart: point.anchor.x,
                     ayStart: point.anchor.y,
-                    hlxStart: point.handlerLeft.x,
-                    hlyStart: point.handlerLeft.y,
-                    hrxStart: point.handlerRight.x,
-                    hryStart: point.handlerRight.y,
-                }   
+                    hlxStart: point.handleLeft.x,
+                    hlyStart: point.handleLeft.y,
+                    hrxStart: point.handleRight.x,
+                    hryStart: point.handleRight.y,
+                }
             },
             onDrag: function (md) {
 
                 point.anchor.x = md.axStart + md.dx;
                 point.anchor.y = md.ayStart + md.dy;
-                point.handlerLeft.x = md.hlxStart + md.dx;
-                point.handlerLeft.y = md.hlyStart + md.dy;
-                point.handlerRight.x = md.hrxStart + md.dx;
-                point.handlerRight.y = md.hryStart + md.dy;
+                point.handleLeft.x = md.hlxStart + md.dx;
+                point.handleLeft.y = md.hlyStart + md.dy;
+                point.handleRight.x = md.hrxStart + md.dx;
+                point.handleRight.y = md.hryStart + md.dy;
 
                 this._emitChange({type: 'move_anchor'});
                 this.render();
@@ -8785,56 +8834,61 @@ p._addPoint = function (point, idx) {
         });
     }
 
-    function createHandler(handler) {
+    function createHandle(handle) {
 
-        var oppositeHandler = point.handlerLeft === handler ? point.handlerRight : point.handlerLeft;
+        var oppositeHandle = point.handleLeft === handle ? point.handleRight : point.handleLeft;
 
-        handler._de = createCircle(handler.color || that._color.handler);
-        that._deHandlerCont.appendChild(handler._de);
+        handle._de = createCircle(handle.color || that._color.handle);
+        that._deHandleCont.appendChild(handle._de);
 
-        handler._deLine = createLine(handler.color || that._color.handler);
-        that._deHandlerCont.appendChild(handler._deLine);
+        handle._deLine = createLine(handle.color || that._color.handle);
+        that._deHandleCont.appendChild(handle._deLine);
 
-        handler._dragger = makeDraggable({
-            deTarget: handler._de,
+        handle._dragger = makeDraggable({
+            deTarget: handle._de,
             thisArg: that,
-            onDown: function () {
+            onDown: function (e) {
 
-                var ox = oppositeHandler.x - point.anchor.x,
-                    oy = oppositeHandler.y - point.anchor.y,
-                    oppositeLength = Math.sqrt(ox*ox + oy*oy);
+                var action = this._getClickAction('handle', e);
+                
+                if (!e.syncronSize && action === 'unlink_handle') {
 
+                    point.linked = false; 
+                }
+             
                 return {
-                    xStart: handler.x,
-                    yStart: handler.y,
-                    oppositeLength: oppositeLength
-                }   
+                    xStart: handle.x,
+                    yStart: handle.y,
+                    oppositeLength: dist(oppositeHandle, point.anchor),
+                    syncronSize: e.syncronSize,
+                }
             },
             onDrag: function (md) {
 
-                handler.x = md.xStart + md.dx;
-                handler.y = md.yStart + md.dy;
+                handle.x = md.xStart + md.dx;
+                handle.y = md.yStart + md.dy;
 
                 if (point.linked) {
 
-                    var dx = handler.x - point.anchor.x,
-                        dy = handler.y - point.anchor.y,
-                        rad = Math.atan2(dy, dx);
+                    var dx = handle.x - point.anchor.x,
+                        dy = handle.y - point.anchor.y,
+                        rad = Math.atan2(dy, dx),
+                        length = md.syncronSize ? dist(handle, point.anchor) : md.oppositeLength;
 
-                    oppositeHandler.x = point.anchor.x - (md.oppositeLength * Math.cos(rad));
-                    oppositeHandler.y = point.anchor.y - (md.oppositeLength * Math.sin(rad));
+                    oppositeHandle.x = point.anchor.x - (length * Math.cos(rad));
+                    oppositeHandle.y = point.anchor.y - (length * Math.sin(rad));
                 }
 
-                this._emitChange({type: 'move_anchor'});
+                this._emitChange({type: 'move_handle'});
                 this.render();
             }
-        })
+        });
     }
 
     function createCircle(color) {
 
         var de = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-        de.setAttribute('r', that._handlerRadius);
+        de.setAttribute('r', that._handleRadius);
         de.style.fill = color;
         de.style.cursor = 'pointer';
         de.style.pointerEvents = 'auto';
@@ -8851,12 +8905,36 @@ p._addPoint = function (point, idx) {
 
         return de;
     }
-}
 
-p._removePoint = function (idx) {
+    function dist(pa, pb) {
 
-    this._points.splice(idx, 1);
-}
+        var ox = pa.x - pb.x,
+            oy = pa.y - pb.y;
+        
+        return Math.sqrt(ox*ox + oy*oy);
+    }
+};
+
+p._splicePoint = function (idx) {
+
+    if (typeof(idx) === 'object') {
+
+        idx = this._points.indexOf(idx);
+    }
+
+    var removedPoint = this._points.splice(idx, 1)[0];
+
+    this._emitChange({type: 'splice', idx: idx});
+    
+    this.render();
+
+    removedPoint._de.parentNode.removeChild(removedPoint._de);
+    removedPoint.anchor._de.parentNode.removeChild(removedPoint.anchor._de);
+    removedPoint.handleLeft._de.parentNode.removeChild(removedPoint.handleLeft._de);
+    removedPoint.handleLeft._deLine.parentNode.removeChild(removedPoint.handleLeft._deLine);
+    removedPoint.handleRight._de.parentNode.removeChild(removedPoint.handleRight._de);
+    removedPoint.handleRight._deLine.parentNode.removeChild(removedPoint.handleRight._deLine);
+};
 
 
 
@@ -8868,8 +8946,8 @@ p.createGraphics = function () {
     this._dePathCont = document.createElementNS('http://www.w3.org/2000/svg', 'g');
     this.domElem.appendChild(this._dePathCont);
 
-    this._deHandlerCont = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-    this.domElem.appendChild(this._deHandlerCont);
+    this._deHandleCont = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+    this.domElem.appendChild(this._deHandleCont);
 
     this._deAnchorCont = document.createElementNS('http://www.w3.org/2000/svg', 'g');
     this.domElem.appendChild(this._deAnchorCont);
@@ -8908,7 +8986,14 @@ module.exports = function makeDraggable(opt) {
 
         isDrag = true;
 
-        md = call('onDown', [e]) || {};
+        var custom = call('onDown', [e]);
+
+        if (custom === false) {//prevent dragging
+
+            return;
+        }
+
+        md = custom || {};
 
         md.mx = e.clientX;
         md.my = e.clientY;
