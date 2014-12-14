@@ -7,9 +7,12 @@ module.exports = function makeDraggable(opt) {
     var md, isOver, isDrag, 
         waitingMoveEvent, waitingMoveRaf;
 
-    opt.deTarget.addEventListener('mousedown', onDown);
-    opt.deTarget.addEventListener('mouseover', onEnter);
-    opt.deTarget.addEventListener('mouseleave', onLeave);
+    if (opt.deTarget) {
+        
+        opt.deTarget.addEventListener('mousedown', onDown);
+        opt.deTarget.addEventListener('mouseover', onEnter);
+        opt.deTarget.addEventListener('mouseleave', onLeave);
+    }
 
     return {
         emitDown: function (e) {
@@ -130,4 +133,4 @@ module.exports = function makeDraggable(opt) {
             return opt[name].apply(opt.thisArg, args);
         }
     }
-}
+};
