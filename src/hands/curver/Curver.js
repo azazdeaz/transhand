@@ -138,7 +138,7 @@ p._getClickAction = function (target, e) {
         shift = e.shiftlKey,
         alt = e.altKey,
         ret;
-console.log('_getClickAction', target, ctrl, alt, shift);
+
     this._clickActions.some(function (clickAction) {
 
         if (clickAction.target === target &&
@@ -186,6 +186,8 @@ p.render = function () {
 
         moveCircle(point.handleRight);
         moveLine(point.handleRight, point.anchor);
+
+        
     }
 
     function moveCircle(pt) {
@@ -219,7 +221,7 @@ p._addPoint = function (point, idx) {
     function createPath() {
 
         point._de = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-        point._de.style.stroke = point.color || that._color.path;
+        point._de.style.stroke = that._color.path;
         point._de.style.strokeWidth = '2';
         point._de.style.fill = 'none';
         point._de.style.pointerEvents = 'auto';
@@ -227,12 +229,12 @@ p._addPoint = function (point, idx) {
 
         point._de.addEventListener('mousedown', function (e) {
 
-            var newPoint = this._addPoint({
+            var newPoint = this._addPoint(this._createPoint({
                 anchor: {x: e.x, y: e.y},
                 handleLeft: {x: e.x - 25, y: e.y},
                 handleRight: {x: e.x + 25, y: e.y},
                 linked: true,
-            }, this._points.indexOf(point) + 1);
+            }), this._points.indexOf(point) + 1);
 
             newPoint.anchor._dragger.emitDown(e);
         }.bind(that));
@@ -240,7 +242,7 @@ p._addPoint = function (point, idx) {
 
     function createAnchor() {
 
-        point.anchor._de = createCircle(point.anchor.color || that._color.anchor);
+        point.anchor._de = that._color.anchor;
         that._deAnchorCont.appendChild(point.anchor._de);
 
         point.anchor._dragger = makeDraggable({
@@ -398,7 +400,27 @@ p._splicePoint = function (idx) {
     removedPoint.handleLeft._deLine.parentNode.removeChild(removedPoint.handleLeft._deLine);
     removedPoint.handleRight._de.parentNode.removeChild(removedPoint.handleRight._de);
     removedPoint.handleRight._deLine.parentNode.removeChild(removedPoint.handleRight._deLine);
+
+    this._buffPoint.push(removedPoint);
 };
+
+p._createPoint = function (src) {
+
+    var point = this._buffPoint.pop() || {
+        anchor: {},
+        handleLeft: {},
+        handleRight: {},
+    };
+
+    point.anchor.x = src.anchor ? src.anchor.x || 0 : 0;
+    point.anchor.y = src.anchor ? src.anchor.y || 0 : 0;
+    point.handleLeft.x = src.handleLeft ? src.handleLeft.x || 0 : 0;
+    point.handleLeft.y = src.handleLeft ? src.handleLeft.y || 0 : 0;
+    point.handleRight.x = src.handleRight ? src.handleRight.x || 0 : 0;
+    point.handleRight.y = src.handleRight ? src.handleRight.y || 0 : 0;
+
+    return point;
+}
 
 
 
