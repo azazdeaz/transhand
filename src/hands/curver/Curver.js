@@ -5,24 +5,22 @@ var inherits = require('inherits');
 var _ = require('lodash');
 var makeDraggable = require('../../make-draggable');
 
-var MOUSESTATES = {
-    'move': 'move',
-    '1000': 'ns-resize',
-    '1100': 'nesw-resize',
-    '0100': 'ew-resize',
-    '0110': 'nwse-resize',
-    '0010': 'ns-resize',
-    '0011': 'nesw-resize',
-    '0001': 'ew-resize',
-    '1001': 'nwse-resize',
+
+var BASE_POINT_STYLE = {
+    pathStroke: 'deepstyblue',
+    pathStrokeWidth: 2,
+    handleLineStroke: 'deepstyblue',
+    handleLineStrokeWidth: 1,
+    handleFill: 'deepskyblue',
+    handleRadius: 3,
 };
 
 // point: {
-//     anchor: {x: 0, y: 0, color: 'deepskyblue'},
-//     handleLeft: {x: 0, y: 0, color: 'tomato'},
-//     handleRight: {x: 0, y: 0, color: 'tomato'},
-//     linked: true,
-//     close: true,
+//     anchor: {x: 0, y: 0},
+//     handleLeft: {x: 0, y: 0},
+//     handleRight: {x: 0, y: 0},
+//     linked: false,
+//     close: false,
 // }
 
 
@@ -31,13 +29,6 @@ function Curver() {
     EventEmitter.call(this);
 
     this._points = [];
-
-    this._handleRadius = 3;
-    this._color = {
-        path: 'aqua',
-        anchor: 'aqua',
-        handle: 'aqua',
-    };
 
     this._clickActions = [
         {target: 'anchor', action: 'move_anchor'},
@@ -64,14 +55,16 @@ p.setup = function (opt) {
         this.createGraphics();
     }
 
-    while (this._points.length) {
-
-        this._splicePoint(0);
+    while (this._points.length < opt.points.length) {
+        this._addPoint();
+    }
+    while (this._points.length > opt.points.length) {
+        this._splicePoint(this._points.length-1);
     }
 
-    opt.path.forEach(function (point, idx) {
+    opt.path.forEach(function (srcPoint, idx) {
 
-        this._addPoint(point, idx);
+        this._setupPoint(this._points[idx], srcPoint);
     }, this);
 
     this.render();
@@ -103,7 +96,7 @@ p._emitChange = (function () {
             svgPath: svgPath,
             clone: clone,
         });
-    }
+    };
 
     function flatPoints() {
 
@@ -205,9 +198,14 @@ p.render = function () {
     }
 };
 
-p._addPoint = function (point, idx) {
+p._addPoint = function (idx) {
 
-    var that = this;
+    var that = this, point = {
+        anchor: {x: 0, y: 0},
+        handleLeft: {x: 0, y: 0},
+        handleRight: {x: 0, y: 0},
+        linked: false,
+    };
 
     this._points.splice(idx, 0, point);
 
@@ -221,20 +219,23 @@ p._addPoint = function (point, idx) {
     function createPath() {
 
         point._de = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-        point._de.style.stroke = that._color.path;
-        point._de.style.strokeWidth = '2';
         point._de.style.fill = 'none';
         point._de.style.pointerEvents = 'auto';
         that._dePathCont.appendChild(point._de);
 
         point._de.addEventListener('mousedown', function (e) {
 
-            var newPoint = this._addPoint(this._createPoint({
-                anchor: {x: e.x, y: e.y},
-                handleLeft: {x: e.x - 25, y: e.y},
-                handleRight: {x: e.x + 25, y: e.y},
-                linked: true,
-            }), this._points.indexOf(point) + 1);
+            var idx = this._points.indexOf(point) + 1,
+                srcPoint = {
+                    anchor: {x: e.x, y: e.y},
+                    handleLeft: {x: e.x - 25, y: e.y},
+                    handleRight: {x: e.x + 25, y: e.y},
+                    linked: true,
+                };
+
+            var newPoint = this._addPoint(idx, srcPoint);
+
+            this._emitChange({type: 'edit', point: point});
 
             newPoint.anchor._dragger.emitDown(e);
         }.bind(that));
@@ -265,13 +266,19 @@ p._addPoint = function (point, idx) {
                     e = Object.create(e);
                     e.syncronSize = true;
 
+                    this._emitChange({type: 'edit', point: point});
+
                     point.handleLeft._dragger.emitDown(e);
 
                     return false;
                 }
                 else if (action === 'remove_point') {
 
-                    this._splicePoint(point);
+                    var idx = this._points.indexOf(point);
+
+                    this._splicePoint(idx);
+
+                    this._emitChange({type: 'remove', idx: idx});
 
                     return false;
                 }
@@ -294,7 +301,7 @@ p._addPoint = function (point, idx) {
                 point.handleRight.x = md.hrxStart + md.dx;
                 point.handleRight.y = md.hryStart + md.dy;
 
-                this._emitChange({type: 'move_anchor'});
+                this._emitChange({type: 'edit', point: point});
                 this.render();
             }
         });
@@ -317,9 +324,11 @@ p._addPoint = function (point, idx) {
 
                 var action = this._getClickAction('handle', e);
                 
-                if (!e.syncronSize && action === 'unlink_handle') {
+                if (!e.syncronSize && action === 'unlink_handle' && point.linked) {
 
-                    point.linked = false; 
+                    point.linked = false;
+
+                    this._emitChange({type: 'edit', point: point});
                 }
              
                 return {
@@ -345,7 +354,7 @@ p._addPoint = function (point, idx) {
                     oppositeHandle.y = point.anchor.y - (length * Math.sin(rad));
                 }
 
-                this._emitChange({type: 'move_handle'});
+                this._emitChange({type: 'edit', point: point});
                 this.render();
             }
         });
@@ -354,8 +363,6 @@ p._addPoint = function (point, idx) {
     function createCircle(color) {
 
         var de = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-        de.setAttribute('r', that._handleRadius);
-        de.style.fill = color;
         de.style.cursor = 'pointer';
         de.style.pointerEvents = 'auto';
 
@@ -365,8 +372,6 @@ p._addPoint = function (point, idx) {
     function createLine(color) {
 
         var de = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-        de.style.stroke = color;
-        de.style.strokeWidth = '1';
         de.style.pointerEvents = 'none';
 
         return de;
@@ -380,6 +385,35 @@ p._addPoint = function (point, idx) {
         return Math.sqrt(ox*ox + oy*oy);
     }
 };
+
+p._setupPoint = function (point, src) {
+
+    point.anchor.x = src.anchor.x;
+    point.anchor.y = src.anchor.y;
+    point.handleLeft.x = src.handleLeft.x;
+    point.handleLeft.y = src.handleLeft.y;
+    point.handleRight.x = src.handleRight.x;
+    point.handleRight.y = src.handleRight.y;
+    point.linked = !!src.linked;
+    
+    var s = _.defaults(point.style, src.style, BASE_POINT_STYLE);
+
+    point._de.style.stroke = s.pathStroke;
+    point._de.style.strokeWidth = s.pathStrokeWidth;
+
+    point.handleLeft._deLine.style.stroke = s.handleLineStroke;
+    point.handleLeft._deLine.style.strokeWidth = s.handleLineStrokeWidth;
+    point.handleRight._deLine.style.stroke = s.handleLineStroke;
+    point.handleRight._deLine.style.strokeWidth = s.handleLineStrokeWidth;
+
+    point.handleLeft._de.setAttribute('r', s.handleRadius);
+    point.handleLeft._de.style.fill = s.handleFill;
+    point.handleRight._de.setAttribute('r', s.handleRadius);
+    point.handleRight._de.style.fill = s.handleFill;
+
+    return point;
+};
+
 
 p._splicePoint = function (idx) {
 
@@ -420,8 +454,7 @@ p._createPoint = function (src) {
     point.handleRight.y = src.handleRight ? src.handleRight.y || 0 : 0;
 
     return point;
-}
-
+};
 
 
 p.createGraphics = function () {
