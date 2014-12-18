@@ -3,7 +3,7 @@ var handle = new Transhand(),
     currDomElem;
     svg = new Snap(),
     svgPath = svg.path(),
-    path = [{
+    points = [{
         anchor: {x: 100, y: 100, color: 'deepskyblue'},
         handleLeft: {x: 75, y: 100, color: 'tomato'},
         handleRight: {x: 125, y: 100, color: 'tomato'},
@@ -38,7 +38,7 @@ function focusHandle() {
         hand: {
             type: 'curver',
             autoRefresh: true,
-            path: path
+            points: points
         }
     });
 
@@ -49,12 +49,12 @@ function onChangeHandle(change) {
 
     // console.log('change event:', change);
 
-    path = change;
+    points = change;
 
-    // this.renderPath(path);
+    // this.renderPath(ppointsath);
 }
 
-function renderPath(path) {
+function renderPath(points) {
 
     var p = shape.points, pa, pb,
         cmd = 'M' + p[0].anchore.x + ',' + p[0].anchore.y + ' ';

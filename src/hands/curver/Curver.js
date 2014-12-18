@@ -7,12 +7,14 @@ var makeDraggable = require('../../make-draggable');
 
 
 var BASE_POINT_STYLE = {
-    pathStroke: 'deepstyblue',
-    pathStrokeWidth: 2,
-    handleLineStroke: 'deepstyblue',
-    handleLineStrokeWidth: 1,
+    anchorFill: 'deepskyblue',
+    anchorRadius: 3,
     handleFill: 'deepskyblue',
     handleRadius: 3,
+    handleLineStroke: 'deepskyblue',
+    handleLineStrokeWidth: 1,
+    pathStroke: 'deepskyblue',
+    pathStrokeWidth: 2,
 };
 
 // point: {
@@ -62,7 +64,7 @@ p.setup = function (opt) {
         this._splicePoint(this._points.length-1);
     }
 
-    opt.path.forEach(function (srcPoint, idx) {
+    opt.points.forEach(function (srcPoint, idx) {
 
         this._setupPoint(this._points[idx], srcPoint);
     }, this);
@@ -89,7 +91,7 @@ p._emitChange = (function () {
     return function (detailes) {
 
         this.emit('change', {
-            path: this._points,
+            points: this._points,
             detailes: detailes,
             flatPoints: flatPoints,
             flat: flat,
@@ -102,7 +104,7 @@ p._emitChange = (function () {
 
         var ret = [];
         
-        this.path.forEach(function (point) {
+        this.points.forEach(function (point) {
 
             ret.push({
                 x: point.handleLeft.x,
@@ -113,8 +115,8 @@ p._emitChange = (function () {
                 y: point.anchor.y 
             });
             ret.push({
-                x: point.handleright.x,
-                y: point.handleright.y 
+                x: point.handleRight.x,
+                y: point.handleRight.y 
             });
         });
 
@@ -200,12 +202,14 @@ p.render = function () {
 
 p._addPoint = function (idx) {
 
-    var that = this, point = {
-        anchor: {x: 0, y: 0},
-        handleLeft: {x: 0, y: 0},
-        handleRight: {x: 0, y: 0},
-        linked: false,
-    };
+    var that = this, 
+        point = {
+            anchor: {x: 0, y: 0},
+            handleLeft: {x: 0, y: 0},
+            handleRight: {x: 0, y: 0},
+            style: {},
+            linked: false,
+        };
 
     this._points.splice(idx, 0, point);
 
@@ -225,17 +229,13 @@ p._addPoint = function (idx) {
 
         point._de.addEventListener('mousedown', function (e) {
 
-            var idx = this._points.indexOf(point) + 1,
-                srcPoint = {
-                    anchor: {x: e.x, y: e.y},
-                    handleLeft: {x: e.x - 25, y: e.y},
-                    handleRight: {x: e.x + 25, y: e.y},
-                    linked: true,
-                };
+            var idx = this._points.indexOf(point),
+                srcPoint = this._splitCurve(this._points[idx], this._points[idx+1], e.x, e.y);
 
-            var newPoint = this._addPoint(idx, srcPoint);
+            var newPoint = this._addPoint(idx+1);
+            this._setupPoint(newPoint, srcPoint);
 
-            this._emitChange({type: 'edit', point: point});
+            this._emitChange({type: 'add', point: newPoint});
 
             newPoint.anchor._dragger.emitDown(e);
         }.bind(that));
@@ -243,7 +243,7 @@ p._addPoint = function (idx) {
 
     function createAnchor() {
 
-        point.anchor._de = that._color.anchor;
+        point.anchor._de = createCircle();
         that._deAnchorCont.appendChild(point.anchor._de);
 
         point.anchor._dragger = makeDraggable({
@@ -311,10 +311,10 @@ p._addPoint = function (idx) {
 
         var oppositeHandle = point.handleLeft === handle ? point.handleRight : point.handleLeft;
 
-        handle._de = createCircle(handle.color || that._color.handle);
+        handle._de = createCircle();
         that._deHandleCont.appendChild(handle._de);
 
-        handle._deLine = createLine(handle.color || that._color.handle);
+        handle._deLine = createLine();
         that._deHandleCont.appendChild(handle._deLine);
 
         handle._dragger = makeDraggable({
@@ -401,6 +401,9 @@ p._setupPoint = function (point, src) {
     point._de.style.stroke = s.pathStroke;
     point._de.style.strokeWidth = s.pathStrokeWidth;
 
+    point.anchor._de.setAttribute('r', s.anchorRadius);
+    point.anchor._de.style.fill = s.anchorFill;
+
     point.handleLeft._deLine.style.stroke = s.handleLineStroke;
     point.handleLeft._deLine.style.strokeWidth = s.handleLineStrokeWidth;
     point.handleRight._deLine.style.stroke = s.handleLineStroke;
@@ -438,22 +441,84 @@ p._splicePoint = function (idx) {
     this._buffPoint.push(removedPoint);
 };
 
-p._createPoint = function (src) {
+p._splitCurve = function (pa, pb, x, y) {
 
-    var point = this._buffPoint.pop() || {
-        anchor: {},
-        handleLeft: {},
-        handleRight: {},
+    var curve = [
+            pa.anchor.x, pa.anchor.y,
+            pa.handleRight.x, pa.handleRight.y,
+            pb.handleLeft.x, pb.handleLeft.y,
+            pb.anchor.x, pb.anchor.y
+        ],
+        mPos = {x: x, y: y},
+        p = {
+            anchor: {x: 0, y: 0},//jsBezier.pointOnCurve(curve, loc),
+            handleLeft: {x: 0, y: 0},
+            handleRight: {x: 0, y: 0},
+            linked: true,
+        },
+        pm = {},
+        dl = dist(pa.anchor, pa.handleRight) + 
+            dist(pa.handleRight, pb.handleLeft) + 
+            dist(pb.handleLeft, pb.anchor),
+        minDist, pos, loc;
+
+    for (var di = 0; di < dl; ++di) {
+
+        var _loc = di/dl,
+            _pos = calcPos(_loc),
+            _dist = dist(_pos, mPos);
+
+        if (minDist === undefined || minDist > _dist) {
+
+            minDist = _dist;
+            loc = _loc;
+            pos = _pos;
+        }
     };
 
-    point.anchor.x = src.anchor ? src.anchor.x || 0 : 0;
-    point.anchor.y = src.anchor ? src.anchor.y || 0 : 0;
-    point.handleLeft.x = src.handleLeft ? src.handleLeft.x || 0 : 0;
-    point.handleLeft.y = src.handleLeft ? src.handleLeft.y || 0 : 0;
-    point.handleRight.x = src.handleRight ? src.handleRight.x || 0 : 0;
-    point.handleRight.y = src.handleRight ? src.handleRight.y || 0 : 0;
+    p.anchor = pos;
 
-    return point;
+    pm.x = pa.handleRight.x + (pb.handleLeft.x - pa.handleRight.x) * loc;
+    pm.y = pa.handleRight.y + (pb.handleLeft.y - pa.handleRight.y) * loc;
+    pa.handleRight.x = pa.anchor.x + (pa.handleRight.x - pa.anchor.x) * loc;
+    pa.handleRight.y = pa.anchor.y + (pa.handleRight.y - pa.anchor.y) * loc;
+    pb.handleLeft.x = pb.handleLeft.x + (pb.anchor.x - pb.handleLeft.x) * loc;
+    pb.handleLeft.y = pb.handleLeft.y + (pb.anchor.y - pb.handleLeft.y) * loc;
+    p.handleLeft.x = pa.handleRight.x + (pm.x - pa.handleRight.x) * loc;
+    p.handleLeft.y = pa.handleRight.y + (pm.y - pa.handleRight.y) * loc;
+    p.handleRight.x = pm.x + (pb.handleLeft.x - pm.x) * loc;
+    p.handleRight.y = pm.y + (pb.handleLeft.y - pm.y) * loc;
+
+    function calcPos(pos) {
+
+        var p = curve.slice(),
+            l = p.length / 2;
+
+        while (--l > 0) {
+
+            for (var i = 0; i < l; ++i) {
+                count(i*2);
+            }
+        }
+
+        return {x: p[0], y: p[1]};
+
+        function count(i) {
+
+            p[i+0] = p[i+0] + (p[i+2] - p[i+0]) * pos;
+            p[i+1] = p[i+1] + (p[i+3] - p[i+1]) * pos;
+        }
+    };
+
+    function dist(pa, pb) {
+
+        var dx = pb.x - pa.x,
+            dy = pb.y - pa.y;
+
+        return Math.sqrt(dx*dx + dy*dy);
+    }
+
+    return p;
 };
 
 
