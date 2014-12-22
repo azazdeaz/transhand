@@ -18,5 +18,8 @@
   "homepage": "https://github.com/animachine/transhand",
   "devDependencies": {
     "browserify": "^6.2.0"
+  },
+  "dependencies": {
+    "eventman": "0.0.1"
   }
 }

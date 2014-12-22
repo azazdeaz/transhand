@@ -3,7 +3,7 @@
 var Transformer = require('./hands/Transformer');
 var Boxer = require('./hands/Boxer');
 var Curver = require('./hands/curver/Curver');
-var EventEmitter = require('events').EventEmitter;
+var EventEmitter = require('eventman');
 var inherits = require('inherits');
 
 function Transhand() {

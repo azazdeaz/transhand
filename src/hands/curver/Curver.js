@@ -1,6 +1,6 @@
 'use strict';
 
-var EventEmitter = require('events').EventEmitter;
+var EventEmitter = require('eventman');
 var inherits = require('inherits');
 var _ = require('lodash');
 var makeDraggable = require('../../make-draggable');
@@ -31,6 +31,11 @@ function Curver() {
     EventEmitter.call(this);
 
     this._points = [];
+
+    this._offset = {
+        x: 0,
+        y: 0,
+    }
 
     this._clickActions = [
         {target: 'anchor', action: 'move_anchor'},
@@ -68,6 +73,9 @@ p.setup = function (opt) {
 
         this._setupPoint(this._points[idx], srcPoint);
     }, this);
+
+    this._offset.x = (opt.offset && opt.offset.x) || 0;
+    this._offset.y = (opt.offset && opt.offset.y) || 0;
 
     this.render();
 };
@@ -182,7 +190,8 @@ p.render = function () {
         moveCircle(point.handleRight);
         moveLine(point.handleRight, point.anchor);
 
-        
+        this.domElem.style.left = this._offset.x + 'px';
+        this.domElem.style.top = this._offset.y + 'px';
     }
 
     function moveCircle(pt) {
@@ -525,6 +534,7 @@ p._splitCurve = function (pa, pb, x, y) {
 p.createGraphics = function () {
 
     this.domElem = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    this.domElem.style.position = 'absolute';
     this.domElem.style.overflow = 'visible';
 
     this._dePathCont = document.createElementNS('http://www.w3.org/2000/svg', 'g');
