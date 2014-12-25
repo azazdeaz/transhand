@@ -31,6 +31,7 @@ function Curver() {
     EventEmitter.call(this);
 
     this._points = [];
+    this._buffPoints = [];
 
     this._offset = {
         x: 0,
@@ -98,14 +99,23 @@ p._emitChange = (function () {
 
     return function (detailes) {
 
-        this.emit('change', {
+        detailes = _.assign({
+            type: '',
+            point: undefined,
+            idx: undefined,
             points: this._points,
-            detailes: detailes,
             flatPoints: flatPoints,
             flat: flat,
             svgPath: svgPath,
             clone: clone,
-        });
+        }, detailes);
+
+        if (detailes.idx === undefined && detailes.point) {
+
+            detailes.idx = this._points.indexOf(detailes.point);
+        }
+
+        this.emit('change', detailes);
     };
 
     function flatPoints() {
@@ -219,7 +229,7 @@ p._addPoint = function (idx) {
             style: {},
             linked: false,
         };
-
+    //TODO use _buffPoints[]
     this._points.splice(idx, 0, point);
 
     createPath();
@@ -299,7 +309,7 @@ p._addPoint = function (idx) {
                     hlyStart: point.handleLeft.y,
                     hrxStart: point.handleRight.x,
                     hryStart: point.handleRight.y,
-                }
+                };
             },
             onDrag: function (md) {
 
@@ -447,7 +457,7 @@ p._splicePoint = function (idx) {
     removedPoint.handleRight._de.parentNode.removeChild(removedPoint.handleRight._de);
     removedPoint.handleRight._deLine.parentNode.removeChild(removedPoint.handleRight._deLine);
 
-    this._buffPoint.push(removedPoint);
+    this._buffPoints.push(removedPoint);
 };
 
 p._splitCurve = function (pa, pb, x, y) {
