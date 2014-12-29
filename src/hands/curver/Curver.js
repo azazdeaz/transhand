@@ -9,8 +9,12 @@ var makeDraggable = require('../../make-draggable');
 var BASE_POINT_STYLE = {
     anchorFill: 'deepskyblue',
     anchorRadius: 3,
+    anchorStroke: 'none',
+    anchorStrokeWidth: 1,
     handleFill: 'deepskyblue',
     handleRadius: 3,
+    handleStroke: 'none',
+    handleStrokeWidth: 1,
     handleLineStroke: 'deepskyblue',
     handleLineStrokeWidth: 1,
     pathStroke: 'deepskyblue',
@@ -249,7 +253,8 @@ p._addPoint = function (idx) {
         point._de.addEventListener('mousedown', function (e) {
 
             var idx = this._points.indexOf(point),
-                srcPoint = this._splitCurve(this._points[idx], this._points[idx+1], e.x, e.y);
+                srcPoint = this._splitCurve(this._points[idx], this._points[idx+1], 
+                    e.x - this._offset.x, e.y - this._offset.y);
 
             var newPoint = this._addPoint(idx+1);
             this._setupPoint(newPoint, srcPoint);
@@ -330,11 +335,11 @@ p._addPoint = function (idx) {
 
         var oppositeHandle = point.handleLeft === handle ? point.handleRight : point.handleLeft;
 
-        handle._de = createCircle();
-        that._deHandleCont.appendChild(handle._de);
-
         handle._deLine = createLine();
         that._deHandleCont.appendChild(handle._deLine);
+
+        handle._de = createCircle();
+        that._deHandleCont.appendChild(handle._de);
 
         handle._dragger = makeDraggable({
             deTarget: handle._de,
@@ -415,13 +420,15 @@ p._setupPoint = function (point, src) {
     point.handleRight.y = src.handleRight.y;
     point.linked = !!src.linked;
     
-    var s = _.defaults(point.style, src.style, BASE_POINT_STYLE);
+    var s = point.style = _.defaults({}, src.style, BASE_POINT_STYLE);
 
     point._de.style.stroke = s.pathStroke;
     point._de.style.strokeWidth = s.pathStrokeWidth;
 
     point.anchor._de.setAttribute('r', s.anchorRadius);
     point.anchor._de.style.fill = s.anchorFill;
+    point.anchor._de.style.stroke = s.anchorStroke;
+    point.anchor._de.style.strokeWidth = s.anchorStrokeWidth;
 
     point.handleLeft._deLine.style.stroke = s.handleLineStroke;
     point.handleLeft._deLine.style.strokeWidth = s.handleLineStrokeWidth;
@@ -430,8 +437,12 @@ p._setupPoint = function (point, src) {
 
     point.handleLeft._de.setAttribute('r', s.handleRadius);
     point.handleLeft._de.style.fill = s.handleFill;
+    point.handleLeft._de.style.stroke = s.handleStroke;
+    point.handleLeft._de.style.strokeWidth = s.handleStrokeWidth;
     point.handleRight._de.setAttribute('r', s.handleRadius);
     point.handleRight._de.style.fill = s.handleFill;
+    point.handleRight._de.style.stroke = s.handleStroke;
+    point.handleRight._de.style.strokeWidth = s.handleStrokeWidth;
 
     return point;
 };
@@ -546,6 +557,8 @@ p.createGraphics = function () {
     this.domElem = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     this.domElem.style.position = 'absolute';
     this.domElem.style.overflow = 'visible';
+    this.domElem.style.width = '100%';
+    this.domElem.style.height = '100%';
 
     this._dePathCont = document.createElementNS('http://www.w3.org/2000/svg', 'g');
     this.domElem.appendChild(this._dePathCont);

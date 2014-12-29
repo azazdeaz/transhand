@@ -1,4 +1,140 @@
 !function(e){if("object"==typeof exports&&"undefined"!=typeof module)module.exports=e();else if("function"==typeof define&&define.amd)define([],e);else{var n;"undefined"!=typeof window?n=window:"undefined"!=typeof global?n=global:"undefined"!=typeof self&&(n=self),n.Transhand=e()}}(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+'use strict';
+
+function EventMan () {
+
+    this._listenerCount = 0;
+    this._maxListeners = 10;
+    this._events = Object.create(null);
+}
+
+module.exports = EventMan;
+var p = EventMan.prototype;
+
+p.addListener = function (evtName, cb, scope) {
+
+    if (evtName instanceof Array) {
+
+        for (var i = 0; i < evtName.length; ++i) {
+
+            this.addListener(evtName[i], cb, scope);
+        }
+        
+        return;
+    }
+
+    if (!(evtName in this._events)) {
+
+        this._events[evtName] = [];
+    }
+
+    if (typeof evtName !== 'string') throw 'event name must be a string';
+    if (typeof cb !== 'function') throw 'Callback must be a function!';
+
+    this.removeListener(evtName, cb, scope);
+
+    var liteners = this._events[evtName];
+
+    liteners.push(scope ? [cb, scope] : cb);
+
+    if (this._maxListeners > 0 && liteners.length > this._maxListeners) {
+
+        console.error('(node) warning: possible EventEmitter memory ' +
+            'leak detected. %d listeners added. ' +
+            'Use emitter.setMaxListeners() to increase limit.',
+            listeners.length);
+        console.trace();
+    }
+};
+
+p.removeListener = function (evtName, cb, scope) {
+
+    var reg, cb, listeners = this._events[evtName];
+
+    if (listeners) {
+
+        for (var i = 0; i < listeners.length; ++i) {
+
+            reg = listeners[i];
+
+            if (typeof(reg) === 'function') {
+
+                if (cb === reg && !scope) {
+
+                    listeners.splice(i--, 1);
+                }
+            }
+            else {
+                if (reg[0] === cb && reg[1] === scope) {
+                    
+                    listeners.splice(i--, 1);
+                }
+            }
+        }
+    }
+};
+
+p.emit = function (evtName) {
+
+    var reg, args = Array.prototype.slice.call(arguments, 1),
+        listeners = this.listeners(evtName);
+
+    for (var i = 0, l = listeners.length; i < l; ++i) {
+
+        reg = listeners[i];
+
+        if (typeof (reg) === 'function') {
+
+            reg.apply(this, args);
+        }
+        else {
+            reg[0].apply(reg[1], args);
+        }
+    }
+};
+
+p.listeners = function (evtName) {
+
+    var listeners, i, l, ret = [];
+
+    do {
+        listeners = this._events[evtName];
+
+        if (listeners) {
+
+            ret.push.apply(ret, listeners);
+        }
+
+        evtName = evtName.slice(0, Math.max(0, evtName.lastIndexOf('.')));
+    }
+    while (evtName);
+
+    return ret;
+};
+
+p.setMaxListeners = function (maxListeners) {
+
+    this._maxListeners = parseInt(maxListeners) || 0;
+};
+
+p.removeAllListeners = function (evtName) {
+
+    this.listeners(evtName).forEach(function (reg) {
+        
+        if (typeof (reg) === 'function') {
+
+            this.removeListener(evtName, reg);
+        }
+        else {
+            this.removeListener(evtName, reg[0], reg[1]);
+        }
+    }, this);
+}
+
+//aliases
+p.on = p.addListener;
+p.off = p.removeListener;
+},{}],2:[function(require,module,exports){
 if (typeof Object.create === 'function') {
   // implementation from standard node.js 'util' module
   module.exports = function inherits(ctor, superCtor) {
@@ -23,7 +159,7 @@ if (typeof Object.create === 'function') {
   }
 }
 
-},{}],2:[function(require,module,exports){
+},{}],3:[function(require,module,exports){
 (function (global){
 /**
  * @license
@@ -6812,316 +6948,13 @@ if (typeof Object.create === 'function') {
 }.call(this));
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],3:[function(require,module,exports){
-// Copyright Joyent, Inc. and other Node contributors.
-//
-// Permission is hereby granted, free of charge, to any person obtaining a
-// copy of this software and associated documentation files (the
-// "Software"), to deal in the Software without restriction, including
-// without limitation the rights to use, copy, modify, merge, publish,
-// distribute, sublicense, and/or sell copies of the Software, and to permit
-// persons to whom the Software is furnished to do so, subject to the
-// following conditions:
-//
-// The above copyright notice and this permission notice shall be included
-// in all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
-// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
-// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
-// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
-// USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-function EventEmitter() {
-  this._events = this._events || {};
-  this._maxListeners = this._maxListeners || undefined;
-}
-module.exports = EventEmitter;
-
-// Backwards-compat with node 0.10.x
-EventEmitter.EventEmitter = EventEmitter;
-
-EventEmitter.prototype._events = undefined;
-EventEmitter.prototype._maxListeners = undefined;
-
-// By default EventEmitters will print a warning if more than 10 listeners are
-// added to it. This is a useful default which helps finding memory leaks.
-EventEmitter.defaultMaxListeners = 10;
-
-// Obviously not all Emitters should be limited to 10. This function allows
-// that to be increased. Set to zero for unlimited.
-EventEmitter.prototype.setMaxListeners = function(n) {
-  if (!isNumber(n) || n < 0 || isNaN(n))
-    throw TypeError('n must be a positive number');
-  this._maxListeners = n;
-  return this;
-};
-
-EventEmitter.prototype.emit = function(type) {
-  var er, handler, len, args, i, listeners;
-
-  if (!this._events)
-    this._events = {};
-
-  // If there is no 'error' event listener then throw.
-  if (type === 'error') {
-    if (!this._events.error ||
-        (isObject(this._events.error) && !this._events.error.length)) {
-      er = arguments[1];
-      if (er instanceof Error) {
-        throw er; // Unhandled 'error' event
-      }
-      throw TypeError('Uncaught, unspecified "error" event.');
-    }
-  }
-
-  handler = this._events[type];
-
-  if (isUndefined(handler))
-    return false;
-
-  if (isFunction(handler)) {
-    switch (arguments.length) {
-      // fast cases
-      case 1:
-        handler.call(this);
-        break;
-      case 2:
-        handler.call(this, arguments[1]);
-        break;
-      case 3:
-        handler.call(this, arguments[1], arguments[2]);
-        break;
-      // slower
-      default:
-        len = arguments.length;
-        args = new Array(len - 1);
-        for (i = 1; i < len; i++)
-          args[i - 1] = arguments[i];
-        handler.apply(this, args);
-    }
-  } else if (isObject(handler)) {
-    len = arguments.length;
-    args = new Array(len - 1);
-    for (i = 1; i < len; i++)
-      args[i - 1] = arguments[i];
-
-    listeners = handler.slice();
-    len = listeners.length;
-    for (i = 0; i < len; i++)
-      listeners[i].apply(this, args);
-  }
-
-  return true;
-};
-
-EventEmitter.prototype.addListener = function(type, listener) {
-  var m;
-
-  if (!isFunction(listener))
-    throw TypeError('listener must be a function');
-
-  if (!this._events)
-    this._events = {};
-
-  // To avoid recursion in the case that type === "newListener"! Before
-  // adding it to the listeners, first emit "newListener".
-  if (this._events.newListener)
-    this.emit('newListener', type,
-              isFunction(listener.listener) ?
-              listener.listener : listener);
-
-  if (!this._events[type])
-    // Optimize the case of one listener. Don't need the extra array object.
-    this._events[type] = listener;
-  else if (isObject(this._events[type]))
-    // If we've already got an array, just append.
-    this._events[type].push(listener);
-  else
-    // Adding the second element, need to change to array.
-    this._events[type] = [this._events[type], listener];
-
-  // Check for listener leak
-  if (isObject(this._events[type]) && !this._events[type].warned) {
-    var m;
-    if (!isUndefined(this._maxListeners)) {
-      m = this._maxListeners;
-    } else {
-      m = EventEmitter.defaultMaxListeners;
-    }
-
-    if (m && m > 0 && this._events[type].length > m) {
-      this._events[type].warned = true;
-      console.error('(node) warning: possible EventEmitter memory ' +
-                    'leak detected. %d listeners added. ' +
-                    'Use emitter.setMaxListeners() to increase limit.',
-                    this._events[type].length);
-      if (typeof console.trace === 'function') {
-        // not supported in IE 10
-        console.trace();
-      }
-    }
-  }
-
-  return this;
-};
-
-EventEmitter.prototype.on = EventEmitter.prototype.addListener;
-
-EventEmitter.prototype.once = function(type, listener) {
-  if (!isFunction(listener))
-    throw TypeError('listener must be a function');
-
-  var fired = false;
-
-  function g() {
-    this.removeListener(type, g);
-
-    if (!fired) {
-      fired = true;
-      listener.apply(this, arguments);
-    }
-  }
-
-  g.listener = listener;
-  this.on(type, g);
-
-  return this;
-};
-
-// emits a 'removeListener' event iff the listener was removed
-EventEmitter.prototype.removeListener = function(type, listener) {
-  var list, position, length, i;
-
-  if (!isFunction(listener))
-    throw TypeError('listener must be a function');
-
-  if (!this._events || !this._events[type])
-    return this;
-
-  list = this._events[type];
-  length = list.length;
-  position = -1;
-
-  if (list === listener ||
-      (isFunction(list.listener) && list.listener === listener)) {
-    delete this._events[type];
-    if (this._events.removeListener)
-      this.emit('removeListener', type, listener);
-
-  } else if (isObject(list)) {
-    for (i = length; i-- > 0;) {
-      if (list[i] === listener ||
-          (list[i].listener && list[i].listener === listener)) {
-        position = i;
-        break;
-      }
-    }
-
-    if (position < 0)
-      return this;
-
-    if (list.length === 1) {
-      list.length = 0;
-      delete this._events[type];
-    } else {
-      list.splice(position, 1);
-    }
-
-    if (this._events.removeListener)
-      this.emit('removeListener', type, listener);
-  }
-
-  return this;
-};
-
-EventEmitter.prototype.removeAllListeners = function(type) {
-  var key, listeners;
-
-  if (!this._events)
-    return this;
-
-  // not listening for removeListener, no need to emit
-  if (!this._events.removeListener) {
-    if (arguments.length === 0)
-      this._events = {};
-    else if (this._events[type])
-      delete this._events[type];
-    return this;
-  }
-
-  // emit removeListener for all listeners on all events
-  if (arguments.length === 0) {
-    for (key in this._events) {
-      if (key === 'removeListener') continue;
-      this.removeAllListeners(key);
-    }
-    this.removeAllListeners('removeListener');
-    this._events = {};
-    return this;
-  }
-
-  listeners = this._events[type];
-
-  if (isFunction(listeners)) {
-    this.removeListener(type, listeners);
-  } else {
-    // LIFO order
-    while (listeners.length)
-      this.removeListener(type, listeners[listeners.length - 1]);
-  }
-  delete this._events[type];
-
-  return this;
-};
-
-EventEmitter.prototype.listeners = function(type) {
-  var ret;
-  if (!this._events || !this._events[type])
-    ret = [];
-  else if (isFunction(this._events[type]))
-    ret = [this._events[type]];
-  else
-    ret = this._events[type].slice();
-  return ret;
-};
-
-EventEmitter.listenerCount = function(emitter, type) {
-  var ret;
-  if (!emitter._events || !emitter._events[type])
-    ret = 0;
-  else if (isFunction(emitter._events[type]))
-    ret = 1;
-  else
-    ret = emitter._events[type].length;
-  return ret;
-};
-
-function isFunction(arg) {
-  return typeof arg === 'function';
-}
-
-function isNumber(arg) {
-  return typeof arg === 'number';
-}
-
-function isObject(arg) {
-  return typeof arg === 'object' && arg !== null;
-}
-
-function isUndefined(arg) {
-  return arg === void 0;
-}
-
 },{}],4:[function(require,module,exports){
 'use strict';
 
 var Transformer = require('./hands/Transformer');
 var Boxer = require('./hands/Boxer');
 var Curver = require('./hands/curver/Curver');
-var EventEmitter = require('events').EventEmitter;
+var EventEmitter = require('eventman');
 var inherits = require('inherits');
 
 function Transhand() {
@@ -7452,10 +7285,10 @@ function nastyLocal2Global (mPos, dePicker) {
         return Math.sqrt(dx*dx+ dy*dy);
     }
 }
-},{"./hands/Boxer":5,"./hands/Transformer":6,"./hands/curver/Curver":7,"events":3,"inherits":1}],5:[function(require,module,exports){
+},{"./hands/Boxer":5,"./hands/Transformer":6,"./hands/curver/Curver":7,"eventman":1,"inherits":2}],5:[function(require,module,exports){
 'use strict';
 
-var EventEmitter = require('events').EventEmitter;
+var EventEmitter = require('eventman');
 var inherits = require('inherits');
 var _ = require('lodash');
 
@@ -7790,10 +7623,10 @@ p.createGraphics = function () {
 
 
 module.exports = Boxer;
-},{"events":3,"inherits":1,"lodash":2}],6:[function(require,module,exports){
+},{"eventman":1,"inherits":2,"lodash":3}],6:[function(require,module,exports){
 'use strict';
 
-var EventEmitter = require('events').EventEmitter;
+var EventEmitter = require('eventman');
 var inherits = require('inherits');
 var _ = require('lodash');
 
@@ -8534,12 +8367,11 @@ function isInside(point, vs) {
     
     return inside;
 }
-},{"events":3,"inherits":1,"lodash":2}],7:[function(require,module,exports){
+},{"eventman":1,"inherits":2,"lodash":3}],7:[function(require,module,exports){
 'use strict';
 
-var EventEmitter = require('events').EventEmitter;
+var EventEmitter = require('eventman');
 var inherits = require('inherits');
-var jsBezier = require('./vendor/jsBezier');
 var _ = require('lodash');
 var makeDraggable = require('../../make-draggable');
 
@@ -8547,8 +8379,12 @@ var makeDraggable = require('../../make-draggable');
 var BASE_POINT_STYLE = {
     anchorFill: 'deepskyblue',
     anchorRadius: 3,
+    anchorStroke: 'none',
+    anchorStrokeWidth: 1,
     handleFill: 'deepskyblue',
     handleRadius: 3,
+    handleStroke: 'none',
+    handleStrokeWidth: 1,
     handleLineStroke: 'deepskyblue',
     handleLineStrokeWidth: 1,
     pathStroke: 'deepskyblue',
@@ -8569,6 +8405,12 @@ function Curver() {
     EventEmitter.call(this);
 
     this._points = [];
+    this._buffPoints = [];
+
+    this._offset = {
+        x: 0,
+        y: 0,
+    }
 
     this._clickActions = [
         {target: 'anchor', action: 'move_anchor'},
@@ -8607,6 +8449,9 @@ p.setup = function (opt) {
         this._setupPoint(this._points[idx], srcPoint);
     }, this);
 
+    this._offset.x = (opt.offset && opt.offset.x) || 0;
+    this._offset.y = (opt.offset && opt.offset.y) || 0;
+
     this.render();
 };
 
@@ -8628,14 +8473,23 @@ p._emitChange = (function () {
 
     return function (detailes) {
 
-        this.emit('change', {
+        detailes = _.assign({
+            type: '',
+            point: undefined,
+            idx: undefined,
             points: this._points,
-            detailes: detailes,
             flatPoints: flatPoints,
             flat: flat,
             svgPath: svgPath,
             clone: clone,
-        });
+        }, detailes);
+
+        if (detailes.idx === undefined && detailes.point) {
+
+            detailes.idx = this._points.indexOf(detailes.point);
+        }
+
+        this.emit('change', detailes);
     };
 
     function flatPoints() {
@@ -8720,7 +8574,8 @@ p.render = function () {
         moveCircle(point.handleRight);
         moveLine(point.handleRight, point.anchor);
 
-        
+        this.domElem.style.left = this._offset.x + 'px';
+        this.domElem.style.top = this._offset.y + 'px';
     }
 
     function moveCircle(pt) {
@@ -8748,7 +8603,7 @@ p._addPoint = function (idx) {
             style: {},
             linked: false,
         };
-
+    //TODO use _buffPoints[]
     this._points.splice(idx, 0, point);
 
     createPath();
@@ -8768,7 +8623,8 @@ p._addPoint = function (idx) {
         point._de.addEventListener('mousedown', function (e) {
 
             var idx = this._points.indexOf(point),
-                srcPoint = this._splitCurve(this._points[idx], this._points[idx+1], e.x, e.y);
+                srcPoint = this._splitCurve(this._points[idx], this._points[idx+1], 
+                    e.x - this._offset.x, e.y - this._offset.y);
 
             var newPoint = this._addPoint(idx+1);
             this._setupPoint(newPoint, srcPoint);
@@ -8828,7 +8684,7 @@ p._addPoint = function (idx) {
                     hlyStart: point.handleLeft.y,
                     hrxStart: point.handleRight.x,
                     hryStart: point.handleRight.y,
-                }
+                };
             },
             onDrag: function (md) {
 
@@ -8849,11 +8705,11 @@ p._addPoint = function (idx) {
 
         var oppositeHandle = point.handleLeft === handle ? point.handleRight : point.handleLeft;
 
-        handle._de = createCircle();
-        that._deHandleCont.appendChild(handle._de);
-
         handle._deLine = createLine();
         that._deHandleCont.appendChild(handle._deLine);
+
+        handle._de = createCircle();
+        that._deHandleCont.appendChild(handle._de);
 
         handle._dragger = makeDraggable({
             deTarget: handle._de,
@@ -8934,13 +8790,15 @@ p._setupPoint = function (point, src) {
     point.handleRight.y = src.handleRight.y;
     point.linked = !!src.linked;
     
-    var s = _.defaults(point.style, src.style, BASE_POINT_STYLE);
+    var s = point.style = _.defaults({}, src.style, BASE_POINT_STYLE);
 
     point._de.style.stroke = s.pathStroke;
     point._de.style.strokeWidth = s.pathStrokeWidth;
 
     point.anchor._de.setAttribute('r', s.anchorRadius);
     point.anchor._de.style.fill = s.anchorFill;
+    point.anchor._de.style.stroke = s.anchorStroke;
+    point.anchor._de.style.strokeWidth = s.anchorStrokeWidth;
 
     point.handleLeft._deLine.style.stroke = s.handleLineStroke;
     point.handleLeft._deLine.style.strokeWidth = s.handleLineStrokeWidth;
@@ -8949,8 +8807,12 @@ p._setupPoint = function (point, src) {
 
     point.handleLeft._de.setAttribute('r', s.handleRadius);
     point.handleLeft._de.style.fill = s.handleFill;
+    point.handleLeft._de.style.stroke = s.handleStroke;
+    point.handleLeft._de.style.strokeWidth = s.handleStrokeWidth;
     point.handleRight._de.setAttribute('r', s.handleRadius);
     point.handleRight._de.style.fill = s.handleFill;
+    point.handleRight._de.style.stroke = s.handleStroke;
+    point.handleRight._de.style.strokeWidth = s.handleStrokeWidth;
 
     return point;
 };
@@ -8976,7 +8838,7 @@ p._splicePoint = function (idx) {
     removedPoint.handleRight._de.parentNode.removeChild(removedPoint.handleRight._de);
     removedPoint.handleRight._deLine.parentNode.removeChild(removedPoint.handleRight._deLine);
 
-    this._buffPoint.push(removedPoint);
+    this._buffPoints.push(removedPoint);
 };
 
 p._splitCurve = function (pa, pb, x, y) {
@@ -9027,12 +8889,6 @@ p._splitCurve = function (pa, pb, x, y) {
     p.handleRight.x = pm.x + (pb.handleLeft.x - pm.x) * loc;
     p.handleRight.y = pm.y + (pb.handleLeft.y - pm.y) * loc;
 
-    function between(pa, pb, target) {
-
-        target.x = pa.x - (pb.x - pa.x) * pos;
-        target.y = pa.y - (pb.y - pa.y) * pos;
-    }
-
     function calcPos(pos) {
 
         var p = curve.slice(),
@@ -9069,7 +8925,10 @@ p._splitCurve = function (pa, pb, x, y) {
 p.createGraphics = function () {
 
     this.domElem = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    this.domElem.style.position = 'absolute';
     this.domElem.style.overflow = 'visible';
+    this.domElem.style.width = '100%';
+    this.domElem.style.height = '100%';
 
     this._dePathCont = document.createElementNS('http://www.w3.org/2000/svg', 'g');
     this.domElem.appendChild(this._dePathCont);
@@ -9080,431 +8939,7 @@ p.createGraphics = function () {
     this._deAnchorCont = document.createElementNS('http://www.w3.org/2000/svg', 'g');
     this.domElem.appendChild(this._deAnchorCont);
 };
-},{"../../make-draggable":9,"./vendor/jsBezier":8,"events":3,"inherits":1,"lodash":2}],8:[function(require,module,exports){
-/**
-* jsBezier-0.6
-*
-* Copyright (c) 2010 - 2013 Simon Porritt (simon.porritt@gmail.com)
-*
-* licensed under the MIT license.
-* 
-* a set of Bezier curve functions that deal with Beziers, used by jsPlumb, and perhaps useful for other people.  These functions work with Bezier
-* curves of arbitrary degree.
-*
-* - functions are all in the 'jsBezier' namespace.  
-* 
-* - all input points should be in the format {x:.., y:..}. all output points are in this format too.
-* 
-* - all input curves should be in the format [ {x:.., y:..}, {x:.., y:..}, {x:.., y:..}, {x:.., y:..} ]
-* 
-* - 'location' as used as an input here refers to a decimal in the range 0-1 inclusive, which indicates a point some proportion along the length
-* of the curve.  location as output has the same format and meaning.
-* 
-* 
-* Function List:
-* --------------
-* 
-* distanceFromCurve(point, curve)
-* 
-* 	Calculates the distance that the given point lies from the given Bezier.  Note that it is computed relative to the center of the Bezier,
-* so if you have stroked the curve with a wide pen you may wish to take that into account!  The distance returned is relative to the values 
-* of the curve and the point - it will most likely be pixels.
-* 
-* gradientAtPoint(curve, location)
-* 
-* 	Calculates the gradient to the curve at the given location, as a decimal between 0 and 1 inclusive.
-*
-* gradientAtPointAlongCurveFrom (curve, location)
-*
-*	Calculates the gradient at the point on the given curve that is 'distance' units from location. 
-* 
-* nearestPointOnCurve(point, curve) 
-* 
-*	Calculates the nearest point to the given point on the given curve.  The return value of this is a JS object literal, containing both the
-*point's coordinates and also the 'location' of the point (see above), for example:  { point:{x:551,y:150}, location:0.263365 }.
-* 
-* pointOnCurve(curve, location)
-* 
-* 	Calculates the coordinates of the point on the given Bezier curve at the given location.  
-* 		
-* pointAlongCurveFrom(curve, location, distance)
-* 
-* 	Calculates the coordinates of the point on the given curve that is 'distance' units from location.  'distance' should be in the same coordinate
-* space as that used to construct the Bezier curve.  For an HTML Canvas usage, for example, distance would be a measure of pixels.
-*
-* locationAlongCurveFrom(curve, location, distance)
-* 
-* 	Calculates the location on the given curve that is 'distance' units from location.  'distance' should be in the same coordinate
-* space as that used to construct the Bezier curve.  For an HTML Canvas usage, for example, distance would be a measure of pixels.
-* 
-* perpendicularToCurveAt(curve, location, length, distance)
-* 
-* 	Calculates the perpendicular to the given curve at the given location.  length is the length of the line you wish for (it will be centered
-* on the point at 'location'). distance is optional, and allows you to specify a point along the path from the given location as the center of
-* the perpendicular returned.  The return value of this is an array of two points: [ {x:...,y:...}, {x:...,y:...} ].  
-*  
-* 
-*/
-
-(function() {
-	
-	if(typeof Math.sgn == "undefined") {
-		Math.sgn = function(x) { return x == 0 ? 0 : x > 0 ? 1 :-1; };
-	}
-	
-	var Vectors = {
-			subtract 	: 	function(v1, v2) { return {x:v1.x - v2.x, y:v1.y - v2.y }; },
-			dotProduct	: 	function(v1, v2) { return (v1.x * v2.x)  + (v1.y * v2.y); },
-			square		:	function(v) { return Math.sqrt((v.x * v.x) + (v.y * v.y)); },
-			scale		:	function(v, s) { return {x:v.x * s, y:v.y * s }; }
-		},
-		
-		maxRecursion = 64, 
-		flatnessTolerance = Math.pow(2.0,-maxRecursion-1);
-
-	/**
-	 * Calculates the distance that the point lies from the curve.
-	 * 
-	 * @param point a point in the form {x:567, y:3342}
-	 * @param curve a Bezier curve in the form [{x:..., y:...}, {x:..., y:...}, {x:..., y:...}, {x:..., y:...}].  note that this is currently
-	 * hardcoded to assume cubiz beziers, but would be better off supporting any degree. 
-	 * @return a JS object literal containing location and distance, for example: {location:0.35, distance:10}.  Location is analogous to the location
-	 * argument you pass to the pointOnPath function: it is a ratio of distance travelled along the curve.  Distance is the distance in pixels from
-	 * the point to the curve. 
-	 */
-	var _distanceFromCurve = function(point, curve) {
-		var candidates = [],     
-	    	w = _convertToBezier(point, curve),
-	    	degree = curve.length - 1, higherDegree = (2 * degree) - 1,
-	    	numSolutions = _findRoots(w, higherDegree, candidates, 0),
-			v = Vectors.subtract(point, curve[0]), dist = Vectors.square(v), t = 0.0;
-
-	    for (var i = 0; i < numSolutions; i++) {
-			v = Vectors.subtract(point, _bezier(curve, degree, candidates[i], null, null));
-	    	var newDist = Vectors.square(v);
-	    	if (newDist < dist) {
-	            dist = newDist;
-	        	t = candidates[i];
-		    }
-	    }
-	    v = Vectors.subtract(point, curve[degree]);
-		newDist = Vectors.square(v);
-	    if (newDist < dist) {
-	        dist = newDist;
-	    	t = 1.0;
-	    }
-		return {location:t, distance:dist};
-	};
-	/**
-	 * finds the nearest point on the curve to the given point.
-	 */
-	var _nearestPointOnCurve = function(point, curve) {    
-		var td = _distanceFromCurve(point, curve);
-	    return {point:_bezier(curve, curve.length - 1, td.location, null, null), location:td.location};
-	};
-	var _convertToBezier = function(point, curve) {
-		var degree = curve.length - 1, higherDegree = (2 * degree) - 1,
-	    	c = [], d = [], cdTable = [], w = [],
-	    	z = [ [1.0, 0.6, 0.3, 0.1], [0.4, 0.6, 0.6, 0.4], [0.1, 0.3, 0.6, 1.0] ];	
-	    	
-	    for (var i = 0; i <= degree; i++) c[i] = Vectors.subtract(curve[i], point);
-	    for (var i = 0; i <= degree - 1; i++) { 
-			d[i] = Vectors.subtract(curve[i+1], curve[i]);
-			d[i] = Vectors.scale(d[i], 3.0);
-	    }
-	    for (var row = 0; row <= degree - 1; row++) {
-			for (var column = 0; column <= degree; column++) {
-				if (!cdTable[row]) cdTable[row] = [];
-		    	cdTable[row][column] = Vectors.dotProduct(d[row], c[column]);
-			}
-	    }
-	    for (i = 0; i <= higherDegree; i++) {
-			if (!w[i]) w[i] = [];
-			w[i].y = 0.0;
-			w[i].x = parseFloat(i) / higherDegree;
-	    }
-	    var n = degree, m = degree-1;
-	    for (var k = 0; k <= n + m; k++) {
-			var lb = Math.max(0, k - m),
-				ub = Math.min(k, n);
-			for (i = lb; i <= ub; i++) {
-		    	j = k - i;
-		    	w[i+j].y += cdTable[j][i] * z[j][i];
-			}
-	    }
-	    return w;
-	};
-	/**
-	 * counts how many roots there are.
-	 */
-	var _findRoots = function(w, degree, t, depth) {  
-	    var left = [], right = [],	
-	    	left_count, right_count,	
-	    	left_t = [], right_t = [];
-	    	
-	    switch (_getCrossingCount(w, degree)) {
-	       	case 0 : {	
-	       		return 0;	
-	       	}
-	       	case 1 : {	
-	       		if (depth >= maxRecursion) {
-	       			t[0] = (w[0].x + w[degree].x) / 2.0;
-	       			return 1;
-	       		}
-	       		if (_isFlatEnough(w, degree)) {
-	       			t[0] = _computeXIntercept(w, degree);
-	       			return 1;
-	       		}
-	       		break;
-	       	}
-	    }
-	    _bezier(w, degree, 0.5, left, right);
-	    left_count  = _findRoots(left,  degree, left_t, depth+1);
-	    right_count = _findRoots(right, degree, right_t, depth+1);
-	    for (var i = 0; i < left_count; i++) t[i] = left_t[i];
-	    for (var i = 0; i < right_count; i++) t[i+left_count] = right_t[i];    
-		return (left_count+right_count);
-	};
-	var _getCrossingCount = function(curve, degree) {
-	    var n_crossings = 0, sign, old_sign;		    	
-	    sign = old_sign = Math.sgn(curve[0].y);
-	    for (var i = 1; i <= degree; i++) {
-			sign = Math.sgn(curve[i].y);
-			if (sign != old_sign) n_crossings++;
-			old_sign = sign;
-	    }
-	    return n_crossings;
-	};
-	var _isFlatEnough = function(curve, degree) {
-	    var  error,
-	    	intercept_1, intercept_2, left_intercept, right_intercept,
-	    	a, b, c, det, dInv, a1, b1, c1, a2, b2, c2;
-	    a = curve[0].y - curve[degree].y;
-	    b = curve[degree].x - curve[0].x;
-	    c = curve[0].x * curve[degree].y - curve[degree].x * curve[0].y;
-	
-	    var max_distance_above = max_distance_below = 0.0;
-	    
-	    for (var i = 1; i < degree; i++) {
-	        var value = a * curve[i].x + b * curve[i].y + c;       
-	        if (value > max_distance_above)
-	            max_distance_above = value;
-	        else if (value < max_distance_below)
-	        	max_distance_below = value;
-	    }
-	    
-	    a1 = 0.0; b1 = 1.0; c1 = 0.0; a2 = a; b2 = b;
-	    c2 = c - max_distance_above;
-	    det = a1 * b2 - a2 * b1;
-	    dInv = 1.0/det;
-	    intercept_1 = (b1 * c2 - b2 * c1) * dInv;
-	    a2 = a; b2 = b; c2 = c - max_distance_below;
-	    det = a1 * b2 - a2 * b1;
-	    dInv = 1.0/det;
-	    intercept_2 = (b1 * c2 - b2 * c1) * dInv;
-	    left_intercept = Math.min(intercept_1, intercept_2);
-	    right_intercept = Math.max(intercept_1, intercept_2);
-	    error = right_intercept - left_intercept;
-	    return (error < flatnessTolerance)? 1 : 0;
-	};
-	var _computeXIntercept = function(curve, degree) {
-	    var XLK = 1.0, YLK = 0.0,
-	    	XNM = curve[degree].x - curve[0].x, YNM = curve[degree].y - curve[0].y,
-	    	XMK = curve[0].x - 0.0, YMK = curve[0].y - 0.0,
-	    	det = XNM*YLK - YNM*XLK, detInv = 1.0/det,
-	    	S = (XNM*YMK - YNM*XMK) * detInv; 
-	    return 0.0 + XLK * S;
-	};
-	var _bezier = function(curve, degree, t, left, right) {
-	    var temp = [[]];
-	    for (var j =0; j <= degree; j++) temp[0][j] = curve[j];
-	    for (var i = 1; i <= degree; i++) {	
-			for (var j =0 ; j <= degree - i; j++) {
-				if (!temp[i]) temp[i] = [];
-				if (!temp[i][j]) temp[i][j] = {};
-		    	temp[i][j].x = (1.0 - t) * temp[i-1][j].x + t * temp[i-1][j+1].x;
-		    	temp[i][j].y = (1.0 - t) * temp[i-1][j].y + t * temp[i-1][j+1].y;
-			}
-	    }    
-	    if (left != null) 
-	    	for (j = 0; j <= degree; j++) left[j]  = temp[j][0];
-	    if (right != null)
-			for (j = 0; j <= degree; j++) right[j] = temp[degree-j][j];
-	    
-	    return (temp[degree][0]);
-	};
-	
-	var _curveFunctionCache = {};
-	var _getCurveFunctions = function(order) {
-		var fns = _curveFunctionCache[order];
-		if (!fns) {
-			fns = [];			
-			var f_term = function() { return function(t) { return Math.pow(t, order); }; },
-				l_term = function() { return function(t) { return Math.pow((1-t), order); }; },
-				c_term = function(c) { return function(t) { return c; }; },
-				t_term = function() { return function(t) { return t; }; },
-				one_minus_t_term = function() { return function(t) { return 1-t; }; },
-				_termFunc = function(terms) {
-					return function(t) {
-						var p = 1;
-						for (var i = 0; i < terms.length; i++) p = p * terms[i](t);
-						return p;
-					};
-				};
-			
-			fns.push(new f_term());  // first is t to the power of the curve order		
-			for (var i = 1; i < order; i++) {
-				var terms = [new c_term(order)];
-				for (var j = 0 ; j < (order - i); j++) terms.push(new t_term());
-				for (var j = 0 ; j < i; j++) terms.push(new one_minus_t_term());
-				fns.push(new _termFunc(terms));
-			}
-			fns.push(new l_term());  // last is (1-t) to the power of the curve order
-		
-			_curveFunctionCache[order] = fns;
-		}
-			
-		return fns;
-	};
-	
-	
-	/**
-	 * calculates a point on the curve, for a Bezier of arbitrary order.
-	 * @param curve an array of control points, eg [{x:10,y:20}, {x:50,y:50}, {x:100,y:100}, {x:120,y:100}].  For a cubic bezier this should have four points.
-	 * @param location a decimal indicating the distance along the curve the point should be located at.  this is the distance along the curve as it travels, taking the way it bends into account.  should be a number from 0 to 1, inclusive.
-	 */
-	var _pointOnPath = function(curve, location) {		
-		var cc = _getCurveFunctions(curve.length - 1),
-			_x = 0, _y = 0;
-		for (var i = 0; i < curve.length ; i++) {
-			_x = _x + (curve[i].x * cc[i](location));
-			_y = _y + (curve[i].y * cc[i](location));
-		}
-		
-		return {x:_x, y:_y};
-	};
-	
-	var _dist = function(p1,p2) {
-		return Math.sqrt(Math.pow(p1.x - p2.x, 2) + Math.pow(p1.y - p2.y, 2));
-	};
-
-	var _isPoint = function(curve) {
-		return curve[0].x == curve[1].x && curve[0].y == curve[1].y;
-	};
-	
-	/**
-	 * finds the point that is 'distance' along the path from 'location'.  this method returns both the x,y location of the point and also
-	 * its 'location' (proportion of travel along the path); the method below - _pointAlongPathFrom - calls this method and just returns the
-	 * point.
-	 */
-	var _pointAlongPath = function(curve, location, distance) {
-
-		if (_isPoint(curve)) {
-			return {
-				point:curve[0],
-				location:location
-			};
-		}
-
-		var prev = _pointOnPath(curve, location), 
-			tally = 0, 
-			curLoc = location, 
-			direction = distance > 0 ? 1 : -1, 
-			cur = null;
-			
-		while (tally < Math.abs(distance)) {
-			curLoc += (0.005 * direction);
-			cur = _pointOnPath(curve, curLoc);
-			tally += _dist(cur, prev);	
-			prev = cur;
-		}
-		return {point:cur, location:curLoc};        	
-	};
-	
-	var _length = function(curve) {
-		if (_isPoint(curve)) return 0;
-
-		var prev = _pointOnPath(curve, 0),
-			tally = 0,
-			curLoc = 0,
-			direction = 1,
-			cur = null;
-			
-		while (curLoc < 1) {
-			curLoc += (0.005 * direction);
-			cur = _pointOnPath(curve, curLoc);
-			tally += _dist(cur, prev);	
-			prev = cur;
-		}
-		return tally;
-	};
-	
-	/**
-	 * finds the point that is 'distance' along the path from 'location'.  
-	 */
-	var _pointAlongPathFrom = function(curve, location, distance) {
-		return _pointAlongPath(curve, location, distance).point;
-	};
-
-	/**
-	 * finds the location that is 'distance' along the path from 'location'.  
-	 */
-	var _locationAlongPathFrom = function(curve, location, distance) {
-		return _pointAlongPath(curve, location, distance).location;
-	};
-	
-	/**
-	 * returns the gradient of the curve at the given location, which is a decimal between 0 and 1 inclusive.
-	 * 
-	 * thanks // http://bimixual.org/AnimationLibrary/beziertangents.html
-	 */
-	var _gradientAtPoint = function(curve, location) {
-		var p1 = _pointOnPath(curve, location),	
-			p2 = _pointOnPath(curve.slice(0, curve.length - 1), location),
-			dy = p2.y - p1.y, dx = p2.x - p1.x;
-		return dy == 0 ? Infinity : Math.atan(dy / dx);		
-	};
-	
-	/**
-	returns the gradient of the curve at the point which is 'distance' from the given location.
-	if this point is greater than location 1, the gradient at location 1 is returned.
-	if this point is less than location 0, the gradient at location 0 is returned.
-	*/
-	var _gradientAtPointAlongPathFrom = function(curve, location, distance) {
-		var p = _pointAlongPath(curve, location, distance);
-		if (p.location > 1) p.location = 1;
-		if (p.location < 0) p.location = 0;		
-		return _gradientAtPoint(curve, p.location);		
-	};
-
-	/**
-	 * calculates a line that is 'length' pixels long, perpendicular to, and centered on, the path at 'distance' pixels from the given location.
-	 * if distance is not supplied, the perpendicular for the given location is computed (ie. we set distance to zero).
-	 */
-	var _perpendicularToPathAt = function(curve, location, length, distance) {
-		distance = distance == null ? 0 : distance;
-		var p = _pointAlongPath(curve, location, distance),
-			m = _gradientAtPoint(curve, p.location),
-			_theta2 = Math.atan(-1 / m),
-			y =  length / 2 * Math.sin(_theta2),
-			x =  length / 2 * Math.cos(_theta2);
-		return [{x:p.point.x + x, y:p.point.y + y}, {x:p.point.x - x, y:p.point.y - y}];
-	};
-	
-	var jsBezier = module.exports = {
-		distanceFromCurve : _distanceFromCurve,
-		gradientAtPoint : _gradientAtPoint,
-		gradientAtPointAlongCurveFrom : _gradientAtPointAlongPathFrom,
-		nearestPointOnCurve : _nearestPointOnCurve,
-		pointOnCurve : _pointOnPath,		
-		pointAlongCurveFrom : _pointAlongPathFrom,
-		perpendicularToCurveAt : _perpendicularToPathAt,
-		locationAlongCurveFrom:_locationAlongPathFrom,
-		getLength:_length
-	};
-})();
-
-},{}],9:[function(require,module,exports){
+},{"../../make-draggable":8,"eventman":1,"inherits":2,"lodash":3}],8:[function(require,module,exports){
 'use strict';
 
 module.exports = function makeDraggable(opt) {
