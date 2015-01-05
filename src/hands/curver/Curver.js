@@ -21,6 +21,25 @@ var BASE_POINT_STYLE = {
     pathStrokeWidth: 2,
 };
 
+var CURSORS = {
+
+    pencil: "url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAACKUlEQVQ4T2NkIB0oALX4A/FEkFZGEvQ7GJhYdIVEJ5puXrOM4c6ta21vX7+uJsaABGdP346kzCJ+Ewsb9vyUCEZ9Y3OGPds27jt78qgzTgN4eHia/cJiMlKyiznlFVW4//379zcnMZTZxNL2p5a2PnO0v5Mr0PUHsBqgrKa+cvH6fd7iklLcIC+CNGcnhDCbWtn9TMooYM+ICXy1e9sGcVxhoNDcO+NmVGI6269fv36vXjKX9eCe7Qzmto4/kzML2Z8+fvjZ0Ug57+/fvwtwGZBw7MqTKeJS0twTOuoZJnc1CRqbW81ftf1oAEhDXXHW96Xzp3PBAh/dCwJOHr6nZy/bpAJScPr44R+VBSmLAsNi47KLazi+fP78w1ZPtvfTx4812AwQcPH0O337xlWVPadv/WMCAvQontjZwDCps1EQKP4B3QABv5Cos70zFsufOLz/16LZkzmnL17/l5GRkRmq8P++nVu+A11T8Obly9nIBoO8IOAfGn2uZ/oiOaClYA0H9mz/M623laWqpffLmiXzfhw9uGftowf3VoCk0F3F6Okf+mXyvJUcSLaB1Rzet/NPQojHVCCzAF9qZdy478wXHQNjcHzDwMcP778nhXvtuHD6RBA+zeBoBIb6nVlLNyoBXQCOkU8fP3yPCXC6fPXieXNCmsEGALGBX0j00a6p81l/fP/2J8rX/uG1yxctkUMarxegkgKyCoozWFhYGe/fuZVOrGaQXgDe5tcRUOCRFgAAAABJRU5ErkJggg==) 15 0, auto",
+    // amgui.createCursorFromText({
+    //     icon: 'vector-pencil',
+    //     color: '#def',
+    //     width: 16,
+    //     height: 16,
+    //     hotspotX: 15,
+    //     hotspotY: 0,
+    //     rotateOriginX: 8,
+    //     rotateOriginY: 8,
+    //     backgroundColor: '#123',
+    //     rotate: 0,
+    //     stroke: {color:'black', width: 2},
+    //     debug: false,
+    // })
+}
+
 // point: {
 //     anchor: {x: 0, y: 0},
 //     handleLeft: {x: 0, y: 0},
@@ -248,6 +267,7 @@ p._addPoint = function (idx) {
         point._de = document.createElementNS('http://www.w3.org/2000/svg', 'path');
         point._de.style.fill = 'none';
         point._de.style.pointerEvents = 'auto';
+        point._de.style.cursor = CURSORS.pencil;
         that._dePathCont.appendChild(point._de);
 
         point._de.addEventListener('mousedown', function (e) {
