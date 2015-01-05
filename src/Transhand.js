@@ -108,7 +108,7 @@ p.G2L = function (p) {
     document.body.appendChild(this._deLocalRoot);
     var ret = nastyLocal2Global(p, this._deLocalRootPicker);
     document.body.removeChild(this._deLocalRoot);
-    console.log('G2L', p, '>', ret)
+    
     return ret;
 };
 
