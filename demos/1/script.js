@@ -2,13 +2,17 @@
 var handler = new Transhand(),
     currDomElem;
 
-var div0 = createDiv({top: '123px', left: '123px', width: '223px', height: '223px', background: 'deepskyblue'},
+var div0 = createDiv({top: '123px', left: '123px', width: '223px', height: '223px', background: '#001F3F'},
     {tx: 0, ty: 0, sx: 1, sy: 1, rz: 1, ox: 0.5, oy: 0.5},
     document.body);
 
-var div1 = createDiv({top: '123px', left: '123px', width: '123px', height: '123px', background: 'darkred'},
+var div1 = createDiv({top: '123px', left: '123px', width: '123px', height: '123px', background: '#01FF70'},
     {tx: 0, ty: 0, sx: 1, sy: 1, rz: 1, ox: 0.5, oy: 0.5},
     div0);
+
+var div2 = createDiv({top: '63px', left: '63px', width: '73px', height: '73px', background: '#FF851B'},
+    {tx: 0, ty: 0, sx: 1, sy: 1, rz: 1, ox: 0.5, oy: 0.5},
+    div1);
 
 handler.setLocalRoot(div1);
 

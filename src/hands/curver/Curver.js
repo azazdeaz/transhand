@@ -312,7 +312,7 @@ p._addPoint = function (idx) {
 
                     this._emitChange({type: 'edit', point: point});
 
-                    point.handleLeft._dragger.emitDown(e);
+                    point.handleRight._dragger.emitDown(e);
 
                     return false;
                 }
