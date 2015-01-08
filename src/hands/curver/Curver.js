@@ -74,11 +74,12 @@ function Curver() {
     ];
 }
 
-Curver.id = 'curver';
-
 inherits(Curver, EventEmitter);
 var p = Curver.prototype;
 module.exports = Curver;
+
+Curver.id = 'curver';
+p.renderLevel = 2;
 
 p.setup = function (opt) {
 

@@ -14,6 +14,12 @@ function Transhand() {
 
     this._createDomElem();
 
+    Object.defineProperty(this.domElem, 'renderLevel', {
+        get: function () { 
+            return (this._currHand && this._currHand.renderLevel) || 0;
+        }
+    });
+
     this._buffMockDiv = [];
 
     [Transformer, Boxer, Curver].forEach(function (Hand) {
@@ -79,6 +85,35 @@ p.deactivate = function () {
         }
     }
 };
+
+p._createDomElem = function () {
+
+    this.domElem = document.createElement('div');
+    this.domElem.style.position = 'fixed';
+    this.domElem.style.pointerEvents = 'none';
+    this.domElem.style.left = '0px';
+    this.domElem.style.top = '0px';
+    this.domElem.style.width = '100%';
+    this.domElem.style.height = '100%';
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 p.L2G = function (p) {
 
@@ -197,20 +232,7 @@ p.setLocalRoot = function (de) {
 
         return de;
     }
-}
-
-
-
-p._createDomElem = function () {
-
-    this.domElem = document.createElement('div');
-    this.domElem.style.position = 'fixed';
-    this.domElem.style.pointerEvents = 'none';
-    this.domElem.style.left = '0px';
-    this.domElem.style.top = '0px';
-    this.domElem.style.width = '100%';
-    this.domElem.style.height = '100%';
-}
+};
 
 
 

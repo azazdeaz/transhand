@@ -55,10 +55,12 @@ function Transformer(transhand) {
     this._onOutHitbox = this._onOutHitbox.bind(this);
 }
 
-Transformer.id = 'transformer';
 
 inherits(Transformer, EventEmitter);
 var p = Transformer.prototype;
+
+Transformer.id = 'transformer';
+p.renderLevel = 1;
 
 p.setup = function (opt) {
 
