@@ -6961,20 +6961,27 @@ function Transhand() {
 
     EventEmitter.call(this);
 
-    this.hands = {};
-
-    this._createDomElem();
+    this._hands = {};
 
     this._buffMockDiv = [];
 
-    [Transformer, Boxer, Curver].forEach(function (Hand) {
+    this._createDomElem();
 
-        var hand = new Hand(this);
+    Object.defineProperty(this.domElem, 'renderLevel', {
+        get: function () { 
+            return (this._currHand && this._currHand.renderLevel) || 0;
+        }.bind(this),
+    });
 
-        hand.on('change', this.emit.bind(this, 'change'));
 
-        this.hands[Hand.id] = hand;
-    }, this);
+    // [Transformer, Boxer, Curver].forEach(function (Hand) {
+
+    //     var hand = new Hand(this);
+
+    //     hand.on('change', this.emit.bind(this, 'change'));
+
+    //     this.hands[Hand.id] = hand;
+    // }, this);
 }
 
 inherits(Transhand, EventEmitter);
@@ -6983,7 +6990,7 @@ module.exports = Transhand;
 
 p.setup = function (opt) {
 
-    var hand = this.hands[opt.hand.type];
+    var hand = this._getHand(opt.hand.type);
 
     if (this._currHand && this._currHand !== hand) {
 
@@ -7031,6 +7038,53 @@ p.deactivate = function () {
     }
 };
 
+p._getHand = function (type) {
+
+    if (type in this._hands) {
+
+        return this._hands[type];
+    }
+
+    var Hand = _.find([Transformer, Boxer, Curver], {id: type});
+
+    if (!Hand) throw Error;
+
+    var hand = new Hand(this);
+    hand.on('change', this.emit.bind(this, 'change'));    
+    this._hands[Hand.id] = hand;
+
+    return hand;
+}
+
+p._createDomElem = function () {
+
+    this.domElem = document.createElement('div');
+    this.domElem.style.position = 'fixed';
+    this.domElem.style.pointerEvents = 'none';
+    this.domElem.style.left = '0px';
+    this.domElem.style.top = '0px';
+    this.domElem.style.width = '100%';
+    this.domElem.style.height = '100%';
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 p.L2G = function (p) {
 
     if (!this._deLocalRootPicker) {
@@ -7059,7 +7113,7 @@ p.G2L = function (p) {
     document.body.appendChild(this._deLocalRoot);
     var ret = nastyLocal2Global(p, this._deLocalRootPicker);
     document.body.removeChild(this._deLocalRoot);
-    console.log('G2L', p, '>', ret)
+    
     return ret;
 };
 
@@ -7148,20 +7202,7 @@ p.setLocalRoot = function (de) {
 
         return de;
     }
-}
-
-
-
-p._createDomElem = function () {
-
-    this.domElem = document.createElement('div');
-    this.domElem.style.position = 'fixed';
-    this.domElem.style.pointerEvents = 'none';
-    this.domElem.style.left = '0px';
-    this.domElem.style.top = '0px';
-    this.domElem.style.width = '100%';
-    this.domElem.style.height = '100%';
-}
+};
 
 
 
@@ -7681,10 +7722,12 @@ function Transformer(transhand) {
     this._onOutHitbox = this._onOutHitbox.bind(this);
 }
 
-Transformer.id = 'transformer';
 
 inherits(Transformer, EventEmitter);
 var p = Transformer.prototype;
+
+Transformer.id = 'transformer';
+p.renderLevel = 1;
 
 p.setup = function (opt) {
 
@@ -8391,6 +8434,25 @@ var BASE_POINT_STYLE = {
     pathStrokeWidth: 2,
 };
 
+var CURSORS = {
+
+    pencil: "url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAACKUlEQVQ4T2NkIB0oALX4A/FEkFZGEvQ7GJhYdIVEJ5puXrOM4c6ta21vX7+uJsaABGdP346kzCJ+Ewsb9vyUCEZ9Y3OGPds27jt78qgzTgN4eHia/cJiMlKyiznlFVW4//379zcnMZTZxNL2p5a2PnO0v5Mr0PUHsBqgrKa+cvH6fd7iklLcIC+CNGcnhDCbWtn9TMooYM+ICXy1e9sGcVxhoNDcO+NmVGI6269fv36vXjKX9eCe7Qzmto4/kzML2Z8+fvjZ0Ug57+/fvwtwGZBw7MqTKeJS0twTOuoZJnc1CRqbW81ftf1oAEhDXXHW96Xzp3PBAh/dCwJOHr6nZy/bpAJScPr44R+VBSmLAsNi47KLazi+fP78w1ZPtvfTx4812AwQcPH0O337xlWVPadv/WMCAvQontjZwDCps1EQKP4B3QABv5Cos70zFsufOLz/16LZkzmnL17/l5GRkRmq8P++nVu+A11T8Obly9nIBoO8IOAfGn2uZ/oiOaClYA0H9mz/M623laWqpffLmiXzfhw9uGftowf3VoCk0F3F6Okf+mXyvJUcSLaB1Rzet/NPQojHVCCzAF9qZdy478wXHQNjcHzDwMcP778nhXvtuHD6RBA+zeBoBIb6nVlLNyoBXQCOkU8fP3yPCXC6fPXieXNCmsEGALGBX0j00a6p81l/fP/2J8rX/uG1yxctkUMarxegkgKyCoozWFhYGe/fuZVOrGaQXgDe5tcRUOCRFgAAAABJRU5ErkJggg==) 15 0, auto",
+    // amgui.createCursorFromText({
+    //     icon: 'vector-pencil',
+    //     color: '#def',
+    //     width: 16,
+    //     height: 16,
+    //     hotspotX: 15,
+    //     hotspotY: 0,
+    //     rotateOriginX: 8,
+    //     rotateOriginY: 8,
+    //     backgroundColor: '#123',
+    //     rotate: 0,
+    //     stroke: {color:'black', width: 2},
+    //     debug: false,
+    // })
+}
+
 // point: {
 //     anchor: {x: 0, y: 0},
 //     handleLeft: {x: 0, y: 0},
@@ -8425,11 +8487,12 @@ function Curver() {
     ];
 }
 
-Curver.id = 'curver';
-
 inherits(Curver, EventEmitter);
 var p = Curver.prototype;
 module.exports = Curver;
+
+Curver.id = 'curver';
+p.renderLevel = 2;
 
 p.setup = function (opt) {
 
@@ -8618,6 +8681,7 @@ p._addPoint = function (idx) {
         point._de = document.createElementNS('http://www.w3.org/2000/svg', 'path');
         point._de.style.fill = 'none';
         point._de.style.pointerEvents = 'auto';
+        point._de.style.cursor = CURSORS.pencil;
         that._dePathCont.appendChild(point._de);
 
         point._de.addEventListener('mousedown', function (e) {
@@ -8662,7 +8726,7 @@ p._addPoint = function (idx) {
 
                     this._emitChange({type: 'edit', point: point});
 
-                    point.handleLeft._dragger.emitDown(e);
+                    point.handleRight._dragger.emitDown(e);
 
                     return false;
                 }

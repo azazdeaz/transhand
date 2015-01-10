@@ -10,26 +10,27 @@ function Transhand() {
 
     EventEmitter.call(this);
 
-    this.hands = {};
+    this._hands = {};
+
+    this._buffMockDiv = [];
 
     this._createDomElem();
 
     Object.defineProperty(this.domElem, 'renderLevel', {
         get: function () { 
             return (this._currHand && this._currHand.renderLevel) || 0;
-        }
+        }.bind(this),
     });
 
-    this._buffMockDiv = [];
 
-    [Transformer, Boxer, Curver].forEach(function (Hand) {
+    // [Transformer, Boxer, Curver].forEach(function (Hand) {
 
-        var hand = new Hand(this);
+    //     var hand = new Hand(this);
 
-        hand.on('change', this.emit.bind(this, 'change'));
+    //     hand.on('change', this.emit.bind(this, 'change'));
 
-        this.hands[Hand.id] = hand;
-    }, this);
+    //     this.hands[Hand.id] = hand;
+    // }, this);
 }
 
 inherits(Transhand, EventEmitter);
@@ -38,7 +39,7 @@ module.exports = Transhand;
 
 p.setup = function (opt) {
 
-    var hand = this.hands[opt.hand.type];
+    var hand = this._getHand(opt.hand.type);
 
     if (this._currHand && this._currHand !== hand) {
 
@@ -85,6 +86,24 @@ p.deactivate = function () {
         }
     }
 };
+
+p._getHand = function (type) {
+
+    if (type in this._hands) {
+
+        return this._hands[type];
+    }
+
+    var Hand = _.find([Transformer, Boxer, Curver], {id: type});
+
+    if (!Hand) throw Error;
+
+    var hand = new Hand(this);
+    hand.on('change', this.emit.bind(this, 'change'));    
+    this._hands[Hand.id] = hand;
+
+    return hand;
+}
 
 p._createDomElem = function () {
 
