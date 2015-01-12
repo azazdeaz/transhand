@@ -121,25 +121,38 @@ p.deactivate = function () {
 
 p._emitChange = (function () {
 
-    return function (detailes) {
+    return function (detailesList) {
 
-        detailes = _.assign({
-            type: '',
-            point: undefined,
-            idx: undefined,
-            points: this._points,
-            flatPoints: flatPoints,
-            flat: flat,
-            svgPath: svgPath,
-            clone: clone,
-        }, detailes);
+        var changes = [];
 
-        if (detailes.idx === undefined && detailes.point) {
+        if (!_.isArray(detailesList)) {
+        
+            detailesList = [detailesList];
+        } 
 
-            detailes.idx = this._points.indexOf(detailes.point);
-        }
+        detailesList = detailesList.map(function (detailes) {
 
-        this.emit('change', detailes);
+            detailes = _.assign({
+                type: '',
+                point: undefined,
+                idx: undefined,
+                points: this._points,
+                flatPoints: flatPoints,
+                flat: flat,
+                svgPath: svgPath,
+                clone: clone,
+            }, detailes);
+            
+            if (detailes.idx === undefined && detailes.point) {
+
+                detailes.idx = this._points.indexOf(detailes.point);
+            }
+
+            return detailes;
+        }, this);
+
+
+        this.emit('change', detailesList);
     };
 
     function flatPoints() {
@@ -274,13 +287,21 @@ p._addPoint = function (idx) {
         point._de.addEventListener('mousedown', function (e) {
 
             var idx = this._points.indexOf(point),
-                srcPoint = this._splitCurve(this._points[idx], this._points[idx+1], 
+                pLeft = this._points[idx],
+                pRight = this._points[idx + 1],
+                srcPoint = this._splitCurve(pLeft, pRight, 
                     e.x - this._offset.x, e.y - this._offset.y);
 
             var newPoint = this._addPoint(idx+1);
             this._setupPoint(newPoint, srcPoint);
 
-            this._emitChange({type: 'add', point: newPoint});
+            this._emitChange([
+                {type: 'edit', point: pLeft},
+                {type: 'add', point: newPoint},
+                {type: 'edit', point: pRight},
+            ]);
+
+            this.render();
 
             newPoint.anchor._dragger.emitDown(e);
         }.bind(that));

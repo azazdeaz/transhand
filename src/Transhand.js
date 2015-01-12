@@ -103,7 +103,7 @@ p._getHand = function (type) {
     this._hands[Hand.id] = hand;
 
     return hand;
-}
+};
 
 p._createDomElem = function () {
 
@@ -161,7 +161,7 @@ p.G2L = function (p) {
 
     document.body.appendChild(this._deLocalRoot);
     var ret = nastyLocal2Global(p, this._deLocalRootPicker);
-    document.body.removeChild(this._deLocalRoot);
+    // document.body.removeChild(this._deLocalRoot);
     
     return ret;
 };
@@ -182,7 +182,7 @@ p.setLocalRoot = function (de) {
     this._deLocalRoot = deRoot;
     this._deLocalRootPicker = dePicker;
     this._deLocalRootPicker.setAttribute('picker', 1);
-    // document.body.appendChild(this._deLocalRoot);
+    document.body.appendChild(this._deLocalRoot);
 
     function assemble(de) {
 
