@@ -182,17 +182,24 @@ p.setLocalRoot = function (de) {
     this._deLocalRoot = deRoot;
     this._deLocalRootPicker = dePicker;
     this._deLocalRootPicker.setAttribute('picker', 1);
-    document.body.appendChild(this._deLocalRoot);
+    // document.body.appendChild(this._deLocalRoot);
 
     function assemble(de) {
 
-        var transformed;
+        if (de.nodeName === 'BODY') return;
+
+        var transformed,
+            computedStyle = window.getComputedStyle(de, null);
 
         if (de.offsetLeft) {
-            deRoot.style.left = (parseInt(deRoot.style.left || 0) + de.offsetLeft) + 'px'
+            deRoot.style.left = (parseInt(deRoot.style.left || 0))
+                + de.offsetLeft
+                /*+ parseInt(computedStyle.getPropertyValue('margin-left'))*/ + 'px';
         }
         if (de.offsetTop) {
-            deRoot.style.top = (parseInt(deRoot.style.top || 0) + de.offsetTop) + 'px'
+            deRoot.style.top = (parseInt(deRoot.style.top || 0))
+                + de.offsetTop
+                /*+ parseInt(computedStyle.getPropertyValue('margin-top'))*/ + 'px';
         }
 
         if (de.style.transform) {
@@ -226,9 +233,7 @@ p.setLocalRoot = function (de) {
             deRoot = parent;
         }
 
-        if (de.parentNode &&  de.parentNode.nodeName !== '#document' && de.parentNode.nodeName !== 'HTML') {
-            assemble(de.parentNode);
-        }
+        assemble(de.parentNode);
     }
 
     function disassemble(de) {
@@ -247,6 +252,8 @@ p.setLocalRoot = function (de) {
         
         var de = that._buffMockDiv.pop() || document.createElement('div');
         de.style.position = 'absolute';
+        de.style.left = '0px';
+        de.style.top = '0px';
         de.setAttribute('mock', 1);
 
         return de;

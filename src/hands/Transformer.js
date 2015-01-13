@@ -194,10 +194,16 @@ p._refreshPoints = function () {
         var dx = (x - tox) * params.sx,
             dy = (y - toy) * params.sy,
             d = Math.sqrt(dx*dx + dy*dy),
-            rad = Math.atan2(dy, dx) + params.rz;
+            rad = Math.atan2(dy, dx) + params.rz,
+            nx = Math.cos(rad),
+            ny = Math.sin(rad),
+            rx = d * nx,
+            ry = d * ny,
+            px = tox + rx,
+            py = toy + ry;
 
-        p.x = tox + (d * Math.cos(rad));
-        p.y = toy + (d * Math.sin(rad));
+        p.x = px;
+        p.y = py;
     }
 };
 
