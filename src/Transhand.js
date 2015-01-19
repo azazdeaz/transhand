@@ -5,6 +5,7 @@ var Boxer = require('./hands/Boxer');
 var Curver = require('./hands/curver/Curver');
 var EventEmitter = require('eventman');
 var inherits = require('inherits');
+var _ = require('lodash');
 
 function Transhand() {
 
@@ -150,7 +151,7 @@ p.L2G = function (p) {
     return {
         x: br.left,
         y: br.top,
-    }
+    };
 };
 
 p.G2L = function (p) {
@@ -161,84 +162,110 @@ p.G2L = function (p) {
 
     document.body.appendChild(this._deLocalRoot);
     var ret = nastyLocal2Global(p, this._deLocalRootPicker);
-    // document.body.removeChild(this._deLocalRoot);
+    document.body.removeChild(this._deLocalRoot);
     
     return ret;
 };
+
+var tProps = ['transform', 'transformOrigin', 'prespective', 'prespectiveOrigin', 'transformStyle'];
 
 p.setLocalRoot = function (de) {
 
     var that = this, 
         deRoot = getDiv(), 
-        dePicker = getDiv();
-
-    deRoot.appendChild(dePicker);
+        deTop = deRoot,
+        dePicker = getDiv(),
+        transformeds = [],
+        parentPos = {left: 0, top: 0},
+        assembleIdx = 0;
 
     if (this._deLocalRoot) {
         disassemble(this._deLocalRoot);
     }
-    assemble(de);
+
+    walkBack(de);
+    assemble();
+
+    deTop.appendChild(dePicker);
 
     this._deLocalRoot = deRoot;
     this._deLocalRootPicker = dePicker;
-    this._deLocalRootPicker.setAttribute('picker', 1);
+    this._deLocalRootPicker.setAttribute('picker', 1);//debug
     // document.body.appendChild(this._deLocalRoot);
 
-    function assemble(de) {
+
+    function walkBack(de) {
 
         if (de.nodeName === 'BODY') return;
 
-        var transformed,
-            computedStyle = window.getComputedStyle(de, null);
+        var computedStyle = window.getComputedStyle(de),
+            reg, pv;
 
-        if (de.offsetLeft) {
-            deRoot.style.left = (parseInt(deRoot.style.left || 0))
-                + de.offsetLeft
-                /*+ parseInt(computedStyle.getPropertyValue('margin-left'))*/ + 'px';
-        }
-        if (de.offsetTop) {
-            deRoot.style.top = (parseInt(deRoot.style.top || 0))
-                + de.offsetTop
-                /*+ parseInt(computedStyle.getPropertyValue('margin-top'))*/ + 'px';
-        }
+        tProps.forEach(function (propName) {
 
-        if (de.style.transform) {
-            transformed = true;
-            deRoot.style.transform = de.style.transform;
-            //for the transform-origin
-            deRoot.style.width = (parseInt(deRoot.style.width || 0) + de.offsetWidth) + 'px';
-            deRoot.style.height = (parseInt(deRoot.style.height || 0) + de.offsetHeight) + 'px';
-            
-            if (de.style.transformOrigin) {
-                deRoot.style.transformOrigin = de.style.transformOrigin;
+            var value = computedStyle.getPropertyValue(propName);
+            if (value) set(propName, value);
+        });
+
+        walkBack(de.parentNode);
+
+        function set(propName, value) {
+
+            if (!reg) {
+                reg = {
+                    de: de,
+                    inlineTransform: de.style.transform,
+                    style: {}
+                };
+
+                transformeds.unshift(reg);
             }
-        }
-        if (de.style.prespective) {
-            transformed = true;
-            deRoot.style.prespective = de.style.prespective;
-            
-            if (de.style.prespectiveOrigin) {
-                deRoot.style.prespectiveOrigin = de.style.prespectiveOrigin;
-            }
-        }
-        if (de.style.transformStyle) {
-            transformed = true;
-            deRoot.style.transformStyle = de.style.transformStyle;
-        }
 
-        if (transformed) {
+            de.style.transform = 'none';
 
-            var parent = getDiv();
-            parent.appendChild(deRoot);
-            deRoot = parent;
+            reg.style[propName] = value;
         }
-
-        assemble(de.parentNode);
     }
+
+    function assemble() {
+
+        var transformReg = transformeds[assembleIdx++],
+            deNext = transformReg ? transformReg.de : de,
+            nextPos = deNext.getBoundingClientRect();
+
+        var deNew = getDiv();
+        deTop.appendChild(deNew);
+        deTop = deNew;
+
+        deNew.style.left = (nextPos.left - parentPos.left) + 'px';
+        deNew.style.top = (nextPos.top - parentPos.top) + 'px';
+
+        parentPos = nextPos;
+
+        if (transformReg) {
+
+            //for the transform and perspective origin
+            deNew.style.width = nextPos.width + 'px';
+            deNew.style.height = nextPos.height + 'px';
+            
+            Object.keys(transformReg.style).forEach(function (propName) {
+
+                deNew.style[propName] = transformReg.style[propName];
+            });
+
+            assemble();
+        }
+    }
+
+    transformeds.forEach(function (reg) {
+        reg.de.style.transform = reg.inlineTransform;
+    });
+    transformeds.length = 0;
 
     function disassemble(de) {
 
         de.removeAttribute('style');
+        de.removeAttribute('picker');//debug
         that._buffMockDiv.push(de);
 
         var child = de.firstChild;
@@ -254,10 +281,63 @@ p.setLocalRoot = function (de) {
         de.style.position = 'absolute';
         de.style.left = '0px';
         de.style.top = '0px';
-        de.setAttribute('mock', 1);
+        de.setAttribute('mock', 1);//debug
 
         return de;
     }
+    
+    // function assemble(de) {
+
+    //     if (de.nodeName === 'BODY') return;
+
+    //     var transformed,
+    //         computedStyle = window.getComputedStyle(de, null),
+    //         position = $(de).position();
+
+    //     if (de.offsetLeft) {
+    //         deRoot.style.left = (parseInt(deRoot.style.left || 0))
+    //             + position.left
+    //             /*+ parseInt(computedStyle.getPropertyValue('margin-left'))*/ + 'px';
+    //     }
+    //     if (de.offsetTop) {
+    //         deRoot.style.top = (parseInt(deRoot.style.top || 0))
+    //             + position.top
+    //             /*+ parseInt(computedStyle.getPropertyValue('margin-top'))*/ + 'px';
+    //     }
+
+    //     if (de.style.transform) {
+    //         transformed = true;
+    //         deRoot.style.transform = de.style.transform;
+    //         //for the transform-origin
+    //         deRoot.style.width = (parseInt(deRoot.style.width || 0) + de.offsetWidth) + 'px';
+    //         deRoot.style.height = (parseInt(deRoot.style.height || 0) + de.offsetHeight) + 'px';
+            
+    //         if (de.style.transformOrigin) {
+    //             deRoot.style.transformOrigin = de.style.transformOrigin;
+    //         }
+    //     }
+    //     if (de.style.prespective) {
+    //         transformed = true;
+    //         deRoot.style.prespective = de.style.prespective;
+            
+    //         if (de.style.prespectiveOrigin) {
+    //             deRoot.style.prespectiveOrigin = de.style.prespectiveOrigin;
+    //         }
+    //     }
+    //     if (de.style.transformStyle) {
+    //         transformed = true;
+    //         deRoot.style.transformStyle = de.style.transformStyle;
+    //     }
+
+    //     if (transformed) {
+
+    //         var parent = getDiv();
+    //         parent.appendChild(deRoot);
+    //         deRoot = parent;
+    //     }
+
+    //     assemble(de.parentNode);
+    // }
 };
 
 
