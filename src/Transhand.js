@@ -176,7 +176,7 @@ p.setLocalRoot = function (de) {
         deTop = deRoot,
         dePicker = getDiv(),
         transformeds = [],
-        parentPos = {left: 0, top: 0},
+        parentPos = {left: -window.scrollX, top: -window.scrollY},
         assembleIdx = 0;
 
     if (this._deLocalRoot) {

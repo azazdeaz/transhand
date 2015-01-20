@@ -6948,7 +6948,6 @@ if (typeof Object.create === 'function') {
 }.call(this));
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-
 },{}],4:[function(require,module,exports){
 'use strict';
 
@@ -7128,7 +7127,7 @@ p.setLocalRoot = function (de) {
         deTop = deRoot,
         dePicker = getDiv(),
         transformeds = [],
-        parentPos = {left: 0, top: 0},
+        parentPos = {left: -window.scrollX, top: -window.scrollY},
         assembleIdx = 0;
 
     if (this._deLocalRoot) {

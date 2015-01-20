@@ -14,6 +14,11 @@ var div2 = createDiv({top: '43px', left: '43px', width: '73px', height: '73px', 
     {tx: 23, ty: 32, sx: 1, sy: 1, rz: 1.2, ox: 0.5, oy: 0.5},
     div1);
 
+
+var divScroll = createDiv({top: '1123px', left: '123px', width: '223px', height: '223px', background: '#3D9970'},
+    {tx: 12, ty: 21, sx: 1, sy: 1, rz: 0.8, ox: 0.5, oy: 0.5},
+    document.body);
+
 handler.setLocalRoot(div1);
 
 handler.on('change', onChangeHandler);
