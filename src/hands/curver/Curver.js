@@ -2,8 +2,8 @@
 
 var EventEmitter = require('eventman');
 var inherits = require('inherits');
-var _ = require('lodash');
 var makeDraggable = require('../../make-draggable');
+var _ = require('lodash');
 
 
 var BASE_POINT_STYLE = {
@@ -38,7 +38,7 @@ var CURSORS = {
     //     stroke: {color:'black', width: 2},
     //     debug: false,
     // })
-}
+};
 
 // point: {
 //     anchor: {x: 0, y: 0},
@@ -49,9 +49,11 @@ var CURSORS = {
 // }
 
 
-function Curver() {
+function Curver(transhand) {
 
     EventEmitter.call(this);
+
+    this._th = transhand;
 
     this._points = [];
     this._buffPoints = [];
@@ -59,7 +61,7 @@ function Curver() {
     this._offset = {
         x: 0,
         y: 0,
-    }
+    };
 
     this._clickActions = [
         {target: 'anchor', action: 'move_anchor'},
@@ -73,6 +75,21 @@ function Curver() {
         {target: 'curve', action: 'scale_path', ctrl: true, alt: true},
     ];
 }
+
+var hints = {
+    anchor: [
+        'drag anchor',
+        'remove anchor - ctrl',
+        'reset anchor - alt',
+    ],
+    handle: [
+        'drag hanle',
+        'unlink handle - alt',
+    ],
+    curve: [
+        'add point'
+    ],
+};
 
 inherits(Curver, EventEmitter);
 var p = Curver.prototype;
@@ -123,12 +140,10 @@ p._emitChange = (function () {
 
     return function (detailesList) {
 
-        var changes = [];
-
         if (!_.isArray(detailesList)) {
-        
+
             detailesList = [detailesList];
-        } 
+        }
 
         detailesList = detailesList.map(function (detailes) {
 
@@ -142,7 +157,7 @@ p._emitChange = (function () {
                 svgPath: svgPath,
                 clone: clone,
             }, detailes);
-            
+
             if (detailes.idx === undefined && detailes.point) {
 
                 detailes.idx = this._points.indexOf(detailes.point);
@@ -158,20 +173,20 @@ p._emitChange = (function () {
     function flatPoints() {
 
         var ret = [];
-        
+
         this.points.forEach(function (point) {
 
             ret.push({
                 x: point.handleLeft.x,
-                y: point.handleLeft.y 
+                y: point.handleLeft.y
             });
             ret.push({
                 x: point.anchor.x,
-                y: point.anchor.y 
+                y: point.anchor.y
             });
             ret.push({
                 x: point.handleRight.x,
-                y: point.handleRight.y 
+                y: point.handleRight.y
             });
         });
 
@@ -184,17 +199,17 @@ p._emitChange = (function () {
 
 p._getClickAction = function (target, e) {
 
-    var ctrl = e.ctrlKey,
-        shift = e.shiftlKey,
-        alt = e.altKey,
+    var ctrl = !!e.ctrlKey,
+        shift = !!e.shiftlKey,
+        alt = !!e.altKey,
         ret;
 
     this._clickActions.some(function (clickAction) {
 
         if (clickAction.target === target &&
-            !!clickAction.ctrl === !!ctrl &&
-            !!clickAction.shift === !!shift &&
-            !!clickAction.alt === !!alt)
+            clickAction.ctrl === ctrl &&
+            clickAction.shift === shift &&
+            clickAction.alt === alt)
         {
             ret = clickAction.action;
             return true;
@@ -202,7 +217,7 @@ p._getClickAction = function (target, e) {
     });
 
     return ret;
-}
+};
 
 
 
@@ -215,13 +230,13 @@ p.render = function () {
     var i, l, point, pointB, cmd;
 
     for (i = 0, l = this._points.length; i < l; ++i) {
-        
+
         point = this._points[i];
 
         if (i !== l - 1) {
-            
+
             pointB = this._points[i+1];
-            
+
             cmd = 'M' + point.anchor.x + ',' + point.anchor.y + ' ';
             cmd += 'C' + point.handleRight.x + ',' + point.handleRight.y + ' ';
             cmd += pointB.handleLeft.x + ',' + pointB.handleLeft.y + ' ';
@@ -258,7 +273,7 @@ p.render = function () {
 
 p._addPoint = function (idx) {
 
-    var that = this, 
+    var that = this,
         point = {
             anchor: {x: 0, y: 0},
             handleLeft: {x: 0, y: 0},
@@ -275,7 +290,7 @@ p._addPoint = function (idx) {
     createHandle(point.handleRight);
 
     return point;
-
+//TODO cleanup this
     function createPath() {
 
         point._de = document.createElementNS('http://www.w3.org/2000/svg', 'path');
@@ -289,7 +304,7 @@ p._addPoint = function (idx) {
             var idx = this._points.indexOf(point),
                 pLeft = this._points[idx],
                 pRight = this._points[idx + 1],
-                srcPoint = this._splitCurve(pLeft, pRight, 
+                srcPoint = this._splitCurve(pLeft, pRight,
                     e.x - this._offset.x, e.y - this._offset.y);
 
             var newPoint = this._addPoint(idx+1);
@@ -305,6 +320,14 @@ p._addPoint = function (idx) {
 
             newPoint.anchor._dragger.emitDown(e);
         }.bind(that));
+
+
+        point._de.addEventListener('mouseenter', () => {
+            that._th.cursorHint.setHints(hints.curve);
+        });
+        point._de.addEventListener('mouseleave', () => {
+            that._th.cursorHint.setHints(null);
+        });
     }
 
     function createAnchor() {
@@ -369,7 +392,13 @@ p._addPoint = function (idx) {
 
                 this._emitChange({type: 'edit', point: point});
                 this.render();
-            }
+            },
+            onEnter: function () {
+                this._th.cursorHint.setHints(hints.anchor);
+            },
+            onLeave: function () {
+                this._th.cursorHint.setHints(null);
+            },
         });
     }
 
@@ -389,20 +418,20 @@ p._addPoint = function (idx) {
             onDown: function (e) {
 
                 var action = this._getClickAction('handle', e);
-                
+
                 if (!e.syncronSize && action === 'unlink_handle' && point.linked) {
 
                     point.linked = false;
 
                     this._emitChange({type: 'edit', point: point});
                 }
-             
+
                 return {
                     xStart: handle.x,
                     yStart: handle.y,
                     oppositeLength: dist(oppositeHandle, point.anchor),
                     syncronSize: e.syncronSize,
-                }
+                };
             },
             onDrag: function (md) {
 
@@ -422,11 +451,17 @@ p._addPoint = function (idx) {
 
                 this._emitChange({type: 'edit', point: point});
                 this.render();
-            }
+            },
+            onEnter: function () {
+                this._th.cursorHint.setHints(hints.handle);
+            },
+            onLeave: function () {
+                this._th.cursorHint.setHints(null);
+            },
         });
     }
 
-    function createCircle(color) {
+    function createCircle() {
 
         var de = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
         de.style.cursor = 'pointer';
@@ -435,7 +470,7 @@ p._addPoint = function (idx) {
         return de;
     }
 
-    function createLine(color) {
+    function createLine() {
 
         var de = document.createElementNS('http://www.w3.org/2000/svg', 'line');
         de.style.pointerEvents = 'none';
@@ -447,7 +482,7 @@ p._addPoint = function (idx) {
 
         var ox = pa.x - pb.x,
             oy = pa.y - pb.y;
-        
+
         return Math.sqrt(ox*ox + oy*oy);
     }
 };
@@ -461,7 +496,7 @@ p._setupPoint = function (point, src) {
     point.handleRight.x = src.handleRight.x;
     point.handleRight.y = src.handleRight.y;
     point.linked = !!src.linked;
-    
+
     var s = point.style = _.defaults({}, src.style, BASE_POINT_STYLE);
 
     point._de.style.stroke = s.pathStroke;
@@ -500,7 +535,7 @@ p._splicePoint = function (idx) {
     var removedPoint = this._points.splice(idx, 1)[0];
 
     this._emitChange({type: 'splice', idx: idx});
-    
+
     this.render();
 
     removedPoint._de.parentNode.removeChild(removedPoint._de);
@@ -529,8 +564,8 @@ p._splitCurve = function (pa, pb, x, y) {
             linked: true,
         },
         pm = {},
-        dl = dist(pa.anchor, pa.handleRight) + 
-            dist(pa.handleRight, pb.handleLeft) + 
+        dl = dist(pa.anchor, pa.handleRight) +
+            dist(pa.handleRight, pb.handleLeft) +
             dist(pb.handleLeft, pb.anchor),
         minDist, pos, loc;
 
@@ -546,7 +581,7 @@ p._splitCurve = function (pa, pb, x, y) {
             loc = _loc;
             pos = _pos;
         }
-    };
+    }
 
     p.anchor = pos;
 
@@ -580,7 +615,7 @@ p._splitCurve = function (pa, pb, x, y) {
             p[i+0] = p[i+0] + (p[i+2] - p[i+0]) * pos;
             p[i+1] = p[i+1] + (p[i+3] - p[i+1]) * pos;
         }
-    };
+    }
 
     function dist(pa, pb) {
 

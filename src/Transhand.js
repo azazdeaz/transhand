@@ -3,6 +3,7 @@
 var Transformer = require('./hands/Transformer');
 var Boxer = require('./hands/Boxer');
 var Curver = require('./hands/curver/Curver');
+var CursorHint = require('./CursorHint');
 var EventEmitter = require('eventman');
 var inherits = require('inherits');
 var _ = require('lodash');
@@ -17,8 +18,10 @@ function Transhand() {
 
     this._createDomElem();
 
+    this.cursorHint = new CursorHint();
+
     Object.defineProperty(this.domElem, 'renderLevel', {
-        get: function () { 
+        get: function () {
             return (this._currHand && this._currHand.renderLevel) || 0;
         }.bind(this),
     });
@@ -70,7 +73,7 @@ p.activate = function () {
     if (this._currHand) {
 
         this._currHand.activate();
-        
+
         this.domElem.appendChild(this._currHand.domElem);
     }
 };
@@ -100,7 +103,7 @@ p._getHand = function (type) {
     if (!Hand) throw Error;
 
     var hand = new Hand(this);
-    hand.on('change', this.emit.bind(this, 'change'));    
+    hand.on('change', this.emit.bind(this, 'change'));
     this._hands[Hand.id] = hand;
 
     return hand;
@@ -163,7 +166,7 @@ p.G2L = function (p) {
     document.body.appendChild(this._deLocalRoot);
     var ret = nastyLocal2Global(p, this._deLocalRootPicker);
     document.body.removeChild(this._deLocalRoot);
-    
+
     return ret;
 };
 
@@ -171,8 +174,8 @@ var tProps = ['transform', 'transformOrigin', 'prespective', 'prespectiveOrigin'
 
 p.setLocalRoot = function (de) {
 
-    var that = this, 
-        deRoot = getDiv(), 
+    var that = this,
+        deRoot = getDiv(),
         deTop = deRoot,
         dePicker = getDiv(),
         transformeds = [],
@@ -247,7 +250,7 @@ p.setLocalRoot = function (de) {
             //for the transform and perspective origin
             deNew.style.width = nextPos.width + 'px';
             deNew.style.height = nextPos.height + 'px';
-            
+
             Object.keys(transformReg.style).forEach(function (propName) {
 
                 deNew.style[propName] = transformReg.style[propName];
@@ -270,13 +273,13 @@ p.setLocalRoot = function (de) {
 
         var child = de.firstChild;
         if (child) {
-            de.removeChild(child);            
+            de.removeChild(child);
             disassemble(child);
         }
     }
 
     function getDiv() {
-        
+
         var de = that._buffMockDiv.pop() || document.createElement('div');
         de.style.position = 'absolute';
         de.style.left = '0px';
@@ -285,7 +288,7 @@ p.setLocalRoot = function (de) {
 
         return de;
     }
-    
+
     // function assemble(de) {
 
     //     if (de.nodeName === 'BODY') return;
@@ -311,7 +314,7 @@ p.setLocalRoot = function (de) {
     //         //for the transform-origin
     //         deRoot.style.width = (parseInt(deRoot.style.width || 0) + de.offsetWidth) + 'px';
     //         deRoot.style.height = (parseInt(deRoot.style.height || 0) + de.offsetHeight) + 'px';
-            
+
     //         if (de.style.transformOrigin) {
     //             deRoot.style.transformOrigin = de.style.transformOrigin;
     //         }
@@ -319,7 +322,7 @@ p.setLocalRoot = function (de) {
     //     if (de.style.prespective) {
     //         transformed = true;
     //         deRoot.style.prespective = de.style.prespective;
-            
+
     //         if (de.style.prespectiveOrigin) {
     //             deRoot.style.prespectiveOrigin = de.style.prespectiveOrigin;
     //         }
@@ -385,7 +388,7 @@ function nastyLocal2Global (mPos, dePicker) {
 
         dist += 4*tweakDist;
     }
-    
+
     while (tweakDist > 1) {
 
         if (posDist(globalNullPos, L2G(Rad2Pos(rad, dist))) < globalDist) {
@@ -398,12 +401,12 @@ function nastyLocal2Global (mPos, dePicker) {
 
         tweakDist /= 2;
     }
-  
+
     return Rad2Pos(rad, dist);
-  
-    
-  
-  
+
+
+
+
     function closestRad(aRad, bRad) {
 
         var aPos = L2G(Rad2Pos(aRad, tweakDist)),
@@ -411,7 +414,7 @@ function nastyLocal2Global (mPos, dePicker) {
             gARad = getRad(globalNullPos, aPos),
             gBRad = getRad(globalNullPos, bPos);
 
-      
+
         $('#s0').css('left', aPos.x);
         $('#s0').css('top', aPos.y);
         $('#s1').css('left', bPos.x);
@@ -419,9 +422,9 @@ function nastyLocal2Global (mPos, dePicker) {
 
       return radDiff(gARad, globalRad) < radDiff(gBRad, globalRad) ? aRad : bRad;
     }
-  
+
     function getRad(aPos, bPos) {
-      
+
        return Math.atan2(bPos.y - aPos.y, bPos.x - aPos.x);
     }
 
@@ -442,7 +445,7 @@ function nastyLocal2Global (mPos, dePicker) {
 
         return {x: br.left, y: br.top};
     }
-  
+
     function radDiff(aRad, bRad) {
 
       bRad -= aRad;
@@ -450,7 +453,7 @@ function nastyLocal2Global (mPos, dePicker) {
 
       if (bRad > Math.PI) bRad -= 2*Math.PI;
       else if (bRad < -Math.PI) bRad += 2*Math.PI;
-      
+
       return bRad;
     }
 
