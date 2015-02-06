@@ -2,9 +2,10 @@
   "name": "transhand",
   "version": "0.0.5",
   "description": "A transform tool for web applications",
-  "main": "src/Transhand.js",
+  "main": "es5/Transhand.js",
   "scripts": {
-    "build": "browserify src/Transhand.js --standalone Transhand --debug | exorcist build/transhand.js.map > build/transhand.js"
+    "build": "browserify -t 6to5ify src/Transhand.js --standalone Transhand --debug | exorcist build/transhand.js.map > build/transhand.js",
+    "es5": "6to5 src --out-dir es5"
   },
   "repository": {
     "type": "git",
@@ -17,7 +18,9 @@
   },
   "homepage": "https://github.com/animachine/transhand",
   "devDependencies": {
-    "browserify": "^6.2.0"
+    "browserify": "^6.2.0",
+    "6to5ify": "^4.1.0",
+    "6to5": "^3.3.12"
   },
   "dependencies": {
     "eventman": "0.0.1"
