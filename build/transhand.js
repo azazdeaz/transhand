@@ -7520,6 +7520,11 @@ var INIT_BASE = {
     w: 0,
     h: 0 };
 
+var hints = {
+    scale: ["shift - keep proportion", "alt - from the opposite side"],
+    rotate: ["shift - 15° steps"],
+    move: ["shift - move in one dimension"] };
+
 
 function Transformer(transhand) {
     EventEmitter.call(this);
@@ -7962,10 +7967,13 @@ p._setFinger = function (e) {
         //TODO its sould be top-right-bottom-left
         this._finger = ("000" + (top * 1000 + left * 100 + bottom * 10 + right * 1)).substr(-4);
         cursorScale = true;
+        this._th.cursorHint.setHints(hints.scale);
     } else if (inside) {
         this._finger = "move";
+        this._th.cursorHint.setHints(hints.move);
     } else if (dTop < rDiff || dRight < rDiff || dBottom < rDiff || dLeft < rDiff || dOrigin < rDiff) {
         this._finger = "rotate";
+        this._th.cursorHint.setHints(hints.rotate);
     } else {
         this._finger = false;
     }
@@ -8223,6 +8231,8 @@ function Curver(transhand) {
     this._points = [];
     this._buffPoints = [];
 
+    this._selectedPoints = [];
+
     this._offset = {
         x: 0,
         y: 0 };
@@ -8272,6 +8282,18 @@ p.activate = function () {
 p.deactivate = function () {
     if (!this._isActivated) return;
     this._isActivated = false;
+};
+
+p.selectPoints = function (points) {
+    var _this = this;
+
+
+    this._selectedPoints.length = 0;
+    this._selectedPoints.push.apply(this._selectedPoints, points);
+
+    this._points.forEach(function (point) {
+        point.selected = _this._selectedPoints.indexOf(point) !== -1;
+    });
 };
 
 
@@ -8331,12 +8353,12 @@ p._emitChange = (function () {
 
 p._getClickAction = function (target, e) {
     var ctrl = e.ctrlKey,
-        shift = e.shiftlKey,
+        shift = e.shiftKey,
         alt = e.altKey,
         ret;
 
     this._clickActions.some(function (clickAction) {
-        if (clickAction.target === target && !!clickAction.ctrl === !!ctrl && !!clickAction.shift === !!shift && !!clickAction.alt === !!alt) {
+        if (clickAction.target === target && !!clickAction.ctrl === ctrl && !!clickAction.shift === shift && !!clickAction.alt === alt) {
             ret = clickAction.action;
             return true;
         }
@@ -8394,12 +8416,28 @@ p.render = function () {
 
 p._addPoint = function (idx) {
     var that = this,
-        point = {
+        point = Object.defineProperties({
         anchor: { x: 0, y: 0 },
         handleLeft: { x: 0, y: 0 },
         handleRight: { x: 0, y: 0 },
         style: {},
-        linked: false };
+        linked: false }, {
+        selected: {
+            set: function (v) {
+                this._selected = v;
+                var display = this._selected ? "" : "none";
+                this.handleLeft._de.style.display = display;
+                this.handleLeft._deLine.style.display = display;
+                this.handleRight._de.style.display = display;
+                this.handleRight._deLine.style.display = display;
+            },
+            get: function () {
+                return this._selected;
+            },
+            enumerable: true,
+            configurable: true
+        }
+    });
     //TODO use _buffPoints[]
     this._points.splice(idx, 0, point);
 
@@ -8407,6 +8445,8 @@ p._addPoint = function (idx) {
     createAnchor();
     createHandle(point.handleLeft);
     createHandle(point.handleRight);
+
+    point.selected = false;
 
     return point;
     //TODO cleanup this
@@ -8452,6 +8492,8 @@ p._addPoint = function (idx) {
             onDown: function (e) {
                 var action = this._getClickAction("anchor", e);
 
+                this.selectPoints([point]);
+
                 if (action === "reset_anchor") {
                     point.handleLeft.x = point.anchor.x;
                     point.handleLeft.y = point.anchor.y;
@@ -8470,6 +8512,8 @@ p._addPoint = function (idx) {
 
                     return false;
                 } else if (action === "remove_point") {
+                    this.selectPoints([]);
+
                     var idx = this._points.indexOf(point);
 
                     this._splicePoint(idx);

@@ -29,6 +29,11 @@ var INIT_BASE = {
     w: 0,
     h: 0 };
 
+var hints = {
+    scale: ["shift - keep proportion", "alt - from the opposite side"],
+    rotate: ["shift - 15° steps"],
+    move: ["shift - move in one dimension"] };
+
 
 function Transformer(transhand) {
     EventEmitter.call(this);
@@ -471,10 +476,13 @@ p._setFinger = function (e) {
         //TODO its sould be top-right-bottom-left
         this._finger = ("000" + (top * 1000 + left * 100 + bottom * 10 + right * 1)).substr(-4);
         cursorScale = true;
+        this._th.cursorHint.setHints(hints.scale);
     } else if (inside) {
         this._finger = "move";
+        this._th.cursorHint.setHints(hints.move);
     } else if (dTop < rDiff || dRight < rDiff || dBottom < rDiff || dLeft < rDiff || dOrigin < rDiff) {
         this._finger = "rotate";
+        this._th.cursorHint.setHints(hints.rotate);
     } else {
         this._finger = false;
     }

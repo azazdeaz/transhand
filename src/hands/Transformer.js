@@ -26,10 +26,23 @@ var INIT_PARAMS = {
 };
 
 var INIT_BASE = {
-    x: 0, 
-    y: 0, 
-    w: 0, 
+    x: 0,
+    y: 0,
+    w: 0,
     h: 0,
+};
+
+var hints = {
+    scale: [
+        'shift - keep proportion',
+        'alt - from the opposite side',
+    ],
+    rotate: [
+        'shift - 15° steps',
+    ],
+    move: [
+        'shift - move in one dimension'
+    ],
 };
 
 
@@ -89,7 +102,7 @@ p.deactivate = function () {
 
     if (!this._isActivated) return;
     this._isActivated = false;
-    
+
     window.removeEventListener('mousemove', this._onMouseMove);
     this._deHitbox.removeEventListener('mousedown', this._onMouseDown);
     this._deOriginHit.removeEventListener('mousedown', this._onMouseDown);
@@ -127,14 +140,14 @@ p._onMouseDown = function (e) {
 p._onMouseMove = function (e) {
 
     if (!this._isHandle && this._isOverHitbox) {
-        
+
         this._setFinger(e);
     }
 
     if (this._cursorFunc) {
         this._setCursor(this._cursorFunc(e.clientX, e.clientY));
     }
-}; 
+};
 
 p._onMouseUp = function () {
 
@@ -145,7 +158,7 @@ p._onMouseUp = function () {
     if (this._rafOnDragRafId) {
         this._rafOnDrag();
     }
-    
+
     this._isHandle = false;
 
     this._deFullHit.style.pointerEvents = 'none';
@@ -170,14 +183,14 @@ p._onOutHitbox = function () {
 
 p._refreshPoints = function () {
 
-    var base = _.clone(this._base), 
+    var base = _.clone(this._base),
         params = this._params,
         p = this._points,
         po = this._pOrigin;
 
     base.x += params.tx;
     base.y += params.ty;
-    
+
     po.x = base.x + (base.w * params.ox);
     po.y = base.y + (base.h * params.oy);
 
@@ -240,7 +253,7 @@ p._renderHandler = function () {
     ctx.lineTo(po.x + or, po.y);
     ctx.moveTo(po.x, po.y - or);
     ctx.lineTo(po.x, po.y + or);
-    
+
 
     // ctx.shadowColor = '#f00';
     // ctx.shadowBlur = 3;
@@ -269,7 +282,7 @@ p._renderHandler = function () {
 
 p._refreshHitbox = function () {
 
-    // var base = this._base, 
+    // var base = this._base,
     //     params = this._params,
     //     po = this._pOrigin,
     //     leftScale = (base.w * params.ox * (params.sx-1)),
@@ -285,7 +298,7 @@ p._refreshHitbox = function () {
     // this._deHitbox.style.width = w + 'px';
     // this._deHitbox.style.height = h + 'px';
     // this._deHitbox.style.transformOrigin = ox + 'px ' + oy + 'px';
-    // this._deHitbox.style.transform = 'rotate(' + this._params.rz + 'rad)'; 
+    // this._deHitbox.style.transform = 'rotate(' + this._params.rz + 'rad)';
 };
 
 
@@ -336,15 +349,15 @@ p._rafOnDrag = function () {
         change = {};
 
     if (finger === 'origin') {
-        
+
         setOrigin();
     }
-        
+
     if (finger === 'move') {
 
         setTransform();
     }
-    
+
     if (finger.charAt(0) === '1') {
 
         setScale(-Math.PI/2, 'sy', -1);
@@ -395,7 +408,7 @@ p._rafOnDrag = function () {
                 dN = sN.charAt(1) === 'x' ? 'w' : 'h';
 
             scale -= es;
-            change[tN] = params[tN] = md.params[tN] + base[dN] * es/2 * way;            
+            change[tN] = params[tN] = md.params[tN] + base[dN] * es/2 * way;
         }
 
         change[sN] = params[sN] = scale;
@@ -412,7 +425,7 @@ p._rafOnDrag = function () {
 
         spx *= spx < 0 ? -1 : 1;
         spy *= spy < 0 ? -1 : 1;
-        
+
         var sp = isVertical ? spy : spx;
 
         change.sx = params.sx = md.params.sx * sp;
@@ -440,7 +453,7 @@ p._rafOnDrag = function () {
     function setTransform() {
 
         if (shift) {
-            
+
             if (Math.abs(dx) > Math.abs(dy)) {
 
                 change.tx = params.tx = md.params.tx + dx;
@@ -513,17 +526,17 @@ p._setFinger = function (e) {
         cursorScale;
 
     if (base.w * params.sx < diff * 2 && inside) {
-        
+
         left = false;
         right = false;
     }
 
     if (base.h * params.sy < diff * 2 && inside) {
-    
+
         top = false;
         bottom = false;
     }
-    
+
     if (dOrigin < this._originRadius) {
 
         this._finger = 'origin';
@@ -532,14 +545,17 @@ p._setFinger = function (e) {
         //TODO its sould be top-right-bottom-left
         this._finger = ('000' + (top * 1000 + left * 100 + bottom * 10 + right * 1)).substr(-4);
         cursorScale = true;
+        this._th.cursorHint.setHints(hints.scale);
     }
     else if (inside) {
 
         this._finger = 'move';
+        this._th.cursorHint.setHints(hints.move);
     }
     else if (dTop < rDiff || dRight < rDiff || dBottom < rDiff || dLeft < rDiff || dOrigin < rDiff) {
 
         this._finger = 'rotate';
+        this._th.cursorHint.setHints(hints.rotate);
     }
     else {
         this._finger = false;
@@ -555,7 +571,7 @@ p._setFinger = function (e) {
     }
     else {
         this._cursorFunc = undefined;
-        
+
         if (this._finger) {
 
             this._setCursor(MOUSESTATES[this._finger]);
@@ -690,11 +706,11 @@ function radDiff(r0, r1) {
     return r1 - r0;
 }
 
-function sqr(x) { 
+function sqr(x) {
     return x * x;
 }
 
-function dist2(v, w) { 
+function dist2(v, w) {
     return sqr(v.x - w.x) + sqr(v.y - w.y);
 }
 
@@ -712,7 +728,7 @@ function distToSegmentSquared(p, v, w) {
     return dist2(p, { x: v.x + t * (w.x - v.x), y: v.y + t * (w.y - v.y) });
 }
 
-function distToSegment(p, v, w) { 
+function distToSegment(p, v, w) {
     return Math.sqrt(distToSegmentSquared(p, v, w));
 }
 
@@ -734,18 +750,18 @@ function distToPointInAngle(p0, p1, rad) {
 function isInside(point, vs) {
     // ray-casting algorithm based on
     // http://www.ecse.rpi.edu/Homepages/wrf/Research/Short_Notes/pnpoly.html
-    
+
     var x = point.x, y = point.y;
-    
+
     var inside = false;
     for (var i = 0, j = vs.length - 1; i < vs.length; j = i++) {
         var xi = vs[i].x, yi = vs[i].y;
         var xj = vs[j].x, yj = vs[j].y;
-        
+
         var intersect = ((yi > y) !== (yj > y)) &&
             (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
         if (intersect) inside = !inside;
     }
-    
+
     return inside;
 }

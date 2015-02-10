@@ -58,6 +58,8 @@ function Curver(transhand) {
     this._points = [];
     this._buffPoints = [];
 
+    this._selectedPoints = [];
+
     this._offset = {
         x: 0,
         y: 0,
@@ -134,6 +136,17 @@ p.deactivate = function () {
     this._isActivated = false;
 };
 
+p.selectPoints = function (points) {
+
+    this._selectedPoints.length = 0;
+    this._selectedPoints.push.apply(this._selectedPoints, points);
+
+    this._points.forEach(point => {
+
+        point.selected = this._selectedPoints.indexOf(point) !== -1;
+    });
+};
+
 
 
 p._emitChange = (function () {
@@ -199,17 +212,17 @@ p._emitChange = (function () {
 
 p._getClickAction = function (target, e) {
 
-    var ctrl = !!e.ctrlKey,
-        shift = !!e.shiftlKey,
-        alt = !!e.altKey,
+    var ctrl = e.ctrlKey,
+        shift = e.shiftKey,
+        alt = e.altKey,
         ret;
 
     this._clickActions.some(function (clickAction) {
 
         if (clickAction.target === target &&
-            clickAction.ctrl === ctrl &&
-            clickAction.shift === shift &&
-            clickAction.alt === alt)
+            !!clickAction.ctrl === ctrl &&
+            !!clickAction.shift === shift &&
+            !!clickAction.alt === alt)
         {
             ret = clickAction.action;
             return true;
@@ -280,6 +293,17 @@ p._addPoint = function (idx) {
             handleRight: {x: 0, y: 0},
             style: {},
             linked: false,
+            set selected(v) {
+                this._selected = v;
+                var display = this._selected ? '' : 'none';
+                this.handleLeft._de.style.display = display;
+                this.handleLeft._deLine.style.display = display;
+                this.handleRight._de.style.display = display;
+                this.handleRight._deLine.style.display = display;
+            },
+            get selected() {
+                return this._selected;
+            },
         };
     //TODO use _buffPoints[]
     this._points.splice(idx, 0, point);
@@ -288,6 +312,8 @@ p._addPoint = function (idx) {
     createAnchor();
     createHandle(point.handleLeft);
     createHandle(point.handleRight);
+
+    point.selected = false;
 
     return point;
 //TODO cleanup this
@@ -342,6 +368,8 @@ p._addPoint = function (idx) {
 
                 var action = this._getClickAction('anchor', e);
 
+                this.selectPoints([point]);
+
                 if (action === 'reset_anchor') {
 
                     point.handleLeft.x = point.anchor.x;
@@ -362,6 +390,8 @@ p._addPoint = function (idx) {
                     return false;
                 }
                 else if (action === 'remove_point') {
+
+                    this.selectPoints([]);
 
                     var idx = this._points.indexOf(point);
 
