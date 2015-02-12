@@ -153,14 +153,15 @@ p.G2L = function (p) {
 
 var tProps = ["transform", "transformOrigin", "prespective", "prespectiveOrigin", "transformStyle"];
 
-p.setLocalRoot = function (de) {
+p.setLocalRoot = function (de, deTarget) {
     var that = this,
         deRoot = getDiv(),
         deTop = deRoot,
         dePicker = getDiv(),
         transformeds = [],
         parentPos = { left: -window.scrollX, top: -window.scrollY },
-        assembleIdx = 0;
+        assembleIdx = 0,
+        ret;
 
     if (this._deLocalRoot) {
         disassemble(this._deLocalRoot);
@@ -177,12 +178,37 @@ p.setLocalRoot = function (de) {
     // document.body.appendChild(this._deLocalRoot);
 
 
+    if (deTarget) {
+        //calculate the offset from the local root ex. for the hand setup.base
+        var inlineTransform = deTarget.style.transform;
+        deTarget.style.transform = "none";
+
+        var brA = deTarget.getBoundingClientRect(),
+            brB = de.getBoundingClientRect();
+
+        ret = {
+            x: brA.left - brB.left,
+            y: brA.top - brB.top,
+            w: brA.width,
+            h: brA.height };
+
+        deTarget.style.transform = inlineTransform;
+    }
+
+
+    transformeds.forEach(function (reg) {
+        reg.de.style.transform = reg.inlineTransform;
+    });
+    transformeds.length = 0;
+
+    return ret;
+
+
     function walkBack(de) {
         if (de.nodeName === "BODY") return;
 
-        var computedStyle = window.getComputedStyle(de),
-            reg,
-            pv;
+        var reg,
+            computedStyle = window.getComputedStyle(de);
 
         tProps.forEach(function (propName) {
             var value = computedStyle.getPropertyValue(propName);
@@ -235,10 +261,6 @@ p.setLocalRoot = function (de) {
         }
     }
 
-    transformeds.forEach(function (reg) {
-        reg.de.style.transform = reg.inlineTransform;
-    });
-    transformeds.length = 0;
 
     function disassemble(de) {
         de.removeAttribute("style");
@@ -327,12 +349,11 @@ p.setLocalRoot = function (de) {
 
 
 
-
-
 function nastyLocal2Global(mPos, dePicker) {
     var tweakDist = 128,
-        tweakDistStep = 0,
-        tweakRad = Math.PI / 2,
+
+    // tweakDistStep = 0,
+    tweakRad = Math.PI / 2,
         dist = tweakDist * 2,
         rad = 0,
         nullPos = { x: 0, y: 0 },
@@ -372,20 +393,21 @@ function nastyLocal2Global(mPos, dePicker) {
 
 
 
-    function closestRad(aRad, bRad) {
-        var aPos = L2G(Rad2Pos(aRad, tweakDist)),
-            bPos = L2G(Rad2Pos(bRad, tweakDist)),
-            gARad = getRad(globalNullPos, aPos),
-            gBRad = getRad(globalNullPos, bPos);
-
-
-        $("#s0").css("left", aPos.x);
-        $("#s0").css("top", aPos.y);
-        $("#s1").css("left", bPos.x);
-        $("#s1").css("top", bPos.y);
-
-        return radDiff(gARad, globalRad) < radDiff(gBRad, globalRad) ? aRad : bRad;
-    }
+    // function closestRad(aRad, bRad) {
+    //
+    //     var aPos = L2G(Rad2Pos(aRad, tweakDist)),
+    //         bPos = L2G(Rad2Pos(bRad, tweakDist)),
+    //         gARad = getRad(globalNullPos, aPos),
+    //         gBRad = getRad(globalNullPos, bPos);
+    //
+    //
+    //     $('#s0').css('left', aPos.x);
+    //     $('#s0').css('top', aPos.y);
+    //     $('#s1').css('left', bPos.x);
+    //     $('#s1').css('top', bPos.y);
+    //
+    //   return radDiff(gARad, globalRad) < radDiff(gBRad, globalRad) ? aRad : bRad;
+    // }
 
     function getRad(aPos, bPos) {
         return Math.atan2(bPos.y - aPos.y, bPos.x - aPos.x);
