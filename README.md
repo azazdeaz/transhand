@@ -6,8 +6,13 @@ Work in progress.
 
 Developed as part of the [Animachine project](https://github.com/animachine/animachine).
 
-####[Demo](https://animachine.github.io/transhand/demos/0/)
+
 ![](http://fat.gfycat.com/SilverExhaustedEquestrian.gif)
+
+####Demos:
+[transformer][demo-transformer]
+[nested transforms][demo-nested]
+[curver][demo-curver]
 
 ####Install
 ```
@@ -49,3 +54,7 @@ handler.on('change', function (changedParams) {
   ```javascript
 });
 ```
+
+[demo-transformer]: https://animachine.github.io/transhand/demos/0/
+[demo-nested]: https://animachine.github.io/transhand/demos/1/
+[demo-curver]: https://animachine.github.io/transhand/demos/curver/
