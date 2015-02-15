@@ -143,6 +143,9 @@ p._onMouseMove = function (e) {
 
         this._setFinger(e);
     }
+    else {
+        this._th.cursorHint.setHints(null);
+    }
 
     if (this._cursorFunc) {
         this._setCursor(this._cursorFunc(e.clientX, e.clientY));
@@ -559,6 +562,7 @@ p._setFinger = function (e) {
     }
     else {
         this._finger = false;
+        this._th.cursorHint.setHints(null);
     }
 
     if (this._finger === 'rotate') {

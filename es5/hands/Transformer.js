@@ -124,6 +124,8 @@ p._onMouseDown = function (e) {
 p._onMouseMove = function (e) {
     if (!this._isHandle && this._isOverHitbox) {
         this._setFinger(e);
+    } else {
+        this._th.cursorHint.setHints(null);
     }
 
     if (this._cursorFunc) {
@@ -485,6 +487,7 @@ p._setFinger = function (e) {
         this._th.cursorHint.setHints(hints.rotate);
     } else {
         this._finger = false;
+        this._th.cursorHint.setHints(null);
     }
 
     if (this._finger === "rotate") {

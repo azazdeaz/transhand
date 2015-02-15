@@ -13,7 +13,7 @@ var p = CursorHint.prototype;
 module.exports = CursorHint;
 
 p.setHints = function (hints) {
-
+    
     this.domElem.innerHTML = '';
 
     if (_.isArray(hints)) {

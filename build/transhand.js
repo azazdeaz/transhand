@@ -6652,107 +6652,102 @@ if (typeof Object.create === "function") {
 }.call(this));
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-
 },{}],4:[function(require,module,exports){
 "use strict";
 
 var _ = require("lodash");
 
 function CursorHint() {
-    this._createBase();
+  this._createBase();
 
-    this._onMove = this._createOnMove().bind(this);
+  this._onMove = this._createOnMove().bind(this);
 }
 
 var p = CursorHint.prototype;
 module.exports = CursorHint;
 
 p.setHints = function (hints) {
-    var _this = this;
+  var _this = this;
 
 
-    this.domElem.innerHTML = "";
+  this.domElem.innerHTML = "";
 
-    if (_.isArray(hints)) {
-        hints.forEach(function (itemOpt) {
-            _this._createItem(itemOpt);
-        });
+  if (_.isArray(hints)) {
+    hints.forEach(function (itemOpt) {
+      _this._createItem(itemOpt);
+    });
 
-        this._active = true;
-        this._onMove();
-        window.addEventListener("mousemove", this._onMove);
-    } else {
-        this._active = false;
-        this._onMove();
-        window.removeEventListener("mousemove", this._onMove);
-    }
+    this._active = true;
+    this._onMove();
+    window.addEventListener("mousemove", this._onMove);
+  } else {
+    this._active = false;
+    this._onMove();
+    window.removeEventListener("mousemove", this._onMove);
+  }
 };
 
 p._createOnMove = function () {
-    var _this = this;
+  var _this2 = this;
 
 
-    var showSetT,
-        delay = 879,
-        showing = false,
-        x = 0,
-        y = 0;
+  var showSetT, delay = 879, showing = false, x = 0, y = 0;
 
-    var show = function () {
-        if (!_this._active) return;
+  var show = function () {
+    if (!_this2._active) return;
 
-        showing = true;
+    showing = true;
 
-        _this.domElem.style.left = x + 7 + "px";
-        _this.domElem.style.top = y + 7 + "px";
-        document.body.appendChild(_this.domElem);
-    };
+    _this2.domElem.style.left = (x + 7) + "px";
+    _this2.domElem.style.top = (y + 7) + "px";
+    document.body.appendChild(_this2.domElem);
+  };
 
-    var hide = function () {
-        showing = false;
+  var hide = function () {
+    showing = false;
 
-        document.body.removeChild(_this.domElem);
-    };
+    document.body.removeChild(_this2.domElem);
+  };
 
-    return function (e) {
-        if (showing) hide();
+  return function (e) {
+    if (showing) hide();
 
-        if (e) {
-            x = e.x;
-            y = e.y;
-        }
+    if (e) {
+      x = e.x;
+      y = e.y;
+    }
 
-        clearTimeout(showSetT);
-        showSetT = setTimeout(show, delay);
-    };
+    clearTimeout(showSetT);
+    showSetT = setTimeout(show, delay);
+  };
 };
 
 p._createBase = function () {
-    this.domElem = document.createElement("ul");
-    this.domElem.style.position = "fixed";
-    this.domElem.style.listStyleType = "none";
-    this.domElem.style.margin = 0;
-    this.domElem.style.padding = 0;
-    this.domElem.style.pointerEvents = "none";
+  this.domElem = document.createElement("ul");
+  this.domElem.style.position = "fixed";
+  this.domElem.style.listStyleType = "none";
+  this.domElem.style.margin = 0;
+  this.domElem.style.padding = 0;
+  this.domElem.style.pointerEvents = "none";
 };
 
 p._createItem = function (opt) {
-    if (typeof opt === "string") {
-        opt = { text: opt };
-    }
+  if (typeof (opt) === "string") {
+    opt = { text: opt };
+  }
 
-    var li = document.createElement("li");
-    li.style.textAlign = "left";
-    li.style.fontFamily = "\"Open Sans\", sans-serif";
-    li.style.fontSize = "14px";
-    li.style.padding = "0 3px";
-    li.style.cursor = "pointer";
-    li.style.color = "#000";
-    li.style.background = "rgba(222,232,222,.785)";
-    li.innerHTML = opt.text;
+  var li = document.createElement("li");
+  li.style.textAlign = "left";
+  li.style.fontFamily = "\"Open Sans\", sans-serif";
+  li.style.fontSize = "14px";
+  li.style.padding = "0 3px";
+  li.style.cursor = "pointer";
+  li.style.color = "#000";
+  li.style.background = "rgba(222,232,222,.785)";
+  li.innerHTML = opt.text;
 
 
-    this.domElem.appendChild(li);
+  this.domElem.appendChild(li);
 };
 
 },{"lodash":3}],5:[function(require,module,exports){
@@ -6767,30 +6762,29 @@ var inherits = require("inherits");
 var _ = require("lodash");
 
 function Transhand() {
-    EventEmitter.call(this);
+  EventEmitter.call(this);
 
-    this._hands = {};
+  this._hands = {};
 
-    this._buffMockDiv = [];
+  this._buffMockDiv = [];
 
-    this._createDomElem();
+  this._createDomElem();
 
-    this.cursorHint = new CursorHint();
+  this.cursorHint = new CursorHint();
 
-    Object.defineProperty(this.domElem, "renderLevel", {
-        get: (function () {
-            return this._currHand && this._currHand.renderLevel || 0;
-        }).bind(this) });
+  Object.defineProperty(this.domElem, "renderLevel", {
+    get: function () {
+      return (this._currHand && this._currHand.renderLevel) || 0;
+    }.bind(this) });
 
 
-    // [Transformer, Boxer, Curver].forEach(function (Hand) {
+  // [Transformer, Boxer, Curver].forEach(function (Hand) {
+  //     var hand = new Hand(this);
 
-    //     var hand = new Hand(this);
+  //     hand.on('change', this.emit.bind(this, 'change'));
 
-    //     hand.on('change', this.emit.bind(this, 'change'));
-
-    //     this.hands[Hand.id] = hand;
-    // }, this);
+  //     this.hands[Hand.id] = hand;
+  // }, this);
 }
 
 inherits(Transhand, EventEmitter);
@@ -6798,68 +6792,68 @@ var p = Transhand.prototype;
 module.exports = Transhand;
 
 p.setup = function (opt) {
-    var hand = this._getHand(opt.hand.type);
+  var hand = this._getHand(opt.hand.type);
 
-    if (this._currHand && this._currHand !== hand) {
-        this.deactivate();
-    }
+  if (this._currHand && this._currHand !== hand) {
+    this.deactivate();
+  }
 
-    if (hand) {
-        hand.setup(opt.hand);
-        this._currHand = hand;
-    } else {
-        throw "Unknown hand type: " + opt.hand.type;
-    }
+  if (hand) {
+    hand.setup(opt.hand);
+    this._currHand = hand;
+  } else {
+    throw "Unknown hand type: " + opt.hand.type;
+  }
 
-    if (typeof opt.on === "object") {
-        Object.keys(opt.on).forEach(function (eventType) {
-            this.on(eventType, opt.on[eventType]);
-        }, this);
-    }
+  if (typeof (opt.on) === "object") {
+    Object.keys(opt.on).forEach(function (eventType) {
+      this.on(eventType, opt.on[eventType]);
+    }, this);
+  }
 };
 
 p.activate = function () {
-    if (this._currHand) {
-        this._currHand.activate();
+  if (this._currHand) {
+    this._currHand.activate();
 
-        this.domElem.appendChild(this._currHand.domElem);
-    }
+    this.domElem.appendChild(this._currHand.domElem);
+  }
 };
 
 p.deactivate = function () {
-    if (this._currHand) {
-        this._currHand.deactivate();
+  if (this._currHand) {
+    this._currHand.deactivate();
 
-        if (this._currHand.domElem.parentNode === this.domElem) {
-            this.domElem.removeChild(this._currHand.domElem);
-        }
+    if (this._currHand.domElem.parentNode === this.domElem) {
+      this.domElem.removeChild(this._currHand.domElem);
     }
+  }
 };
 
 p._getHand = function (type) {
-    if (type in this._hands) {
-        return this._hands[type];
-    }
+  if (type in this._hands) {
+    return this._hands[type];
+  }
 
-    var Hand = _.find([Transformer, Boxer, Curver], { id: type });
+  var Hand = _.find([Transformer, Boxer, Curver], { id: type });
 
-    if (!Hand) throw Error;
+  if (!Hand) throw Error;
 
-    var hand = new Hand(this);
-    hand.on("change", this.emit.bind(this, "change"));
-    this._hands[Hand.id] = hand;
+  var hand = new Hand(this);
+  hand.on("change", this.emit.bind(this, "change"));
+  this._hands[Hand.id] = hand;
 
-    return hand;
+  return hand;
 };
 
 p._createDomElem = function () {
-    this.domElem = document.createElement("div");
-    this.domElem.style.position = "fixed";
-    this.domElem.style.pointerEvents = "none";
-    this.domElem.style.left = "0px";
-    this.domElem.style.top = "0px";
-    this.domElem.style.width = "100%";
-    this.domElem.style.height = "100%";
+  this.domElem = document.createElement("div");
+  this.domElem.style.position = "fixed";
+  this.domElem.style.pointerEvents = "none";
+  this.domElem.style.left = "0px";
+  this.domElem.style.top = "0px";
+  this.domElem.style.width = "100%";
+  this.domElem.style.height = "100%";
 };
 
 
@@ -6881,219 +6875,206 @@ p._createDomElem = function () {
 
 
 p.L2G = function (p) {
-    if (!this._deLocalRootPicker) {
-        return p;
-    }
+  if (!this._deLocalRootPicker) {
+    return p;
+  }
 
-    this._deLocalRootPicker.style.left = p.x + "px";
-    this._deLocalRootPicker.style.top = p.y + "px";
+  this._deLocalRootPicker.style.left = p.x + "px";
+  this._deLocalRootPicker.style.top = p.y + "px";
 
-    document.body.appendChild(this._deLocalRoot);
-    var br = this._deLocalRootPicker.getBoundingClientRect();
-    document.body.removeChild(this._deLocalRoot);
+  document.body.appendChild(this._deLocalRoot);
+  var br = this._deLocalRootPicker.getBoundingClientRect();
+  document.body.removeChild(this._deLocalRoot);
 
-    return {
-        x: br.left,
-        y: br.top };
+  return {
+    x: br.left,
+    y: br.top };
 };
 
 p.G2L = function (p) {
-    if (!this._deLocalRootPicker) {
-        return p;
-    }
+  if (!this._deLocalRootPicker) {
+    return p;
+  }
 
-    document.body.appendChild(this._deLocalRoot);
-    var ret = nastyLocal2Global(p, this._deLocalRootPicker);
-    document.body.removeChild(this._deLocalRoot);
+  document.body.appendChild(this._deLocalRoot);
+  var ret = nastyLocal2Global(p, this._deLocalRootPicker);
+  document.body.removeChild(this._deLocalRoot);
 
-    return ret;
+  return ret;
 };
 
 var tProps = ["transform", "transformOrigin", "prespective", "prespectiveOrigin", "transformStyle"];
 
 p.setLocalRoot = function (de, deTarget) {
-    var that = this,
-        deRoot = getDiv(),
-        deTop = deRoot,
-        dePicker = getDiv(),
-        transformeds = [],
-        parentPos = { left: -window.scrollX, top: -window.scrollY },
-        assembleIdx = 0,
-        ret;
+  var that = this, deRoot = getDiv(), deTop = deRoot, dePicker = getDiv(), transformeds = [], parentPos = { left: -window.scrollX, top: -window.scrollY }, assembleIdx = 0, ret;
 
-    if (this._deLocalRoot) {
-        disassemble(this._deLocalRoot);
-    }
+  if (this._deLocalRoot) {
+    disassemble(this._deLocalRoot);
+  }
 
-    walkBack(de);
-    assemble();
+  walkBack(de);
+  assemble();
 
-    deTop.appendChild(dePicker);
+  deTop.appendChild(dePicker);
 
-    this._deLocalRoot = deRoot;
-    this._deLocalRootPicker = dePicker;
-    this._deLocalRootPicker.setAttribute("picker", 1); //debug
-    // document.body.appendChild(this._deLocalRoot);
+  this._deLocalRoot = deRoot;
+  this._deLocalRootPicker = dePicker;
+  this._deLocalRootPicker.setAttribute("picker", 1); //debug
+  // document.body.appendChild(this._deLocalRoot);
 
 
-    if (deTarget) {
-        //calculate the offset from the local root ex. for the hand setup.base
-        var inlineTransform = deTarget.style.transform;
-        deTarget.style.transform = "none";
+  if (deTarget) {
+    //calculate the offset from the local root ex. for the hand setup.base
+    var inlineTransform = deTarget.style.transform;
+    deTarget.style.transform = "none";
 
-        var brA = deTarget.getBoundingClientRect(),
-            brB = de.getBoundingClientRect();
+    var brA = deTarget.getBoundingClientRect(), brB = de.getBoundingClientRect();
 
-        ret = {
-            x: brA.left - brB.left,
-            y: brA.top - brB.top,
-            w: brA.width,
-            h: brA.height };
+    ret = {
+      x: brA.left - brB.left,
+      y: brA.top - brB.top,
+      w: brA.width,
+      h: brA.height };
 
-        deTarget.style.transform = inlineTransform;
-    }
+    deTarget.style.transform = inlineTransform;
+  }
 
 
-    transformeds.forEach(function (reg) {
-        reg.de.style.transform = reg.inlineTransform;
+  transformeds.forEach(function (reg) {
+    reg.de.style.transform = reg.inlineTransform;
+  });
+  transformeds.length = 0;
+
+  return ret;
+
+
+  function walkBack(de) {
+    if (de.nodeName === "BODY") return;
+
+    var reg, computedStyle = window.getComputedStyle(de);
+
+    tProps.forEach(function (propName) {
+      var value = computedStyle.getPropertyValue(propName);
+      if (value) set(propName, value);
     });
-    transformeds.length = 0;
 
-    return ret;
+    walkBack(de.parentNode);
 
+    function set(propName, value) {
+      if (!reg) {
+        reg = {
+          de: de,
+          inlineTransform: de.style.transform,
+          style: {}
+        };
 
-    function walkBack(de) {
-        if (de.nodeName === "BODY") return;
+        transformeds.unshift(reg);
+      }
 
-        var reg,
-            computedStyle = window.getComputedStyle(de);
+      de.style.transform = "none";
 
-        tProps.forEach(function (propName) {
-            var value = computedStyle.getPropertyValue(propName);
-            if (value) set(propName, value);
-        });
-
-        walkBack(de.parentNode);
-
-        function set(propName, value) {
-            if (!reg) {
-                reg = {
-                    de: de,
-                    inlineTransform: de.style.transform,
-                    style: {}
-                };
-
-                transformeds.unshift(reg);
-            }
-
-            de.style.transform = "none";
-
-            reg.style[propName] = value;
-        }
+      reg.style[propName] = value;
     }
+  }
 
-    function assemble() {
-        var transformReg = transformeds[assembleIdx++],
-            deNext = transformReg ? transformReg.de : de,
-            nextPos = deNext.getBoundingClientRect();
+  function assemble() {
+    var transformReg = transformeds[assembleIdx++], deNext = transformReg ? transformReg.de : de, nextPos = deNext.getBoundingClientRect();
 
-        var deNew = getDiv();
-        deTop.appendChild(deNew);
-        deTop = deNew;
+    var deNew = getDiv();
+    deTop.appendChild(deNew);
+    deTop = deNew;
 
-        deNew.style.left = nextPos.left - parentPos.left + "px";
-        deNew.style.top = nextPos.top - parentPos.top + "px";
+    deNew.style.left = (nextPos.left - parentPos.left) + "px";
+    deNew.style.top = (nextPos.top - parentPos.top) + "px";
 
-        parentPos = nextPos;
+    parentPos = nextPos;
 
-        if (transformReg) {
-            //for the transform and perspective origin
-            deNew.style.width = nextPos.width + "px";
-            deNew.style.height = nextPos.height + "px";
+    if (transformReg) {
+      //for the transform and perspective origin
+      deNew.style.width = nextPos.width + "px";
+      deNew.style.height = nextPos.height + "px";
 
-            Object.keys(transformReg.style).forEach(function (propName) {
-                deNew.style[propName] = transformReg.style[propName];
-            });
+      Object.keys(transformReg.style).forEach(function (propName) {
+        deNew.style[propName] = transformReg.style[propName];
+      });
 
-            assemble();
-        }
+      assemble();
     }
+  }
 
 
-    function disassemble(de) {
-        de.removeAttribute("style");
-        de.removeAttribute("picker"); //debug
-        that._buffMockDiv.push(de);
+  function disassemble(de) {
+    de.removeAttribute("style");
+    de.removeAttribute("picker"); //debug
+    that._buffMockDiv.push(de);
 
-        var child = de.firstChild;
-        if (child) {
-            de.removeChild(child);
-            disassemble(child);
-        }
+    var child = de.firstChild;
+    if (child) {
+      de.removeChild(child);
+      disassemble(child);
     }
+  }
 
-    function getDiv() {
-        var de = that._buffMockDiv.pop() || document.createElement("div");
-        de.style.position = "absolute";
-        de.style.left = "0px";
-        de.style.top = "0px";
-        de.setAttribute("mock", 1); //debug
+  function getDiv() {
+    var de = that._buffMockDiv.pop() || document.createElement("div");
+    de.style.position = "absolute";
+    de.style.left = "0px";
+    de.style.top = "0px";
+    de.setAttribute("mock", 1); //debug
 
-        return de;
-    }
+    return de;
+  }
 
-    // function assemble(de) {
+  // function assemble(de) {
+  //     if (de.nodeName === 'BODY') return;
 
-    //     if (de.nodeName === 'BODY') return;
+  //     var transformed,
+  //         computedStyle = window.getComputedStyle(de, null),
+  //         position = $(de).position();
 
-    //     var transformed,
-    //         computedStyle = window.getComputedStyle(de, null),
-    //         position = $(de).position();
+  //     if (de.offsetLeft) {
+  //         deRoot.style.left = (parseInt(deRoot.style.left || 0))
+  //             + position.left
+  //             /*+ parseInt(computedStyle.getPropertyValue('margin-left'))*/ + 'px';
+  //     }
+  //     if (de.offsetTop) {
+  //         deRoot.style.top = (parseInt(deRoot.style.top || 0))
+  //             + position.top
+  //             /*+ parseInt(computedStyle.getPropertyValue('margin-top'))*/ + 'px';
+  //     }
 
-    //     if (de.offsetLeft) {
-    //         deRoot.style.left = (parseInt(deRoot.style.left || 0))
-    //             + position.left
-    //             /*+ parseInt(computedStyle.getPropertyValue('margin-left'))*/ + 'px';
-    //     }
-    //     if (de.offsetTop) {
-    //         deRoot.style.top = (parseInt(deRoot.style.top || 0))
-    //             + position.top
-    //             /*+ parseInt(computedStyle.getPropertyValue('margin-top'))*/ + 'px';
-    //     }
+  //     if (de.style.transform) {
+  //         transformed = true;
+  //         deRoot.style.transform = de.style.transform;
+  //         //for the transform-origin
+  //         deRoot.style.width = (parseInt(deRoot.style.width || 0) + de.offsetWidth) + 'px';
+  //         deRoot.style.height = (parseInt(deRoot.style.height || 0) + de.offsetHeight) + 'px';
 
-    //     if (de.style.transform) {
-    //         transformed = true;
-    //         deRoot.style.transform = de.style.transform;
-    //         //for the transform-origin
-    //         deRoot.style.width = (parseInt(deRoot.style.width || 0) + de.offsetWidth) + 'px';
-    //         deRoot.style.height = (parseInt(deRoot.style.height || 0) + de.offsetHeight) + 'px';
+  //         if (de.style.transformOrigin) {
+  //             deRoot.style.transformOrigin = de.style.transformOrigin;
+  //         }
+  //     }
+  //     if (de.style.prespective) {
+  //         transformed = true;
+  //         deRoot.style.prespective = de.style.prespective;
 
-    //         if (de.style.transformOrigin) {
-    //             deRoot.style.transformOrigin = de.style.transformOrigin;
-    //         }
-    //     }
-    //     if (de.style.prespective) {
-    //         transformed = true;
-    //         deRoot.style.prespective = de.style.prespective;
+  //         if (de.style.prespectiveOrigin) {
+  //             deRoot.style.prespectiveOrigin = de.style.prespectiveOrigin;
+  //         }
+  //     }
+  //     if (de.style.transformStyle) {
+  //         transformed = true;
+  //         deRoot.style.transformStyle = de.style.transformStyle;
+  //     }
 
-    //         if (de.style.prespectiveOrigin) {
-    //             deRoot.style.prespectiveOrigin = de.style.prespectiveOrigin;
-    //         }
-    //     }
-    //     if (de.style.transformStyle) {
-    //         transformed = true;
-    //         deRoot.style.transformStyle = de.style.transformStyle;
-    //     }
+  //     if (transformed) {
+  //         var parent = getDiv();
+  //         parent.appendChild(deRoot);
+  //         deRoot = parent;
+  //     }
 
-    //     if (transformed) {
-
-    //         var parent = getDiv();
-    //         parent.appendChild(deRoot);
-    //         deRoot = parent;
-    //     }
-
-    //     assemble(de.parentNode);
-    // }
+  //     assemble(de.parentNode);
+  // }
 };
 
 
@@ -7108,99 +7089,91 @@ p.setLocalRoot = function (de, deTarget) {
 
 
 function nastyLocal2Global(mPos, dePicker) {
-    var tweakDist = 128,
+  var tweakDist = 128,
+  // tweakDistStep = 0,
+  tweakRad = Math.PI / 2, dist = tweakDist * 2, rad = 0, nullPos = { x: 0, y: 0 }, globalNullPos = L2G(nullPos), globalRad = getRad(globalNullPos, mPos), globalDist = posDist(globalNullPos, mPos);
 
-    // tweakDistStep = 0,
-    tweakRad = Math.PI / 2,
-        dist = tweakDist * 2,
-        rad = 0,
-        nullPos = { x: 0, y: 0 },
-        globalNullPos = L2G(nullPos),
-        globalRad = getRad(globalNullPos, mPos),
-        globalDist = posDist(globalNullPos, mPos);
+  while (tweakRad > 0.000001) {
+    var globalTestRad = getRad(mPos, L2G(Rad2Pos(rad, tweakDist)));
 
-    while (tweakRad > 0.000001) {
-        var globalTestRad = getRad(mPos, L2G(Rad2Pos(rad, tweakDist)));
-
-        if (radDiff(globalRad, globalTestRad) < 0) {
-            rad += tweakRad;
-        } else {
-            rad -= tweakRad;
-        }
-
-        tweakRad /= 2;
+    if (radDiff(globalRad, globalTestRad) < 0) {
+      rad += tweakRad;
+    } else {
+      rad -= tweakRad;
     }
 
+    tweakRad /= 2;
+  }
 
-    while (posDist(globalNullPos, L2G(Rad2Pos(rad, dist + 2 * tweakDist))) < globalDist && dist < tweakDist * 64) {
-        dist += 4 * tweakDist;
+
+  while (posDist(globalNullPos, L2G(Rad2Pos(rad, dist + 2 * tweakDist))) < globalDist && dist < tweakDist * 64) {
+    dist += 4 * tweakDist;
+  }
+
+  while (tweakDist > 1) {
+    if (posDist(globalNullPos, L2G(Rad2Pos(rad, dist))) < globalDist) {
+      dist += tweakDist;
+    } else {
+      dist -= tweakDist;
     }
 
-    while (tweakDist > 1) {
-        if (posDist(globalNullPos, L2G(Rad2Pos(rad, dist))) < globalDist) {
-            dist += tweakDist;
-        } else {
-            dist -= tweakDist;
-        }
+    tweakDist /= 2;
+  }
 
-        tweakDist /= 2;
-    }
-
-    return Rad2Pos(rad, dist);
+  return Rad2Pos(rad, dist);
 
 
 
 
-    // function closestRad(aRad, bRad) {
-    //
-    //     var aPos = L2G(Rad2Pos(aRad, tweakDist)),
-    //         bPos = L2G(Rad2Pos(bRad, tweakDist)),
-    //         gARad = getRad(globalNullPos, aPos),
-    //         gBRad = getRad(globalNullPos, bPos);
-    //
-    //
-    //     $('#s0').css('left', aPos.x);
-    //     $('#s0').css('top', aPos.y);
-    //     $('#s1').css('left', bPos.x);
-    //     $('#s1').css('top', bPos.y);
-    //
-    //   return radDiff(gARad, globalRad) < radDiff(gBRad, globalRad) ? aRad : bRad;
-    // }
+  // function closestRad(aRad, bRad) {
+  //
+  //     var aPos = L2G(Rad2Pos(aRad, tweakDist)),
+  //         bPos = L2G(Rad2Pos(bRad, tweakDist)),
+  //         gARad = getRad(globalNullPos, aPos),
+  //         gBRad = getRad(globalNullPos, bPos);
+  //
+  //
+  //     $('#s0').css('left', aPos.x);
+  //     $('#s0').css('top', aPos.y);
+  //     $('#s1').css('left', bPos.x);
+  //     $('#s1').css('top', bPos.y);
+  //
+  //   return radDiff(gARad, globalRad) < radDiff(gBRad, globalRad) ? aRad : bRad;
+  // }
 
-    function getRad(aPos, bPos) {
-        return Math.atan2(bPos.y - aPos.y, bPos.x - aPos.x);
-    }
+  function getRad(aPos, bPos) {
+    return Math.atan2(bPos.y - aPos.y, bPos.x - aPos.x);
+  }
 
-    function Rad2Pos(rad, dist) {
-        return {
-            x: Math.cos(rad) * dist,
-            y: Math.sin(rad) * dist };
-    }
+  function Rad2Pos(rad, dist) {
+    return {
+      x: Math.cos(rad) * dist,
+      y: Math.sin(rad) * dist };
+  }
 
-    function L2G(pos) {
-        dePicker.style.left = pos.x + "px";
-        dePicker.style.top = pos.y + "px";
+  function L2G(pos) {
+    dePicker.style.left = pos.x + "px";
+    dePicker.style.top = pos.y + "px";
 
-        var br = dePicker.getBoundingClientRect();
+    var br = dePicker.getBoundingClientRect();
 
-        return { x: br.left, y: br.top };
-    }
+    return { x: br.left, y: br.top };
+  }
 
-    function radDiff(aRad, bRad) {
-        bRad -= aRad;
-        bRad %= Math.PI * 2;
+  function radDiff(aRad, bRad) {
+    bRad -= aRad;
+    bRad %= Math.PI * 2;
 
-        if (bRad > Math.PI) bRad -= 2 * Math.PI;else if (bRad < -Math.PI) bRad += 2 * Math.PI;
+    if (bRad > Math.PI) bRad -= 2 * Math.PI;else if (bRad < -Math.PI) bRad += 2 * Math.PI;
 
-        return bRad;
-    }
+    return bRad;
+  }
 
-    function posDist(aP, bP) {
-        var dx = aP.x - bP.x,
-            dy = aP.y - bP.y;
+  function posDist(aP, bP) {
+    var dx = aP.x - bP.x, dy = aP.y - bP.y;
 
-        return Math.sqrt(dx * dx + dy * dy);
-    }
+    return Math.sqrt(dx * dx + dy * dy);
+  }
 }
 
 },{"./CursorHint":4,"./hands/Boxer":6,"./hands/Transformer":7,"./hands/curver/Curver":8,"eventman":1,"inherits":2,"lodash":3}],6:[function(require,module,exports){
@@ -7211,35 +7184,35 @@ var inherits = require("inherits");
 var _ = require("lodash");
 
 var MOUSESTATES = {
-    move: "move",
-    "1000": "ns-resize",
-    "1100": "nesw-resize",
-    "0100": "ew-resize",
-    "0110": "nwse-resize",
-    "0010": "ns-resize",
-    "0011": "nesw-resize",
-    "0001": "ew-resize",
-    "1001": "nwse-resize" };
+  move: "move",
+  "1000": "ns-resize",
+  "1100": "nesw-resize",
+  "0100": "ew-resize",
+  "0110": "nwse-resize",
+  "0010": "ns-resize",
+  "0011": "nesw-resize",
+  "0001": "ew-resize",
+  "1001": "nwse-resize" };
 
 var INIT_PARAMS = {
-    x: 0,
-    y: 0,
-    w: 0,
-    h: 0 };
+  x: 0,
+  y: 0,
+  w: 0,
+  h: 0 };
 
 
 function Boxer() {
-    EventEmitter.call(this);
+  EventEmitter.call(this);
 
-    this._params = _.clone(INIT_PARAMS);
+  this._params = _.clone(INIT_PARAMS);
 
-    this._onDrag = this._onDrag.bind(this);
-    this._onMouseUp = this._onMouseUp.bind(this);
-    this._onMouseMove = this._onMouseMove.bind(this);
-    this._onMouseDown = this._onMouseDown.bind(this);
-    this._rafOnDrag = this._rafOnDrag.bind(this);
-    this._onOverHitbox = this._onOverHitbox.bind(this);
-    this._onOutHitbox = this._onOutHitbox.bind(this);
+  this._onDrag = this._onDrag.bind(this);
+  this._onMouseUp = this._onMouseUp.bind(this);
+  this._onMouseMove = this._onMouseMove.bind(this);
+  this._onMouseDown = this._onMouseDown.bind(this);
+  this._rafOnDrag = this._rafOnDrag.bind(this);
+  this._onOverHitbox = this._onOverHitbox.bind(this);
+  this._onOutHitbox = this._onOutHitbox.bind(this);
 }
 
 Boxer.id = "boxer";
@@ -7248,28 +7221,28 @@ inherits(Boxer, EventEmitter);
 var p = Boxer.prototype;
 
 p.setup = function (opt) {
-    if (!this.domElem) {
-        this.createGraphics();
-    }
+  if (!this.domElem) {
+    this.createGraphics();
+  }
 
-    _.extend(this._params, INIT_PARAMS, opt.params);
-    this._renderHandler();
+  _.extend(this._params, INIT_PARAMS, opt.params);
+  this._renderHandler();
 };
 
 p.activate = function () {
-    if (this._isActivated) return;
-    this._isActivated = true;
+  if (this._isActivated) return;
+  this._isActivated = true;
 
-    window.addEventListener("mousemove", this._onMouseMove);
-    this._deBox.addEventListener("mousedown", this._onMouseDown);
+  window.addEventListener("mousemove", this._onMouseMove);
+  this._deBox.addEventListener("mousedown", this._onMouseDown);
 };
 
 p.deactivate = function () {
-    if (!this._isActivated) return;
-    this._isActivated = false;
+  if (!this._isActivated) return;
+  this._isActivated = false;
 
-    window.removeEventListener("mousemove", this._onMouseMove);
-    this._deBox.removeEventListener("mousedown", this._onMouseDown);
+  window.removeEventListener("mousemove", this._onMouseMove);
+  this._deBox.removeEventListener("mousedown", this._onMouseDown);
 };
 
 
@@ -7277,53 +7250,53 @@ p.deactivate = function () {
 
 
 p._onMouseDown = function (e) {
-    if (!this._finger) {
-        return;
-    }
+  if (!this._finger) {
+    return;
+  }
 
-    e.stopPropagation();
-    e.preventDefault();
+  e.stopPropagation();
+  e.preventDefault();
 
-    this._isHandle = true;
+  this._isHandle = true;
 
-    this._deFullHit.style.pointerEvents = "auto";
+  this._deFullHit.style.pointerEvents = "auto";
 
-    this._mdPos = {
-        mx: e.clientX,
-        my: e.clientY,
-        params: _.clone(this._params) };
+  this._mdPos = {
+    mx: e.clientX,
+    my: e.clientY,
+    params: _.clone(this._params) };
 
-    window.addEventListener("mouseup", this._onMouseUp);
-    window.addEventListener("mouseleave", this._onMouseUp);
-    window.addEventListener("mousemove", this._onDrag);
+  window.addEventListener("mouseup", this._onMouseUp);
+  window.addEventListener("mouseleave", this._onMouseUp);
+  window.addEventListener("mousemove", this._onDrag);
 };
 
 p._onMouseMove = function (e) {
-    if (!this._isHandle && this._isOverHitbox) {
-        this._setFinger(e);
-    }
+  if (!this._isHandle && this._isOverHitbox) {
+    this._setFinger(e);
+  }
 };
 
 p._onMouseUp = function () {
-    window.removeEventListener("mouseup", this._onMouseUp);
-    window.removeEventListener("mouseleave", this._onMouseUp);
-    window.removeEventListener("mousemove", this._onDrag);
+  window.removeEventListener("mouseup", this._onMouseUp);
+  window.removeEventListener("mouseleave", this._onMouseUp);
+  window.removeEventListener("mousemove", this._onDrag);
 
-    if (this._rafOnDragRafId) {
-        this._rafOnDrag();
-    }
+  if (this._rafOnDragRafId) {
+    this._rafOnDrag();
+  }
 
-    this._isHandle = false;
+  this._isHandle = false;
 
-    this._deFullHit.style.pointerEvents = "none";
+  this._deFullHit.style.pointerEvents = "none";
 };
 
 p._onOverHitbox = function () {
-    this._isOverHitbox = true;
+  this._isOverHitbox = true;
 };
 
 p._onOutHitbox = function () {
-    this._isOverHitbox = false;
+  this._isOverHitbox = false;
 };
 
 
@@ -7337,12 +7310,12 @@ p._onOutHitbox = function () {
 
 
 p._renderHandler = function () {
-    var params = this._params;
+  var params = this._params;
 
-    this._deBox.style.left = params.x + "px";
-    this._deBox.style.top = params.y + "px";
-    this._deBox.style.width = params.w + "px";
-    this._deBox.style.height = params.h + "px";
+  this._deBox.style.left = params.x + "px";
+  this._deBox.style.top = params.y + "px";
+  this._deBox.style.width = params.w + "px";
+  this._deBox.style.height = params.h + "px";
 };
 
 
@@ -7355,57 +7328,50 @@ p._renderHandler = function () {
 
 
 p._onDrag = function (e) {
-    this._onDragMe = e;
+  this._onDragMe = e;
 
-    if (!this._rafOnDragRafId) {
-        this._rafOnDragRafId = requestAnimationFrame(this._rafOnDrag);
-    }
+  if (!this._rafOnDragRafId) {
+    this._rafOnDragRafId = requestAnimationFrame(this._rafOnDrag);
+  }
 };
 
 p._rafOnDrag = function () {
-    var e = this._onDragMe;
-    this._onDragMe = undefined;
+  var e = this._onDragMe;
+  this._onDragMe = undefined;
 
-    window.cancelAnimationFrame(this._rafOnDragRafId);
-    this._rafOnDragRafId = undefined;
+  window.cancelAnimationFrame(this._rafOnDragRafId);
+  this._rafOnDragRafId = undefined;
 
-    var params = this._params,
-        md = this._mdPos,
-        finger = this._finger,
-        mx = e.clientX,
-        my = e.clientY,
-        dx = mx - md.mx,
-        dy = my - md.my,
-        change = {};
+  var params = this._params, md = this._mdPos, finger = this._finger, mx = e.clientX, my = e.clientY, dx = mx - md.mx, dy = my - md.my, change = {};
 
 
 
-    if (finger === "move") {
-        change.x = md.params.x + dx;
-        change.y = md.params.y + dy;
-    }
+  if (finger === "move") {
+    change.x = md.params.x + dx;
+    change.y = md.params.y + dy;
+  }
 
-    if (finger.charAt(0) === "1") {
-        change.y = md.params.y + dy;
-        change.h = md.params.h - dy;
-    }
+  if (finger.charAt(0) === "1") {
+    change.y = md.params.y + dy;
+    change.h = md.params.h - dy;
+  }
 
-    if (finger.charAt(1) === "1") {
-        change.w = md.params.w + dx;
-    }
+  if (finger.charAt(1) === "1") {
+    change.w = md.params.w + dx;
+  }
 
-    if (finger.charAt(2) === "1") {
-        change.h = md.params.h + dy;
-    }
+  if (finger.charAt(2) === "1") {
+    change.h = md.params.h + dy;
+  }
 
-    if (finger.charAt(3) === "1") {
-        change.x = md.params.x + dx;
-        change.w = md.params.w - dx;
-    }
+  if (finger.charAt(3) === "1") {
+    change.x = md.params.x + dx;
+    change.w = md.params.w - dx;
+  }
 
 
 
-    this.emit("change", change, "transform");
+  this.emit("change", change, "transform");
 };
 
 
@@ -7422,41 +7388,29 @@ p._rafOnDrag = function () {
 
 
 p._setFinger = function (e) {
-    var params = this._params,
-        mx = e.clientX,
-        my = e.clientY,
-        diff = 6,
-        dTop = Math.abs(params.y - my),
-        dRight = Math.abs(params.x + params.w - mx),
-        dBottom = Math.abs(params.y + params.h - my),
-        dLeft = Math.abs(params.x - mx),
-        top = dTop < diff,
-        right = dRight < diff,
-        bottom = dBottom < diff,
-        left = dLeft < diff,
-        inside = mx > params.x && mx < params.x + params.w && my > params.y && my < params.y + params.h;
+  var params = this._params, mx = e.clientX, my = e.clientY, diff = 6, dTop = Math.abs(params.y - my), dRight = Math.abs((params.x + params.w) - mx), dBottom = Math.abs((params.y + params.h) - my), dLeft = Math.abs(params.x - mx), top = dTop < diff, right = dRight < diff, bottom = dBottom < diff, left = dLeft < diff, inside = mx > params.x && mx < params.x + params.w && my > params.y && my < params.y + params.h;
 
-    if (params.w * params.sx < diff * 2 && inside) {
-        left = false;
-        right = false;
-    }
+  if (params.w * params.sx < diff * 2 && inside) {
+    left = false;
+    right = false;
+  }
 
-    if (params.h * params.sy < diff * 2 && inside) {
-        top = false;
-        bottom = false;
-    }
+  if (params.h * params.sy < diff * 2 && inside) {
+    top = false;
+    bottom = false;
+  }
 
-    if (top || right || bottom || left) {
-        this._finger = ("000" + (top * 1000 + right * 100 + bottom * 10 + left * 1)).substr(-4);
-    } else if (inside) {
-        this._finger = "move";
-    }
+  if (top || right || bottom || left) {
+    this._finger = ("000" + (top * 1000 + right * 100 + bottom * 10 + left * 1)).substr(-4);
+  } else if (inside) {
+    this._finger = "move";
+  }
 
-    if (this._finger) {
-        this._setCursor(MOUSESTATES[this._finger]);
-    } else {
-        this._setCursor("auto");
-    }
+  if (this._finger) {
+    this._setCursor(MOUSESTATES[this._finger]);
+  } else {
+    this._setCursor("auto");
+  }
 };
 
 
@@ -7469,8 +7423,8 @@ p._setFinger = function (e) {
 
 
 p._setCursor = function (cursor) {
-    this._deBox.style.cursor = cursor;
-    this._deFullHit.style.cursor = cursor;
+  this._deBox.style.cursor = cursor;
+  this._deFullHit.style.cursor = cursor;
 };
 
 
@@ -7480,30 +7434,30 @@ p._setCursor = function (cursor) {
 
 
 p.createGraphics = function () {
-    this.domElem = document.createElement("div");
-    this.domElem.style.pointerEvents = "none";
+  this.domElem = document.createElement("div");
+  this.domElem.style.pointerEvents = "none";
 
-    this._deFullHit = document.createElement("div");
-    this._deFullHit.style.position = "absolute";
-    this._deFullHit.style.pointerEvents = "none";
-    this._deFullHit.style.width = "100%";
-    this._deFullHit.style.height = "100%";
-    this.domElem.appendChild(this._deFullHit);
+  this._deFullHit = document.createElement("div");
+  this._deFullHit.style.position = "absolute";
+  this._deFullHit.style.pointerEvents = "none";
+  this._deFullHit.style.width = "100%";
+  this._deFullHit.style.height = "100%";
+  this.domElem.appendChild(this._deFullHit);
 
-    this._deBox = document.createElement("div");
-    this._deBox.style.position = "absolute";
-    this._deBox.style.boxSizing = "border-box";
-    this._deBox.style.border = "solid 1px red";
-    this._deBox.addEventListener("mouseenter", this._onOverHitbox);
-    this._deBox.addEventListener("mouseleave", this._onOutHitbox);
-    this.domElem.style.pointerEvents = "auto";
-    this.domElem.appendChild(this._deBox);
+  this._deBox = document.createElement("div");
+  this._deBox.style.position = "absolute";
+  this._deBox.style.boxSizing = "border-box";
+  this._deBox.style.border = "solid 1px red";
+  this._deBox.addEventListener("mouseenter", this._onOverHitbox);
+  this._deBox.addEventListener("mouseleave", this._onOutHitbox);
+  this.domElem.style.pointerEvents = "auto";
+  this.domElem.appendChild(this._deBox);
 
 
-    var onFitstMove = (function () {
-        this._onOverHitbox();
-        this._deBox.removeEventListener("mousemove", onFitstMove);
-    }).bind(this);
+  var onFitstMove = function () {
+    this._onOverHitbox();
+    this._deBox.removeEventListener("mousemove", onFitstMove);
+  }.bind(this);
 };
 
 
@@ -7517,55 +7471,55 @@ var inherits = require("inherits");
 var _ = require("lodash");
 
 var MOUSESTATES = {
-    move: "move",
-    rotate: "-webkit-grab",
-    origin: "crosshair",
-    "1000": "ns-resize",
-    "1100": "nesw-resize",
-    "0100": "ew-resize",
-    "0110": "nwse-resize",
-    "0010": "ns-resize",
-    "0011": "nesw-resize",
-    "0001": "ew-resize",
-    "1001": "nwse-resize" };
+  move: "move",
+  rotate: "-webkit-grab",
+  origin: "crosshair",
+  "1000": "ns-resize",
+  "1100": "nesw-resize",
+  "0100": "ew-resize",
+  "0110": "nwse-resize",
+  "0010": "ns-resize",
+  "0011": "nesw-resize",
+  "0001": "ew-resize",
+  "1001": "nwse-resize" };
 
 var INIT_PARAMS = {
-    tx: 0, ty: 0,
-    sx: 1, sy: 1,
-    rz: 0,
-    ox: 0.5, oy: 0.5 };
+  tx: 0, ty: 0,
+  sx: 1, sy: 1,
+  rz: 0,
+  ox: 0.5, oy: 0.5 };
 
 var INIT_BASE = {
-    x: 0,
-    y: 0,
-    w: 0,
-    h: 0 };
+  x: 0,
+  y: 0,
+  w: 0,
+  h: 0 };
 
 var hints = {
-    scale: ["shift - keep proportion", "alt - from the opposite side"],
-    rotate: ["shift - 15° steps"],
-    move: ["shift - move in one dimension"] };
+  scale: ["shift - keep proportion", "alt - from the opposite side"],
+  rotate: ["shift - 15\u00b0 steps"],
+  move: ["shift - move in one dimension"] };
 
 
 function Transformer(transhand) {
-    EventEmitter.call(this);
+  EventEmitter.call(this);
 
-    this._th = transhand;
-    this._params = _.clone(INIT_PARAMS);
-    this._base = _.clone(INIT_BASE);
-    this._points = [{}, {}, {}, {}];
-    this._pOrigin = {};
-    this._originRadius = 6;
-    this._rotateFingerDist = 16;
+  this._th = transhand;
+  this._params = _.clone(INIT_PARAMS);
+  this._base = _.clone(INIT_BASE);
+  this._points = [{}, {}, {}, {}];
+  this._pOrigin = {};
+  this._originRadius = 6;
+  this._rotateFingerDist = 16;
 
 
-    this._onDrag = this._onDrag.bind(this);
-    this._onMouseUp = this._onMouseUp.bind(this);
-    this._onMouseMove = this._onMouseMove.bind(this);
-    this._onMouseDown = this._onMouseDown.bind(this);
-    this._rafOnDrag = this._rafOnDrag.bind(this);
-    this._onOverHitbox = this._onOverHitbox.bind(this);
-    this._onOutHitbox = this._onOutHitbox.bind(this);
+  this._onDrag = this._onDrag.bind(this);
+  this._onMouseUp = this._onMouseUp.bind(this);
+  this._onMouseMove = this._onMouseMove.bind(this);
+  this._onMouseDown = this._onMouseDown.bind(this);
+  this._rafOnDrag = this._rafOnDrag.bind(this);
+  this._onOverHitbox = this._onOverHitbox.bind(this);
+  this._onOutHitbox = this._onOutHitbox.bind(this);
 }
 
 
@@ -7576,33 +7530,33 @@ Transformer.id = "transformer";
 p.renderLevel = 1;
 
 p.setup = function (opt) {
-    if (!this.domElem) {
-        this.createGraphics();
-    }
+  if (!this.domElem) {
+    this.createGraphics();
+  }
 
-    _.extend(this._params, INIT_PARAMS, opt.params);
-    _.extend(this._base, INIT_BASE, opt.base);
-    this._refreshPoints();
-    this._renderHandler();
-    this._refreshHitbox();
+  _.extend(this._params, INIT_PARAMS, opt.params);
+  _.extend(this._base, INIT_BASE, opt.base);
+  this._refreshPoints();
+  this._renderHandler();
+  this._refreshHitbox();
 };
 
 p.activate = function () {
-    if (this._isActivated) return;
-    this._isActivated = true;
+  if (this._isActivated) return;
+  this._isActivated = true;
 
-    window.addEventListener("mousemove", this._onMouseMove);
-    this._deHitbox.addEventListener("mousedown", this._onMouseDown);
-    this._deOriginHit.addEventListener("mousedown", this._onMouseDown);
+  window.addEventListener("mousemove", this._onMouseMove);
+  this._deHitbox.addEventListener("mousedown", this._onMouseDown);
+  this._deOriginHit.addEventListener("mousedown", this._onMouseDown);
 };
 
 p.deactivate = function () {
-    if (!this._isActivated) return;
-    this._isActivated = false;
+  if (!this._isActivated) return;
+  this._isActivated = false;
 
-    window.removeEventListener("mousemove", this._onMouseMove);
-    this._deHitbox.removeEventListener("mousedown", this._onMouseDown);
-    this._deOriginHit.removeEventListener("mousedown", this._onMouseDown);
+  window.removeEventListener("mousemove", this._onMouseMove);
+  this._deHitbox.removeEventListener("mousedown", this._onMouseDown);
+  this._deOriginHit.removeEventListener("mousedown", this._onMouseDown);
 };
 
 
@@ -7610,59 +7564,61 @@ p.deactivate = function () {
 
 
 p._onMouseDown = function (e) {
-    if (!this._finger) {
-        return;
-    }
+  if (!this._finger) {
+    return;
+  }
 
-    e.stopPropagation();
-    e.preventDefault();
+  e.stopPropagation();
+  e.preventDefault();
 
-    this._isHandle = true;
+  this._isHandle = true;
 
-    this._deFullHit.style.pointerEvents = "auto";
+  this._deFullHit.style.pointerEvents = "auto";
 
-    this._mdPos = {
-        m: this._th.G2L({ x: e.clientX, y: e.clientY }),
-        params: _.cloneDeep(this._params),
-        points: _.cloneDeep(this._points),
-        pOrigin: _.cloneDeep(this._pOrigin)
-    };
+  this._mdPos = {
+    m: this._th.G2L({ x: e.clientX, y: e.clientY }),
+    params: _.cloneDeep(this._params),
+    points: _.cloneDeep(this._points),
+    pOrigin: _.cloneDeep(this._pOrigin)
+  };
 
-    window.addEventListener("mouseup", this._onMouseUp);
-    window.addEventListener("mouseleave", this._onMouseUp);
-    window.addEventListener("mousemove", this._onDrag);
+  window.addEventListener("mouseup", this._onMouseUp);
+  window.addEventListener("mouseleave", this._onMouseUp);
+  window.addEventListener("mousemove", this._onDrag);
 };
 
 p._onMouseMove = function (e) {
-    if (!this._isHandle && this._isOverHitbox) {
-        this._setFinger(e);
-    }
+  if (!this._isHandle && this._isOverHitbox) {
+    this._setFinger(e);
+  } else {
+    this._th.cursorHint.setHints(null);
+  }
 
-    if (this._cursorFunc) {
-        this._setCursor(this._cursorFunc(e.clientX, e.clientY));
-    }
+  if (this._cursorFunc) {
+    this._setCursor(this._cursorFunc(e.clientX, e.clientY));
+  }
 };
 
 p._onMouseUp = function () {
-    window.removeEventListener("mouseup", this._onMouseUp);
-    window.removeEventListener("mouseleave", this._onMouseUp);
-    window.removeEventListener("mousemove", this._onDrag);
+  window.removeEventListener("mouseup", this._onMouseUp);
+  window.removeEventListener("mouseleave", this._onMouseUp);
+  window.removeEventListener("mousemove", this._onDrag);
 
-    if (this._rafOnDragRafId) {
-        this._rafOnDrag();
-    }
+  if (this._rafOnDragRafId) {
+    this._rafOnDrag();
+  }
 
-    this._isHandle = false;
+  this._isHandle = false;
 
-    this._deFullHit.style.pointerEvents = "none";
+  this._deFullHit.style.pointerEvents = "none";
 };
 
 p._onOverHitbox = function () {
-    this._isOverHitbox = true;
+  this._isOverHitbox = true;
 };
 
 p._onOutHitbox = function () {
-    this._isOverHitbox = false;
+  this._isOverHitbox = false;
 };
 
 
@@ -7673,99 +7629,77 @@ p._onOutHitbox = function () {
 
 
 p._refreshPoints = function () {
-    var base = _.clone(this._base),
-        params = this._params,
-        p = this._points,
-        po = this._pOrigin;
+  var base = _.clone(this._base), params = this._params, p = this._points, po = this._pOrigin;
 
-    base.x += params.tx;
-    base.y += params.ty;
+  base.x += params.tx;
+  base.y += params.ty;
 
-    po.x = base.x + base.w * params.ox;
-    po.y = base.y + base.h * params.oy;
+  po.x = base.x + (base.w * params.ox);
+  po.y = base.y + (base.h * params.oy);
 
-    var tox = base.x + params.ox * base.w,
-        toy = base.y + params.oy * base.h;
+  var tox = base.x + params.ox * base.w, toy = base.y + params.oy * base.h;
 
-    t(p[0], base.x, base.y);
-    t(p[1], base.x + base.w, base.y);
-    t(p[2], base.x + base.w, base.y + base.h);
-    t(p[3], base.x, base.y + base.h);
+  t(p[0], base.x, base.y);
+  t(p[1], base.x + base.w, base.y);
+  t(p[2], base.x + base.w, base.y + base.h);
+  t(p[3], base.x, base.y + base.h);
 
-    function t(p, x, y) {
-        var dx = (x - tox) * params.sx,
-            dy = (y - toy) * params.sy,
-            d = Math.sqrt(dx * dx + dy * dy),
-            rad = Math.atan2(dy, dx) + params.rz,
-            nx = Math.cos(rad),
-            ny = Math.sin(rad),
-            rx = d * nx,
-            ry = d * ny,
-            px = tox + rx,
-            py = toy + ry;
+  function t(p, x, y) {
+    var dx = (x - tox) * params.sx, dy = (y - toy) * params.sy, d = Math.sqrt(dx * dx + dy * dy), rad = Math.atan2(dy, dx) + params.rz, nx = Math.cos(rad), ny = Math.sin(rad), rx = d * nx, ry = d * ny, px = tox + rx, py = toy + ry;
 
-        p.x = px;
-        p.y = py;
-    }
+    p.x = px;
+    p.y = py;
+  }
 };
 
 
 
 p._renderHandler = function () {
-    var p = this._points.map(this._th.L2G, this._th),
-        po = this._th.L2G(this._pOrigin),
-        c = this._deCanvas,
-        or = this._originRadius,
-        ctx = c.getContext("2d"),
-        margin = 7,
-        minX = Math.min(p[0].x, p[1].x, p[2].x, p[3].x, po.x),
-        maxX = Math.max(p[0].x, p[1].x, p[2].x, p[3].x, po.x),
-        minY = Math.min(p[0].y, p[1].y, p[2].y, p[3].y, po.y),
-        maxY = Math.max(p[0].y, p[1].y, p[2].y, p[3].y, po.y);
+  var p = this._points.map(this._th.L2G, this._th), po = this._th.L2G(this._pOrigin), c = this._deCanvas, or = this._originRadius, ctx = c.getContext("2d"), margin = 7, minX = Math.min(p[0].x, p[1].x, p[2].x, p[3].x, po.x), maxX = Math.max(p[0].x, p[1].x, p[2].x, p[3].x, po.x), minY = Math.min(p[0].y, p[1].y, p[2].y, p[3].y, po.y), maxY = Math.max(p[0].y, p[1].y, p[2].y, p[3].y, po.y);
 
-    c.style.left = minX - margin + "px";
-    c.style.top = minY - margin + "px";
-    c.width = maxX - minX + margin * 2;
-    c.height = maxY - minY + margin * 2;
+  c.style.left = (minX - margin) + "px";
+  c.style.top = (minY - margin) + "px";
+  c.width = (maxX - minX) + (margin * 2);
+  c.height = (maxY - minY) + (margin * 2);
 
-    ctx.save();
-    ctx.translate(margin - minX, margin - minY);
-    ctx.beginPath();
-    ctx.moveTo(p[0].x, p[0].y);
-    ctx.lineTo(p[1].x, p[1].y);
-    ctx.lineTo(p[2].x, p[2].y);
-    ctx.lineTo(p[3].x, p[3].y);
-    ctx.closePath();
+  ctx.save();
+  ctx.translate(margin - minX, margin - minY);
+  ctx.beginPath();
+  ctx.moveTo(p[0].x, p[0].y);
+  ctx.lineTo(p[1].x, p[1].y);
+  ctx.lineTo(p[2].x, p[2].y);
+  ctx.lineTo(p[3].x, p[3].y);
+  ctx.closePath();
 
-    ctx.moveTo(po.x - or, po.y);
-    ctx.lineTo(po.x + or, po.y);
-    ctx.moveTo(po.x, po.y - or);
-    ctx.lineTo(po.x, po.y + or);
+  ctx.moveTo(po.x - or, po.y);
+  ctx.lineTo(po.x + or, po.y);
+  ctx.moveTo(po.x, po.y - or);
+  ctx.lineTo(po.x, po.y + or);
 
 
-    // ctx.shadowColor = '#f00';
-    // ctx.shadowBlur = 3;
-    // ctx.shadowOffsetX = 0;
-    // ctx.shadowOffsetY = 0;
+  // ctx.shadowColor = '#f00';
+  // ctx.shadowBlur = 3;
+  // ctx.shadowOffsetX = 0;
+  // ctx.shadowOffsetY = 0;
 
-    ctx.strokeStyle = "#4f2";
-    ctx.lineWidth = 1;
-    ctx.stroke();
-    ctx.restore();
+  ctx.strokeStyle = "#4f2";
+  ctx.lineWidth = 1;
+  ctx.stroke();
+  ctx.restore();
 
 
 
-    //hitboxes
+  //hitboxes
 
-    this._deOriginHit.style.left = po.x - this._rotateFingerDist + "px";
-    this._deOriginHit.style.top = po.y - this._rotateFingerDist + "px";
+  this._deOriginHit.style.left = (po.x - this._rotateFingerDist) + "px";
+  this._deOriginHit.style.top = (po.y - this._rotateFingerDist) + "px";
 
-    var hbp = "";
-    hbp += p[0].x + "," + p[0].y + " ";
-    hbp += p[1].x + "," + p[1].y + " ";
-    hbp += p[2].x + "," + p[2].y + " ";
-    hbp += p[3].x + "," + p[3].y;
-    this._deHitbox.setAttribute("points", hbp);
+  var hbp = "";
+  hbp += p[0].x + "," + p[0].y + " ";
+  hbp += p[1].x + "," + p[1].y + " ";
+  hbp += p[2].x + "," + p[2].y + " ";
+  hbp += p[3].x + "," + p[3].y;
+  this._deHitbox.setAttribute("points", hbp);
 };
 
 p._refreshHitbox = function () {};
@@ -7788,153 +7722,122 @@ p._refreshHitbox = function () {};
 
 
 p._onDrag = function (e) {
-    this._onDragMe = e;
+  this._onDragMe = e;
 
-    if (!this._rafOnDragRafId) {
-        this._rafOnDragRafId = requestAnimationFrame(this._rafOnDrag);
-    }
+  if (!this._rafOnDragRafId) {
+    this._rafOnDragRafId = requestAnimationFrame(this._rafOnDrag);
+  }
 };
 
 p._rafOnDrag = function () {
-    var e = this._onDragMe;
-    this._onDragMe = undefined;
+  var e = this._onDragMe;
+  this._onDragMe = undefined;
 
-    window.cancelAnimationFrame(this._rafOnDragRafId);
-    this._rafOnDragRafId = undefined;
+  window.cancelAnimationFrame(this._rafOnDragRafId);
+  this._rafOnDragRafId = undefined;
 
-    var params = this._params,
-        base = this._base,
-        pOrigin = this._pOrigin,
-        md = this._mdPos,
-        finger = this._finger,
-        m = this._th.G2L({ x: e.clientX, y: e.clientY }),
-        dx = m.x - md.m.x,
-        dy = m.y - md.m.y,
-        alt = e.altKey,
-        shift = e.shiftKey,
-        change = {};
+  var params = this._params, base = this._base, pOrigin = this._pOrigin, md = this._mdPos, finger = this._finger, m = this._th.G2L({ x: e.clientX, y: e.clientY }), dx = m.x - md.m.x, dy = m.y - md.m.y, alt = e.altKey, shift = e.shiftKey, change = {};
 
-    if (finger === "origin") {
-        setOrigin();
+  if (finger === "origin") {
+    setOrigin();
+  }
+
+  if (finger === "move") {
+    setTransform();
+  }
+
+  if (finger.charAt(0) === "1") {
+    setScale(-Math.PI / 2, "sy", -1);
+  }
+
+  if (finger.charAt(1) === "1") {
+    setScale(0, "sx", 1);
+  }
+
+  if (finger.charAt(2) === "1") {
+    setScale(Math.PI / 2, "sy", 1);
+  }
+
+  if (finger.charAt(3) === "1") {
+    setScale(Math.PI, "sx", -1);
+  }
+
+  if (finger === "rotate") {
+    setRotation();
+  }
+
+  if (shift && "sx" in change && "sy" in change) {
+    fixProportion();
+  }
+
+
+  this.emit("change", change, "transform");
+
+
+
+
+
+  function setScale(r, sN, way) {
+    var rad = r + md.params.rz, mdDist = distToPointInAngle(md.pOrigin, md.m, rad), dragDist = distToPointInAngle(md.pOrigin, m, rad), scale = (dragDist / mdDist) * md.params[sN];
+
+    if (alt) {
+      var es = (scale - md.params[sN]) / 2, tN = "t" + sN.charAt(1), dN = sN.charAt(1) === "x" ? "w" : "h";
+
+      scale -= es;
+      change[tN] = params[tN] = md.params[tN] + base[dN] * es / 2 * way;
     }
 
-    if (finger === "move") {
-        setTransform();
+    change[sN] = params[sN] = scale;
+  }
+
+  function fixProportion() {
+    var mx = m.x - pOrigin.x, my = m.y - pOrigin.y, mr = Math.abs(radDiff(params.rz, Math.atan2(my, mx))), isVertical = mr > Math.PI / 4 && mr < Math.PI / 4 * 3, spx = params.sx / md.params.sx, spy = params.sy / md.params.sy;
+
+    spx *= spx < 0 ? -1 : 1;
+    spy *= spy < 0 ? -1 : 1;
+
+    var sp = isVertical ? spy : spx;
+
+    change.sx = params.sx = md.params.sx * sp;
+    change.sy = params.sy = md.params.sy * sp;
+  }
+
+  function setRotation() {
+    var mdx = md.m.x - pOrigin.x, mdy = md.m.y - pOrigin.y, mdr = Math.atan2(mdy, mdx), mx = m.x - pOrigin.x, my = m.y - pOrigin.y, mr = Math.atan2(my, mx), r = mr - mdr;
+
+    if (shift) {
+      r = Math.floor(r / (Math.PI / 12)) * (Math.PI / 12);
     }
 
-    if (finger.charAt(0) === "1") {
-        setScale(-Math.PI / 2, "sy", -1);
+    change.rz = params.rz = md.params.rz + r;
+  }
+
+  function setTransform() {
+    if (shift) {
+      if (Math.abs(dx) > Math.abs(dy)) {
+        change.tx = params.tx = md.params.tx + dx;
+        change.ty = params.ty = md.params.ty;
+      } else {
+        change.tx = params.tx = md.params.tx;
+        change.ty = params.ty = md.params.ty + dy;
+      }
+    } else {
+      change.tx = params.tx = md.params.tx + dx;
+      change.ty = params.ty = md.params.ty + dy;
     }
+  }
 
-    if (finger.charAt(1) === "1") {
-        setScale(0, "sx", 1);
-    }
+  function setOrigin() {
+    var mx = m.x - md.pOrigin.x, my = m.y - md.pOrigin.y, dist = Math.sqrt(mx * mx + my * my), r = Math.atan2(my, mx) - params.rz, x = (Math.cos(r) * dist) / params.sx, y = (Math.sin(r) * dist) / params.sy;
 
-    if (finger.charAt(2) === "1") {
-        setScale(Math.PI / 2, "sy", 1);
-    }
+    x = parseInt(x * 1000) / 1000; //?hack??
+    y = parseInt(y * 1000) / 1000;
 
-    if (finger.charAt(3) === "1") {
-        setScale(Math.PI, "sx", -1);
-    }
-
-    if (finger === "rotate") {
-        setRotation();
-    }
-
-    if (shift && "sx" in change && "sy" in change) {
-        fixProportion();
-    }
-
-
-    this.emit("change", change, "transform");
-
-
-
-
-
-    function setScale(r, sN, way) {
-        var rad = r + md.params.rz,
-            mdDist = distToPointInAngle(md.pOrigin, md.m, rad),
-            dragDist = distToPointInAngle(md.pOrigin, m, rad),
-            scale = dragDist / mdDist * md.params[sN];
-
-        if (alt) {
-            var es = (scale - md.params[sN]) / 2,
-                tN = "t" + sN.charAt(1),
-                dN = sN.charAt(1) === "x" ? "w" : "h";
-
-            scale -= es;
-            change[tN] = params[tN] = md.params[tN] + base[dN] * es / 2 * way;
-        }
-
-        change[sN] = params[sN] = scale;
-    }
-
-    function fixProportion() {
-        var mx = m.x - pOrigin.x,
-            my = m.y - pOrigin.y,
-            mr = Math.abs(radDiff(params.rz, Math.atan2(my, mx))),
-            isVertical = mr > Math.PI / 4 && mr < Math.PI / 4 * 3,
-            spx = params.sx / md.params.sx,
-            spy = params.sy / md.params.sy;
-
-        spx *= spx < 0 ? -1 : 1;
-        spy *= spy < 0 ? -1 : 1;
-
-        var sp = isVertical ? spy : spx;
-
-        change.sx = params.sx = md.params.sx * sp;
-        change.sy = params.sy = md.params.sy * sp;
-    }
-
-    function setRotation() {
-        var mdx = md.m.x - pOrigin.x,
-            mdy = md.m.y - pOrigin.y,
-            mdr = Math.atan2(mdy, mdx),
-            mx = m.x - pOrigin.x,
-            my = m.y - pOrigin.y,
-            mr = Math.atan2(my, mx),
-            r = mr - mdr;
-
-        if (shift) {
-            r = Math.floor(r / (Math.PI / 12)) * (Math.PI / 12);
-        }
-
-        change.rz = params.rz = md.params.rz + r;
-    }
-
-    function setTransform() {
-        if (shift) {
-            if (Math.abs(dx) > Math.abs(dy)) {
-                change.tx = params.tx = md.params.tx + dx;
-                change.ty = params.ty = md.params.ty;
-            } else {
-                change.tx = params.tx = md.params.tx;
-                change.ty = params.ty = md.params.ty + dy;
-            }
-        } else {
-            change.tx = params.tx = md.params.tx + dx;
-            change.ty = params.ty = md.params.ty + dy;
-        }
-    }
-
-    function setOrigin() {
-        var mx = m.x - md.pOrigin.x,
-            my = m.y - md.pOrigin.y,
-            dist = Math.sqrt(mx * mx + my * my),
-            r = Math.atan2(my, mx) - params.rz,
-            x = Math.cos(r) * dist / params.sx,
-            y = Math.sin(r) * dist / params.sy;
-
-        x = parseInt(x * 1000) / 1000; //?hack??
-        y = parseInt(y * 1000) / 1000;
-
-        change.ox = params.ox = md.params.ox + x / base.w;
-        change.oy = params.oy = md.params.oy + y / base.h;
-        change.tx = params.tx = md.params.tx + (mx - x);
-        change.ty = params.ty = md.params.ty + (my - y);
-    }
+    change.ox = params.ox = md.params.ox + (x / base.w);
+    change.oy = params.oy = md.params.oy + (y / base.h);
+    change.tx = params.tx = md.params.tx + (mx - x);
+    change.ty = params.ty = md.params.ty + (my - y);
+  }
 };
 
 
@@ -7951,67 +7854,49 @@ p._rafOnDrag = function () {
 
 
 p._setFinger = function (e) {
-    var base = this._base,
-        params = this._params,
-        p = this._points,
-        po = this._pOrigin,
-        diff = 3,
-        rDiff = 16,
-        m = this._th.G2L({ x: e.clientX, y: e.clientY }),
-        dox = po.x - m.x,
-        doy = po.y - m.y,
-        dOrigin = Math.sqrt(dox * dox + doy * doy),
-        dTop = distToSegment(m, p[0], p[1]),
-        dLeft = distToSegment(m, p[1], p[2]),
-        dBottom = distToSegment(m, p[2], p[3]),
-        dRight = distToSegment(m, p[3], p[0]),
-        top = dTop < diff,
-        left = dLeft < diff,
-        bottom = dBottom < diff,
-        right = dRight < diff,
-        inside = isInside(m, p),
-        cursorScale;
+  var base = this._base, params = this._params, p = this._points, po = this._pOrigin, diff = 3, rDiff = 16, m = this._th.G2L({ x: e.clientX, y: e.clientY }), dox = po.x - m.x, doy = po.y - m.y, dOrigin = Math.sqrt(dox * dox + doy * doy), dTop = distToSegment(m, p[0], p[1]), dLeft = distToSegment(m, p[1], p[2]), dBottom = distToSegment(m, p[2], p[3]), dRight = distToSegment(m, p[3], p[0]), top = dTop < diff, left = dLeft < diff, bottom = dBottom < diff, right = dRight < diff, inside = isInside(m, p), cursorScale;
 
-    if (base.w * params.sx < diff * 2 && inside) {
-        left = false;
-        right = false;
-    }
+  if (base.w * params.sx < diff * 2 && inside) {
+    left = false;
+    right = false;
+  }
 
-    if (base.h * params.sy < diff * 2 && inside) {
-        top = false;
-        bottom = false;
-    }
+  if (base.h * params.sy < diff * 2 && inside) {
+    top = false;
+    bottom = false;
+  }
 
-    if (dOrigin < this._originRadius) {
-        this._finger = "origin";
-    } else if (top || right || bottom || left) {
-        //TODO its sould be top-right-bottom-left
-        this._finger = ("000" + (top * 1000 + left * 100 + bottom * 10 + right * 1)).substr(-4);
-        cursorScale = true;
-        this._th.cursorHint.setHints(hints.scale);
-    } else if (inside) {
-        this._finger = "move";
-        this._th.cursorHint.setHints(hints.move);
-    } else if (dTop < rDiff || dRight < rDiff || dBottom < rDiff || dLeft < rDiff || dOrigin < rDiff) {
-        this._finger = "rotate";
-        this._th.cursorHint.setHints(hints.rotate);
+  if (dOrigin < this._originRadius) {
+    this._finger = "origin";
+  } else if (top || right || bottom || left) {
+    //TODO its sould be top-right-bottom-left
+    this._finger = ("000" + (top * 1000 + left * 100 + bottom * 10 + right * 1)).substr(-4);
+    cursorScale = true;
+    this._th.cursorHint.setHints(hints.scale);
+  } else if (inside) {
+    this._finger = "move";
+    this._th.cursorHint.setHints(hints.move);
+  } else if (dTop < rDiff || dRight < rDiff || dBottom < rDiff || dLeft < rDiff || dOrigin < rDiff) {
+    this._finger = "rotate";
+    this._th.cursorHint.setHints(hints.rotate);
+  } else {
+    this._finger = false;
+    this._th.cursorHint.setHints(null);
+  }
+
+  if (this._finger === "rotate") {
+    this._cursorFunc = this._getRotateCursor;
+  } else if (cursorScale) {
+    this._cursorFunc = this._getScaleCursor;
+  } else {
+    this._cursorFunc = undefined;
+
+    if (this._finger) {
+      this._setCursor(MOUSESTATES[this._finger]);
     } else {
-        this._finger = false;
+      this._setCursor("auto");
     }
-
-    if (this._finger === "rotate") {
-        this._cursorFunc = this._getRotateCursor;
-    } else if (cursorScale) {
-        this._cursorFunc = this._getScaleCursor;
-    } else {
-        this._cursorFunc = undefined;
-
-        if (this._finger) {
-            this._setCursor(MOUSESTATES[this._finger]);
-        } else {
-            this._setCursor("auto");
-        }
-    }
+  }
 };
 
 
@@ -8024,33 +7909,27 @@ p._setFinger = function (e) {
 
 
 p._setCursor = function (cursor) {
-    this._deHitbox.style.cursor = cursor;
-    this._deOriginHit.style.cursor = cursor;
-    this._deFullHit.style.cursor = cursor;
+  this._deHitbox.style.cursor = cursor;
+  this._deOriginHit.style.cursor = cursor;
+  this._deFullHit.style.cursor = cursor;
 };
 
 p._getRotateCursor = function (mx, my) {
-    var po = this._th.L2G(this._pOrigin),
-        r = Math.atan2(my - po.y, mx - po.x) / Math.PI * 180;
+  var po = this._th.L2G(this._pOrigin), r = Math.atan2(my - po.y, mx - po.x) / Math.PI * 180;
 
-    return "url('data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"32\" height=\"32\" ><path transform=\"rotate(" + r + ", 16, 16)\" d=\"M18.907 3.238l-7.54-2.104s8.35 3.9 8.428 15.367c.08 11.794-7.807 14.49-7.807 14.49l7.363-1.725\" stroke=\"#000\" stroke-width=\"2.054\" fill=\"none\"/></svg>') 16 16, auto";
+  return "url('data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"32\" height=\"32\" ><path transform=\"rotate(" + r + ", 16, 16)\" d=\"M18.907 3.238l-7.54-2.104s8.35 3.9 8.428 15.367c.08 11.794-7.807 14.49-7.807 14.49l7.363-1.725\" stroke=\"#000\" stroke-width=\"2.054\" fill=\"none\"/></svg>') 16 16, auto";
 };
 
 p._getScaleCursor = (function () {
-    var FINGERS = ["0100", "0110", "0010", "0011", "0001", "1001", "1000", "1100"];
+  var FINGERS = ["0100", "0110", "0010", "0011", "0001", "1001", "1000", "1100"];
 
-    return function () {
-        var sideDeg = FINGERS.indexOf(this._finger) * 45,
-            po = this._th.L2G(this._pOrigin),
-            oTweak = { x: this._pOrigin.x + 1234, y: this._pOrigin.y },
-            pot = this._th.L2G(oTweak),
-            baseRad = Math.atan2(pot.y - po.y, pot.x - po.x) + this._params.rz,
-            r = sideDeg + baseRad / Math.PI * 180;
+  return function () {
+    var sideDeg = FINGERS.indexOf(this._finger) * 45, po = this._th.L2G(this._pOrigin), oTweak = { x: this._pOrigin.x + 1234, y: this._pOrigin.y }, pot = this._th.L2G(oTweak), baseRad = Math.atan2(pot.y - po.y, pot.x - po.x) + this._params.rz, r = sideDeg + (baseRad / Math.PI * 180);
 
 
-        return "url('data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"32\" height=\"32\"><path transform=\"rotate(" + r + ", 16, 16)\" d=\"M22.406 12.552l5.88 4.18H3.677l5.728 4.36\" stroke=\"#000\" stroke-width=\"2.254\" fill=\"none\"/></svg>') 16 16, auto";
-    };
-})();
+    return "url('data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"32\" height=\"32\"><path transform=\"rotate(" + r + ", 16, 16)\" d=\"M22.406 12.552l5.88 4.18H3.677l5.728 4.36\" stroke=\"#000\" stroke-width=\"2.254\" fill=\"none\"/></svg>') 16 16, auto";
+  };
+}());
 
 
 
@@ -8059,51 +7938,51 @@ p._getScaleCursor = (function () {
 
 
 p.createGraphics = function () {
-    this.domElem = document.createElement("div");
-    this.domElem.style.pointerEvents = "none";
+  this.domElem = document.createElement("div");
+  this.domElem.style.pointerEvents = "none";
 
-    this._deCanvas = document.createElement("canvas");
-    this._deCanvas.style.position = "absolute";
-    this.domElem.appendChild(this._deCanvas);
+  this._deCanvas = document.createElement("canvas");
+  this._deCanvas.style.position = "absolute";
+  this.domElem.appendChild(this._deCanvas);
 
-    this._deFullHit = document.createElement("div");
-    this._deFullHit.style.position = "absolute";
-    this._deFullHit.style.pointerEvents = "none";
-    this._deFullHit.style.width = "100%";
-    this._deFullHit.style.height = "100%";
-    this.domElem.appendChild(this._deFullHit);
+  this._deFullHit = document.createElement("div");
+  this._deFullHit.style.position = "absolute";
+  this._deFullHit.style.pointerEvents = "none";
+  this._deFullHit.style.width = "100%";
+  this._deFullHit.style.height = "100%";
+  this.domElem.appendChild(this._deFullHit);
 
-    var onFirstMove = (function () {
-        this._onOverHitbox();
-        this._deHitbox.removeEventListener("mousemove", onFirstMove);
-        this._deOriginHit.removeEventListener("mousemove", onFirstMove);
-    }).bind(this);
+  var onFirstMove = function () {
+    this._onOverHitbox();
+    this._deHitbox.removeEventListener("mousemove", onFirstMove);
+    this._deOriginHit.removeEventListener("mousemove", onFirstMove);
+  }.bind(this);
 
-    var addHitboxEvents = (function (de) {
-        de.style.pointerEvents = "auto";
-        de.addEventListener("mouseenter", this._onOverHitbox);
-        de.addEventListener("mouseleave", this._onOutHitbox);
-        de.addEventListener("mousemove", onFirstMove);
+  var addHitboxEvents = function (de) {
+    de.style.pointerEvents = "auto";
+    de.addEventListener("mouseenter", this._onOverHitbox);
+    de.addEventListener("mouseleave", this._onOutHitbox);
+    de.addEventListener("mousemove", onFirstMove);
 
-        return de;
-    }).bind(this);
+    return de;
+  }.bind(this);
 
-    this._deOriginHit = addHitboxEvents(document.createElement("div"));
-    this._deOriginHit.style.position = "absolute";
-    this._deOriginHit.style.border = this._rotateFingerDist + "px solid rgba(234,0,0,0)";
-    this._deOriginHit.style.borderRadius = this._rotateFingerDist + "px";
-    this.domElem.appendChild(this._deOriginHit);
+  this._deOriginHit = addHitboxEvents(document.createElement("div"));
+  this._deOriginHit.style.position = "absolute";
+  this._deOriginHit.style.border = this._rotateFingerDist + "px solid rgba(234,0,0,0)";
+  this._deOriginHit.style.borderRadius = this._rotateFingerDist + "px";
+  this.domElem.appendChild(this._deOriginHit);
 
-    this._svgRoot = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-    this._svgRoot.style.overflow = "visible";
-    this.domElem.appendChild(this._svgRoot);
+  this._svgRoot = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  this._svgRoot.style.overflow = "visible";
+  this.domElem.appendChild(this._svgRoot);
 
-    this._deHitbox = addHitboxEvents(document.createElementNS("http://www.w3.org/2000/svg", "polygon"));
-    this._deHitbox.style.strokeWidth = this._rotateFingerDist * 2;
-    this._deHitbox.style.stroke = "rgba(0,0,0,0)";
-    this._deHitbox.style.fill = "rgba(0,0,0,0)";
-    this._deHitbox.style.strokeLinejoin = "round";
-    this._svgRoot.appendChild(this._deHitbox);
+  this._deHitbox = addHitboxEvents(document.createElementNS("http://www.w3.org/2000/svg", "polygon"));
+  this._deHitbox.style.strokeWidth = this._rotateFingerDist * 2;
+  this._deHitbox.style.stroke = "rgba(0,0,0,0)";
+  this._deHitbox.style.fill = "rgba(0,0,0,0)";
+  this._deHitbox.style.strokeLinejoin = "round";
+  this._svgRoot.appendChild(this._deHitbox);
 };
 
 module.exports = Transformer;
@@ -8122,91 +8001,66 @@ module.exports = Transformer;
 //utils/////////////////////////////////////////////////////
 
 function radDiff(r0, r1) {
-    r0 %= Math.PI;
-    r1 %= Math.PI;
-    r0 += Math.PI;
-    r1 += Math.PI;
+  r0 %= Math.PI;
+  r1 %= Math.PI;
+  r0 += Math.PI;
+  r1 += Math.PI;
 
-    return r1 - r0;
+  return r1 - r0;
 }
 
 function sqr(x) {
-    return x * x;
+  return x * x;
 }
 
 function dist2(v, w) {
-    return sqr(v.x - w.x) + sqr(v.y - w.y);
+  return sqr(v.x - w.x) + sqr(v.y - w.y);
 }
 
 function distToSegmentSquared(p, v, w) {
-    var l2 = dist2(v, w);
+  var l2 = dist2(v, w);
 
-    if (l2 === 0) return dist2(p, v);
+  if (l2 === 0) return dist2(p, v);
 
-    var t = ((p.x - v.x) * (w.x - v.x) + (p.y - v.y) * (w.y - v.y)) / l2;
+  var t = ((p.x - v.x) * (w.x - v.x) + (p.y - v.y) * (w.y - v.y)) / l2;
 
-    if (t < 0) return dist2(p, v);
-    if (t > 1) return dist2(p, w);
+  if (t < 0) return dist2(p, v);
+  if (t > 1) return dist2(p, w);
 
-    return dist2(p, { x: v.x + t * (w.x - v.x), y: v.y + t * (w.y - v.y) });
+  return dist2(p, { x: v.x + t * (w.x - v.x), y: v.y + t * (w.y - v.y) });
 }
 
 function distToSegment(p, v, w) {
-    return Math.sqrt(distToSegmentSquared(p, v, w));
+  return Math.sqrt(distToSegmentSquared(p, v, w));
 }
 
 function distToPointInAngle(p0, p1, rad) {
-    var dx = p1.x - p0.x,
-        dy = p1.y - p0.y,
-        d = Math.sqrt(dx * dx + dy * dy),
-        mRad = Math.atan2(dy, dx);
+  var dx = p1.x - p0.x, dy = p1.y - p0.y, d = Math.sqrt(dx * dx + dy * dy), mRad = Math.atan2(dy, dx);
 
-    rad = mRad - rad;
+  rad = mRad - rad;
 
-    // console.log('dx', dx, 'dy', dy, 'd', d, 'mRad', mRad, 'rad', rad, 'return', Math.cos(rad) * d)
+  // console.log('dx', dx, 'dy', dy, 'd', d, 'mRad', mRad, 'rad', rad, 'return', Math.cos(rad) * d)
 
-    return Math.cos(rad) * d;
+  return Math.cos(rad) * d;
 }
 
 function isInside(point, vs) {
-    // ray-casting algorithm based on
-    // http://www.ecse.rpi.edu/Homepages/wrf/Research/Short_Notes/pnpoly.html
+  // ray-casting algorithm based on
+  // http://www.ecse.rpi.edu/Homepages/wrf/Research/Short_Notes/pnpoly.html
 
-    var x = point.x,
-        y = point.y;
+  var x = point.x, y = point.y;
 
-    var inside = false;
-    for (var i = 0, j = vs.length - 1; i < vs.length; j = i++) {
-        var xi = vs[i].x,
-            yi = vs[i].y;
-        var xj = vs[j].x,
-            yj = vs[j].y;
+  var inside = false;
+  for (var i = 0, j = vs.length - 1; i < vs.length; j = i++) {
+    var xi = vs[i].x, yi = vs[i].y;
+    var xj = vs[j].x, yj = vs[j].y;
 
-        var intersect = yi > y !== yj > y && x < (xj - xi) * (y - yi) / (yj - yi) + xi;
-        if (intersect) inside = !inside;
-    }
+    var intersect = ((yi > y) !== (yj > y)) && (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
+    if (intersect) inside = !inside;
+  }
 
-    return inside;
+  return inside;
 }
-
-
-// var base = this._base,
-//     params = this._params,
-//     po = this._pOrigin,
-//     leftScale = (base.w * params.ox * (params.sx-1)),
-//     topScale = (base.h * params.oy * (params.sy-1)),
-//     w = (base.w * params.sx),
-//     h = (base.h * params.sy),
-//     ox = rfd + (w * params.ox),
-//     oy = rfd + (h * params.oy);
-
-
-// this._deHitbox.style.left = (-rfd + base.x + params.tx - leftScale) + 'px';
-// this._deHitbox.style.top = (-rfd + base.y + params.ty - topScale) + 'px';
-// this._deHitbox.style.width = w + 'px';
-// this._deHitbox.style.height = h + 'px';
-// this._deHitbox.style.transformOrigin = ox + 'px ' + oy + 'px';
-// this._deHitbox.style.transform = 'rotate(' + this._params.rz + 'rad)';
 
 },{"eventman":1,"inherits":2,"lodash":3}],8:[function(require,module,exports){
 "use strict";
@@ -8218,22 +8072,21 @@ var _ = require("lodash");
 
 
 var BASE_POINT_STYLE = {
-    anchorFill: "deepskyblue",
-    anchorRadius: 3,
-    anchorStroke: "none",
-    anchorStrokeWidth: 1,
-    handleFill: "deepskyblue",
-    handleRadius: 3,
-    handleStroke: "none",
-    handleStrokeWidth: 1,
-    handleLineStroke: "deepskyblue",
-    handleLineStrokeWidth: 1,
-    pathStroke: "deepskyblue",
-    pathStrokeWidth: 2 };
+  anchorFill: "deepskyblue",
+  anchorRadius: 3,
+  anchorStroke: "none",
+  anchorStrokeWidth: 1,
+  handleFill: "deepskyblue",
+  handleRadius: 3,
+  handleStroke: "none",
+  handleStrokeWidth: 1,
+  handleLineStroke: "deepskyblue",
+  handleLineStrokeWidth: 1,
+  pathStroke: "deepskyblue",
+  pathStrokeWidth: 2 };
 
 var CURSORS = {
-
-    pencil: "url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAACKUlEQVQ4T2NkIB0oALX4A/FEkFZGEvQ7GJhYdIVEJ5puXrOM4c6ta21vX7+uJsaABGdP346kzCJ+Ewsb9vyUCEZ9Y3OGPds27jt78qgzTgN4eHia/cJiMlKyiznlFVW4//379zcnMZTZxNL2p5a2PnO0v5Mr0PUHsBqgrKa+cvH6fd7iklLcIC+CNGcnhDCbWtn9TMooYM+ICXy1e9sGcVxhoNDcO+NmVGI6269fv36vXjKX9eCe7Qzmto4/kzML2Z8+fvjZ0Ug57+/fvwtwGZBw7MqTKeJS0twTOuoZJnc1CRqbW81ftf1oAEhDXXHW96Xzp3PBAh/dCwJOHr6nZy/bpAJScPr44R+VBSmLAsNi47KLazi+fP78w1ZPtvfTx4812AwQcPH0O337xlWVPadv/WMCAvQontjZwDCps1EQKP4B3QABv5Cos70zFsufOLz/16LZkzmnL17/l5GRkRmq8P++nVu+A11T8Obly9nIBoO8IOAfGn2uZ/oiOaClYA0H9mz/M623laWqpffLmiXzfhw9uGftowf3VoCk0F3F6Okf+mXyvJUcSLaB1Rzet/NPQojHVCCzAF9qZdy478wXHQNjcHzDwMcP778nhXvtuHD6RBA+zeBoBIb6nVlLNyoBXQCOkU8fP3yPCXC6fPXieXNCmsEGALGBX0j00a6p81l/fP/2J8rX/uG1yxctkUMarxegkgKyCoozWFhYGe/fuZVOrGaQXgDe5tcRUOCRFgAAAABJRU5ErkJggg==) 15 0, auto" };
+  pencil: "url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAACKUlEQVQ4T2NkIB0oALX4A/FEkFZGEvQ7GJhYdIVEJ5puXrOM4c6ta21vX7+uJsaABGdP346kzCJ+Ewsb9vyUCEZ9Y3OGPds27jt78qgzTgN4eHia/cJiMlKyiznlFVW4//379zcnMZTZxNL2p5a2PnO0v5Mr0PUHsBqgrKa+cvH6fd7iklLcIC+CNGcnhDCbWtn9TMooYM+ICXy1e9sGcVxhoNDcO+NmVGI6269fv36vXjKX9eCe7Qzmto4/kzML2Z8+fvjZ0Ug57+/fvwtwGZBw7MqTKeJS0twTOuoZJnc1CRqbW81ftf1oAEhDXXHW96Xzp3PBAh/dCwJOHr6nZy/bpAJScPr44R+VBSmLAsNi47KLazi+fP78w1ZPtvfTx4812AwQcPH0O337xlWVPadv/WMCAvQontjZwDCps1EQKP4B3QABv5Cos70zFsufOLz/16LZkzmnL17/l5GRkRmq8P++nVu+A11T8Obly9nIBoO8IOAfGn2uZ/oiOaClYA0H9mz/M623laWqpffLmiXzfhw9uGftowf3VoCk0F3F6Okf+mXyvJUcSLaB1Rzet/NPQojHVCCzAF9qZdy478wXHQNjcHzDwMcP778nhXvtuHD6RBA+zeBoBIb6nVlLNyoBXQCOkU8fP3yPCXC6fPXieXNCmsEGALGBX0j00a6p81l/fP/2J8rX/uG1yxctkUMarxegkgKyCoozWFhYGe/fuZVOrGaQXgDe5tcRUOCRFgAAAABJRU5ErkJggg==) 15 0, auto" };
 
 // point: {
 //     anchor: {x: 0, y: 0},
@@ -8245,26 +8098,26 @@ var CURSORS = {
 
 
 function Curver(transhand) {
-    EventEmitter.call(this);
+  EventEmitter.call(this);
 
-    this._th = transhand;
+  this._th = transhand;
 
-    this._points = [];
-    this._buffPoints = [];
+  this._points = [];
+  this._buffPoints = [];
 
-    this._selectedPoints = [];
+  this._selectedPoints = [];
 
-    this._offset = {
-        x: 0,
-        y: 0 };
+  this._offset = {
+    x: 0,
+    y: 0 };
 
-    this._clickActions = [{ target: "anchor", action: "move_anchor" }, { target: "anchor", action: "remove_point", ctrl: true }, { target: "anchor", action: "reset_anchor", alt: true }, { target: "handle", action: "move_handle" }, { target: "handle", action: "unlink_handle", alt: true }, { target: "curve", action: "add_point" }, { target: "curve", action: "drag_path", ctrl: true }, { target: "curve", action: "rotate_path", alt: true }, { target: "curve", action: "scale_path", ctrl: true, alt: true }];
+  this._clickActions = [{ target: "anchor", action: "move_anchor" }, { target: "anchor", action: "remove_point", ctrl: true }, { target: "anchor", action: "reset_anchor", alt: true }, { target: "handle", action: "move_handle" }, { target: "handle", action: "unlink_handle", alt: true }, { target: "curve", action: "add_point" }, { target: "curve", action: "drag_path", ctrl: true }, { target: "curve", action: "rotate_path", alt: true }, { target: "curve", action: "scale_path", ctrl: true, alt: true }];
 }
 
 var hints = {
-    anchor: ["drag anchor", "remove anchor - ctrl", "reset anchor - alt"],
-    handle: ["drag hanle", "unlink handle - alt"],
-    curve: ["add point"] };
+  anchor: ["drag anchor", "remove anchor - ctrl", "reset anchor - alt"],
+  handle: ["drag hanle", "unlink handle - alt"],
+  curve: ["add point"] };
 
 inherits(Curver, EventEmitter);
 var p = Curver.prototype;
@@ -8274,118 +8127,115 @@ Curver.id = "curver";
 p.renderLevel = 2;
 
 p.setup = function (opt) {
-    if (!this.domElem) {
-        this.createGraphics();
-    }
+  if (!this.domElem) {
+    this.createGraphics();
+  }
 
-    while (this._points.length < opt.points.length) {
-        this._addPoint();
-    }
-    while (this._points.length > opt.points.length) {
-        this._splicePoint(this._points.length - 1);
-    }
+  while (this._points.length < opt.points.length) {
+    this._addPoint();
+  }
+  while (this._points.length > opt.points.length) {
+    this._splicePoint(this._points.length - 1);
+  }
 
-    opt.points.forEach(function (srcPoint, idx) {
-        this._setupPoint(this._points[idx], srcPoint);
-    }, this);
+  opt.points.forEach(function (srcPoint, idx) {
+    this._setupPoint(this._points[idx], srcPoint);
+  }, this);
 
-    this._offset.x = opt.offset && opt.offset.x || 0;
-    this._offset.y = opt.offset && opt.offset.y || 0;
+  this._offset.x = (opt.offset && opt.offset.x) || 0;
+  this._offset.y = (opt.offset && opt.offset.y) || 0;
 
-    this.render();
+  this.render();
 };
 
 p.activate = function () {
-    if (this._isActivated) return;
-    this._isActivated = true;
+  if (this._isActivated) return;
+  this._isActivated = true;
 };
 
 p.deactivate = function () {
-    if (!this._isActivated) return;
-    this._isActivated = false;
+  if (!this._isActivated) return;
+  this._isActivated = false;
 };
 
 p.selectPoints = function (points) {
-    var _this = this;
+  var _this = this;
 
 
-    this._selectedPoints.length = 0;
-    this._selectedPoints.push.apply(this._selectedPoints, points);
+  this._selectedPoints.length = 0;
+  this._selectedPoints.push.apply(this._selectedPoints, points);
 
-    this._points.forEach(function (point) {
-        point.selected = _this._selectedPoints.indexOf(point) !== -1;
-    });
+  this._points.forEach(function (point) {
+    point.selected = _this._selectedPoints.indexOf(point) !== -1;
+  });
 };
 
 
 
 p._emitChange = (function () {
-    return function (detailesList) {
-        if (!_.isArray(detailesList)) {
-            detailesList = [detailesList];
-        }
-
-        detailesList = detailesList.map(function (detailes) {
-            detailes = _.assign({
-                type: "",
-                point: undefined,
-                idx: undefined,
-                points: this._points,
-                flatPoints: flatPoints,
-                flat: flat,
-                svgPath: svgPath,
-                clone: clone }, detailes);
-
-            if (detailes.idx === undefined && detailes.point) {
-                detailes.idx = this._points.indexOf(detailes.point);
-            }
-
-            return detailes;
-        }, this);
-
-
-        this.emit("change", detailesList);
-    };
-
-    function flatPoints() {
-        var ret = [];
-
-        this.points.forEach(function (point) {
-            ret.push({
-                x: point.handleLeft.x,
-                y: point.handleLeft.y
-            });
-            ret.push({
-                x: point.anchor.x,
-                y: point.anchor.y
-            });
-            ret.push({
-                x: point.handleRight.x,
-                y: point.handleRight.y
-            });
-        });
-
-        return ret;
+  return function (detailesList) {
+    if (!_.isArray(detailesList)) {
+      detailesList = [detailesList];
     }
-    function flat() {}
-    function svgPath() {}
-    function clone() {}
-})();
 
-p._getClickAction = function (target, e) {
-    var ctrl = e.ctrlKey,
-        shift = e.shiftKey,
-        alt = e.altKey,
-        ret;
+    detailesList = detailesList.map(function (detailes) {
+      detailes = _.assign({
+        type: "",
+        point: undefined,
+        idx: undefined,
+        points: this._points,
+        flatPoints: flatPoints,
+        flat: flat,
+        svgPath: svgPath,
+        clone: clone }, detailes);
 
-    this._clickActions.some(function (clickAction) {
-        if (clickAction.target === target && !!clickAction.ctrl === ctrl && !!clickAction.shift === shift && !!clickAction.alt === alt) {
-            ret = clickAction.action;
-            return true;
-        }
+      if (detailes.idx === undefined && detailes.point) {
+        detailes.idx = this._points.indexOf(detailes.point);
+      }
+
+      return detailes;
+    }, this);
+
+
+    this.emit("change", detailesList);
+  };
+
+  function flatPoints() {
+    var ret = [];
+
+    this.points.forEach(function (point) {
+      ret.push({
+        x: point.handleLeft.x,
+        y: point.handleLeft.y
+      });
+      ret.push({
+        x: point.anchor.x,
+        y: point.anchor.y
+      });
+      ret.push({
+        x: point.handleRight.x,
+        y: point.handleRight.y
+      });
     });
 
     return ret;
+  }
+  function flat() {}
+  function svgPath() {}
+  function clone() {}
+}());
+
+p._getClickAction = function (target, e) {
+  var ctrl = e.ctrlKey, shift = e.shiftKey, alt = e.altKey, ret;
+
+  this._clickActions.some(function (clickAction) {
+    if (clickAction.target === target && !!clickAction.ctrl === ctrl && !!clickAction.shift === shift && !!clickAction.alt === alt) {
+      ret = clickAction.action;
+      return true;
+    }
+  });
+
+  return ret;
 };
 
 
@@ -8395,536 +8245,503 @@ p._getClickAction = function (target, e) {
 
 
 p.render = function () {
-    var i, l, point, pointB, cmd;
+  var i, l, point, pointB, cmd;
 
-    for (i = 0, l = this._points.length; i < l; ++i) {
-        point = this._points[i];
+  for (i = 0, l = this._points.length; i < l; ++i) {
+    point = this._points[i];
 
-        if (i !== l - 1) {
-            pointB = this._points[i + 1];
+    if (i !== l - 1) {
+      pointB = this._points[i + 1];
 
-            cmd = "M" + point.anchor.x + "," + point.anchor.y + " ";
-            cmd += "C" + point.handleRight.x + "," + point.handleRight.y + " ";
-            cmd += pointB.handleLeft.x + "," + pointB.handleLeft.y + " ";
-            cmd += pointB.anchor.x + "," + pointB.anchor.y + " ";
-            point._de.setAttribute("d", cmd);
-        }
-
-        moveCircle(point.anchor);
-
-        moveCircle(point.handleLeft);
-        moveLine(point.handleLeft, point.anchor);
-
-        moveCircle(point.handleRight);
-        moveLine(point.handleRight, point.anchor);
-
-        this.domElem.style.left = this._offset.x + "px";
-        this.domElem.style.top = this._offset.y + "px";
+      cmd = "M" + point.anchor.x + "," + point.anchor.y + " ";
+      cmd += "C" + point.handleRight.x + "," + point.handleRight.y + " ";
+      cmd += pointB.handleLeft.x + "," + pointB.handleLeft.y + " ";
+      cmd += pointB.anchor.x + "," + pointB.anchor.y + " ";
+      point._de.setAttribute("d", cmd);
     }
 
-    function moveCircle(pt) {
-        pt._de.setAttribute("cx", pt.x);
-        pt._de.setAttribute("cy", pt.y);
-    }
+    moveCircle(point.anchor);
 
-    function moveLine(pt1, pt2) {
-        pt1._deLine.setAttribute("x1", pt1.x);
-        pt1._deLine.setAttribute("y1", pt1.y);
-        pt1._deLine.setAttribute("x2", pt2.x);
-        pt1._deLine.setAttribute("y2", pt2.y);
-    }
+    moveCircle(point.handleLeft);
+    moveLine(point.handleLeft, point.anchor);
+
+    moveCircle(point.handleRight);
+    moveLine(point.handleRight, point.anchor);
+
+    this.domElem.style.left = this._offset.x + "px";
+    this.domElem.style.top = this._offset.y + "px";
+  }
+
+  function moveCircle(pt) {
+    pt._de.setAttribute("cx", pt.x);
+    pt._de.setAttribute("cy", pt.y);
+  }
+
+  function moveLine(pt1, pt2) {
+    pt1._deLine.setAttribute("x1", pt1.x);
+    pt1._deLine.setAttribute("y1", pt1.y);
+    pt1._deLine.setAttribute("x2", pt2.x);
+    pt1._deLine.setAttribute("y2", pt2.y);
+  }
 };
 
 p._addPoint = function (idx) {
-    var that = this,
-        point = Object.defineProperties({
-        anchor: { x: 0, y: 0 },
-        handleLeft: { x: 0, y: 0 },
-        handleRight: { x: 0, y: 0 },
-        style: {},
-        linked: false }, {
-        selected: {
-            set: function (v) {
-                this._selected = v;
-                var display = this._selected ? "" : "none";
-                this.handleLeft._de.style.display = display;
-                this.handleLeft._deLine.style.display = display;
-                this.handleRight._de.style.display = display;
-                this.handleRight._deLine.style.display = display;
-            },
-            get: function () {
-                return this._selected;
-            },
-            enumerable: true,
-            configurable: true
+  var that = this, point = (function (_point) {
+    Object.defineProperties(_point, {
+      selected: {
+        set: function (v) {
+          this._selected = v;
+          var display = this._selected ? "" : "none";
+          this.handleLeft._de.style.display = display;
+          this.handleLeft._deLine.style.display = display;
+          this.handleRight._de.style.display = display;
+          this.handleRight._deLine.style.display = display;
+        },
+        get: function () {
+          return this._selected;
         }
+      }
     });
-    //TODO use _buffPoints[]
-    this._points.splice(idx, 0, point);
 
-    createPath();
-    createAnchor();
-    createHandle(point.handleLeft);
-    createHandle(point.handleRight);
+    return _point;
+  })({
+    anchor: { x: 0, y: 0 },
+    handleLeft: { x: 0, y: 0 },
+    handleRight: { x: 0, y: 0 },
+    style: {},
+    linked: false });
+  //TODO use _buffPoints[]
+  this._points.splice(idx, 0, point);
 
-    point.selected = false;
+  createPath();
+  createAnchor();
+  createHandle(point.handleLeft);
+  createHandle(point.handleRight);
 
-    return point;
-    //TODO cleanup this
-    function createPath() {
-        point._de = document.createElementNS("http://www.w3.org/2000/svg", "path");
-        point._de.style.fill = "none";
-        point._de.style.pointerEvents = "auto";
-        point._de.style.cursor = CURSORS.pencil;
-        that._dePathCont.appendChild(point._de);
+  point.selected = false;
 
-        point._de.addEventListener("mousedown", (function (e) {
-            var idx = this._points.indexOf(point),
-                pLeft = this._points[idx],
-                pRight = this._points[idx + 1],
-                srcPoint = this._splitCurve(pLeft, pRight, e.x - this._offset.x, e.y - this._offset.y);
+  return point;
+  //TODO cleanup this
+  function createPath() {
+    point._de = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    point._de.style.fill = "none";
+    point._de.style.pointerEvents = "auto";
+    point._de.style.cursor = CURSORS.pencil;
+    that._dePathCont.appendChild(point._de);
 
-            var newPoint = this._addPoint(idx + 1);
-            this._setupPoint(newPoint, srcPoint);
+    point._de.addEventListener("mousedown", function (e) {
+      var idx = this._points.indexOf(point), pLeft = this._points[idx], pRight = this._points[idx + 1], srcPoint = this._splitCurve(pLeft, pRight, e.x - this._offset.x, e.y - this._offset.y);
 
-            this._emitChange([{ type: "edit", point: pLeft }, { type: "add", point: newPoint }, { type: "edit", point: pRight }]);
+      var newPoint = this._addPoint(idx + 1);
+      this._setupPoint(newPoint, srcPoint);
 
-            this.render();
+      this._emitChange([{ type: "edit", point: pLeft }, { type: "add", point: newPoint }, { type: "edit", point: pRight }]);
 
-            newPoint.anchor._dragger.emitDown(e);
-        }).bind(that));
+      this.render();
+
+      newPoint.anchor._dragger.emitDown(e);
+    }.bind(that));
 
 
-        point._de.addEventListener("mouseenter", function () {
-            that._th.cursorHint.setHints(hints.curve);
-        });
-        point._de.addEventListener("mouseleave", function () {
-            that._th.cursorHint.setHints(null);
-        });
-    }
+    point._de.addEventListener("mouseenter", function () {
+      that._th.cursorHint.setHints(hints.curve);
+    });
+    point._de.addEventListener("mouseleave", function () {
+      that._th.cursorHint.setHints(null);
+    });
+  }
 
-    function createAnchor() {
-        point.anchor._de = createCircle();
-        that._deAnchorCont.appendChild(point.anchor._de);
+  function createAnchor() {
+    point.anchor._de = createCircle();
+    that._deAnchorCont.appendChild(point.anchor._de);
 
-        point.anchor._dragger = makeDraggable({
-            deTarget: point.anchor._de,
-            thisArg: that,
-            onDown: function (e) {
-                var action = this._getClickAction("anchor", e);
+    point.anchor._dragger = makeDraggable({
+      deTarget: point.anchor._de,
+      thisArg: that,
+      onDown: function (e) {
+        var action = this._getClickAction("anchor", e);
 
-                this.selectPoints([point]);
+        this.selectPoints([point]);
 
-                if (action === "reset_anchor") {
-                    point.handleLeft.x = point.anchor.x;
-                    point.handleLeft.y = point.anchor.y;
-                    point.handleRight.x = point.anchor.x;
-                    point.handleRight.y = point.anchor.y;
-                    point.linked = true;
+        if (action === "reset_anchor") {
+          point.handleLeft.x = point.anchor.x;
+          point.handleLeft.y = point.anchor.y;
+          point.handleRight.x = point.anchor.x;
+          point.handleRight.y = point.anchor.y;
+          point.linked = true;
 
-                    this.render();
+          this.render();
 
-                    e = Object.create(e);
-                    e.syncronSize = true;
+          e = Object.create(e);
+          e.syncronSize = true;
 
-                    this._emitChange({ type: "edit", point: point });
+          this._emitChange({ type: "edit", point: point });
 
-                    point.handleRight._dragger.emitDown(e);
+          point.handleRight._dragger.emitDown(e);
 
-                    return false;
-                } else if (action === "remove_point") {
-                    this.selectPoints([]);
+          return false;
+        } else if (action === "remove_point") {
+          this.selectPoints([]);
 
-                    var idx = this._points.indexOf(point);
+          var idx = this._points.indexOf(point);
 
-                    this._splicePoint(idx);
+          this._splicePoint(idx);
 
-                    this._emitChange({ type: "remove", idx: idx });
+          this._emitChange({ type: "remove", idx: idx });
 
-                    return false;
-                }
+          return false;
+        }
 
-                return {
-                    axStart: point.anchor.x,
-                    ayStart: point.anchor.y,
-                    hlxStart: point.handleLeft.x,
-                    hlyStart: point.handleLeft.y,
-                    hrxStart: point.handleRight.x,
-                    hryStart: point.handleRight.y };
-            },
-            onDrag: function (md) {
-                point.anchor.x = md.axStart + md.dx;
-                point.anchor.y = md.ayStart + md.dy;
-                point.handleLeft.x = md.hlxStart + md.dx;
-                point.handleLeft.y = md.hlyStart + md.dy;
-                point.handleRight.x = md.hrxStart + md.dx;
-                point.handleRight.y = md.hryStart + md.dy;
+        return {
+          axStart: point.anchor.x,
+          ayStart: point.anchor.y,
+          hlxStart: point.handleLeft.x,
+          hlyStart: point.handleLeft.y,
+          hrxStart: point.handleRight.x,
+          hryStart: point.handleRight.y };
+      },
+      onDrag: function (md) {
+        point.anchor.x = md.axStart + md.dx;
+        point.anchor.y = md.ayStart + md.dy;
+        point.handleLeft.x = md.hlxStart + md.dx;
+        point.handleLeft.y = md.hlyStart + md.dy;
+        point.handleRight.x = md.hrxStart + md.dx;
+        point.handleRight.y = md.hryStart + md.dy;
 
-                this._emitChange({ type: "edit", point: point });
-                this.render();
-            },
-            onEnter: function () {
-                this._th.cursorHint.setHints(hints.anchor);
-            },
-            onLeave: function () {
-                this._th.cursorHint.setHints(null);
-            } });
-    }
+        this._emitChange({ type: "edit", point: point });
+        this.render();
+      },
+      onEnter: function () {
+        this._th.cursorHint.setHints(hints.anchor);
+      },
+      onLeave: function () {
+        this._th.cursorHint.setHints(null);
+      } });
+  }
 
-    function createHandle(handle) {
-        var oppositeHandle = point.handleLeft === handle ? point.handleRight : point.handleLeft;
+  function createHandle(handle) {
+    var oppositeHandle = point.handleLeft === handle ? point.handleRight : point.handleLeft;
 
-        handle._deLine = createLine();
-        that._deHandleCont.appendChild(handle._deLine);
+    handle._deLine = createLine();
+    that._deHandleCont.appendChild(handle._deLine);
 
-        handle._de = createCircle();
-        that._deHandleCont.appendChild(handle._de);
+    handle._de = createCircle();
+    that._deHandleCont.appendChild(handle._de);
 
-        handle._dragger = makeDraggable({
-            deTarget: handle._de,
-            thisArg: that,
-            onDown: function (e) {
-                var action = this._getClickAction("handle", e);
+    handle._dragger = makeDraggable({
+      deTarget: handle._de,
+      thisArg: that,
+      onDown: function (e) {
+        var action = this._getClickAction("handle", e);
 
-                if (!e.syncronSize && action === "unlink_handle" && point.linked) {
-                    point.linked = false;
+        if (!e.syncronSize && action === "unlink_handle" && point.linked) {
+          point.linked = false;
 
-                    this._emitChange({ type: "edit", point: point });
-                }
+          this._emitChange({ type: "edit", point: point });
+        }
 
-                return {
-                    xStart: handle.x,
-                    yStart: handle.y,
-                    oppositeLength: dist(oppositeHandle, point.anchor),
-                    syncronSize: e.syncronSize };
-            },
-            onDrag: function (md) {
-                handle.x = md.xStart + md.dx;
-                handle.y = md.yStart + md.dy;
+        return {
+          xStart: handle.x,
+          yStart: handle.y,
+          oppositeLength: dist(oppositeHandle, point.anchor),
+          syncronSize: e.syncronSize };
+      },
+      onDrag: function (md) {
+        handle.x = md.xStart + md.dx;
+        handle.y = md.yStart + md.dy;
 
-                if (point.linked) {
-                    var dx = handle.x - point.anchor.x,
-                        dy = handle.y - point.anchor.y,
-                        rad = Math.atan2(dy, dx),
-                        length = md.syncronSize ? dist(handle, point.anchor) : md.oppositeLength;
+        if (point.linked) {
+          var dx = handle.x - point.anchor.x, dy = handle.y - point.anchor.y, rad = Math.atan2(dy, dx), length = md.syncronSize ? dist(handle, point.anchor) : md.oppositeLength;
 
-                    oppositeHandle.x = point.anchor.x - length * Math.cos(rad);
-                    oppositeHandle.y = point.anchor.y - length * Math.sin(rad);
-                }
+          oppositeHandle.x = point.anchor.x - (length * Math.cos(rad));
+          oppositeHandle.y = point.anchor.y - (length * Math.sin(rad));
+        }
 
-                this._emitChange({ type: "edit", point: point });
-                this.render();
-            },
-            onEnter: function () {
-                this._th.cursorHint.setHints(hints.handle);
-            },
-            onLeave: function () {
-                this._th.cursorHint.setHints(null);
-            } });
-    }
+        this._emitChange({ type: "edit", point: point });
+        this.render();
+      },
+      onEnter: function () {
+        this._th.cursorHint.setHints(hints.handle);
+      },
+      onLeave: function () {
+        this._th.cursorHint.setHints(null);
+      } });
+  }
 
-    function createCircle() {
-        var de = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-        de.style.cursor = "pointer";
-        de.style.pointerEvents = "auto";
+  function createCircle() {
+    var de = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+    de.style.cursor = "pointer";
+    de.style.pointerEvents = "auto";
 
-        return de;
-    }
+    return de;
+  }
 
-    function createLine() {
-        var de = document.createElementNS("http://www.w3.org/2000/svg", "line");
-        de.style.pointerEvents = "none";
+  function createLine() {
+    var de = document.createElementNS("http://www.w3.org/2000/svg", "line");
+    de.style.pointerEvents = "none";
 
-        return de;
-    }
+    return de;
+  }
 
-    function dist(pa, pb) {
-        var ox = pa.x - pb.x,
-            oy = pa.y - pb.y;
+  function dist(pa, pb) {
+    var ox = pa.x - pb.x, oy = pa.y - pb.y;
 
-        return Math.sqrt(ox * ox + oy * oy);
-    }
+    return Math.sqrt(ox * ox + oy * oy);
+  }
 };
 
 p._setupPoint = function (point, src) {
-    point.anchor.x = src.anchor.x;
-    point.anchor.y = src.anchor.y;
-    point.handleLeft.x = src.handleLeft.x;
-    point.handleLeft.y = src.handleLeft.y;
-    point.handleRight.x = src.handleRight.x;
-    point.handleRight.y = src.handleRight.y;
-    point.linked = !!src.linked;
+  point.anchor.x = src.anchor.x;
+  point.anchor.y = src.anchor.y;
+  point.handleLeft.x = src.handleLeft.x;
+  point.handleLeft.y = src.handleLeft.y;
+  point.handleRight.x = src.handleRight.x;
+  point.handleRight.y = src.handleRight.y;
+  point.linked = !!src.linked;
 
-    var s = point.style = _.defaults({}, src.style, BASE_POINT_STYLE);
+  var s = point.style = _.defaults({}, src.style, BASE_POINT_STYLE);
 
-    point._de.style.stroke = s.pathStroke;
-    point._de.style.strokeWidth = s.pathStrokeWidth;
+  point._de.style.stroke = s.pathStroke;
+  point._de.style.strokeWidth = s.pathStrokeWidth;
 
-    point.anchor._de.setAttribute("r", s.anchorRadius);
-    point.anchor._de.style.fill = s.anchorFill;
-    point.anchor._de.style.stroke = s.anchorStroke;
-    point.anchor._de.style.strokeWidth = s.anchorStrokeWidth;
+  point.anchor._de.setAttribute("r", s.anchorRadius);
+  point.anchor._de.style.fill = s.anchorFill;
+  point.anchor._de.style.stroke = s.anchorStroke;
+  point.anchor._de.style.strokeWidth = s.anchorStrokeWidth;
 
-    point.handleLeft._deLine.style.stroke = s.handleLineStroke;
-    point.handleLeft._deLine.style.strokeWidth = s.handleLineStrokeWidth;
-    point.handleRight._deLine.style.stroke = s.handleLineStroke;
-    point.handleRight._deLine.style.strokeWidth = s.handleLineStrokeWidth;
+  point.handleLeft._deLine.style.stroke = s.handleLineStroke;
+  point.handleLeft._deLine.style.strokeWidth = s.handleLineStrokeWidth;
+  point.handleRight._deLine.style.stroke = s.handleLineStroke;
+  point.handleRight._deLine.style.strokeWidth = s.handleLineStrokeWidth;
 
-    point.handleLeft._de.setAttribute("r", s.handleRadius);
-    point.handleLeft._de.style.fill = s.handleFill;
-    point.handleLeft._de.style.stroke = s.handleStroke;
-    point.handleLeft._de.style.strokeWidth = s.handleStrokeWidth;
-    point.handleRight._de.setAttribute("r", s.handleRadius);
-    point.handleRight._de.style.fill = s.handleFill;
-    point.handleRight._de.style.stroke = s.handleStroke;
-    point.handleRight._de.style.strokeWidth = s.handleStrokeWidth;
+  point.handleLeft._de.setAttribute("r", s.handleRadius);
+  point.handleLeft._de.style.fill = s.handleFill;
+  point.handleLeft._de.style.stroke = s.handleStroke;
+  point.handleLeft._de.style.strokeWidth = s.handleStrokeWidth;
+  point.handleRight._de.setAttribute("r", s.handleRadius);
+  point.handleRight._de.style.fill = s.handleFill;
+  point.handleRight._de.style.stroke = s.handleStroke;
+  point.handleRight._de.style.strokeWidth = s.handleStrokeWidth;
 
-    return point;
+  return point;
 };
 
 
 p._splicePoint = function (idx) {
-    if (typeof idx === "object") {
-        idx = this._points.indexOf(idx);
-    }
+  if (typeof (idx) === "object") {
+    idx = this._points.indexOf(idx);
+  }
 
-    var removedPoint = this._points.splice(idx, 1)[0];
+  var removedPoint = this._points.splice(idx, 1)[0];
 
-    this._emitChange({ type: "splice", idx: idx });
+  this._emitChange({ type: "splice", idx: idx });
 
-    this.render();
+  this.render();
 
-    removedPoint._de.parentNode.removeChild(removedPoint._de);
-    removedPoint.anchor._de.parentNode.removeChild(removedPoint.anchor._de);
-    removedPoint.handleLeft._de.parentNode.removeChild(removedPoint.handleLeft._de);
-    removedPoint.handleLeft._deLine.parentNode.removeChild(removedPoint.handleLeft._deLine);
-    removedPoint.handleRight._de.parentNode.removeChild(removedPoint.handleRight._de);
-    removedPoint.handleRight._deLine.parentNode.removeChild(removedPoint.handleRight._deLine);
+  removedPoint._de.parentNode.removeChild(removedPoint._de);
+  removedPoint.anchor._de.parentNode.removeChild(removedPoint.anchor._de);
+  removedPoint.handleLeft._de.parentNode.removeChild(removedPoint.handleLeft._de);
+  removedPoint.handleLeft._deLine.parentNode.removeChild(removedPoint.handleLeft._deLine);
+  removedPoint.handleRight._de.parentNode.removeChild(removedPoint.handleRight._de);
+  removedPoint.handleRight._deLine.parentNode.removeChild(removedPoint.handleRight._deLine);
 
-    this._buffPoints.push(removedPoint);
+  this._buffPoints.push(removedPoint);
 };
 
 p._splitCurve = function (pa, pb, x, y) {
-    var curve = [pa.anchor.x, pa.anchor.y, pa.handleRight.x, pa.handleRight.y, pb.handleLeft.x, pb.handleLeft.y, pb.anchor.x, pb.anchor.y],
-        mPos = { x: x, y: y },
-        p = {
-        anchor: { x: 0, y: 0 }, //jsBezier.pointOnCurve(curve, loc),
-        handleLeft: { x: 0, y: 0 },
-        handleRight: { x: 0, y: 0 },
-        linked: true },
-        pm = {},
-        dl = dist(pa.anchor, pa.handleRight) + dist(pa.handleRight, pb.handleLeft) + dist(pb.handleLeft, pb.anchor),
-        minDist,
-        pos,
-        loc;
+  var curve = [pa.anchor.x, pa.anchor.y, pa.handleRight.x, pa.handleRight.y, pb.handleLeft.x, pb.handleLeft.y, pb.anchor.x, pb.anchor.y], mPos = { x: x, y: y }, p = {
+    anchor: { x: 0, y: 0 }, //jsBezier.pointOnCurve(curve, loc),
+    handleLeft: { x: 0, y: 0 },
+    handleRight: { x: 0, y: 0 },
+    linked: true }, pm = {}, dl = dist(pa.anchor, pa.handleRight) + dist(pa.handleRight, pb.handleLeft) + dist(pb.handleLeft, pb.anchor), minDist, pos, loc;
 
-    for (var di = 0; di < dl; ++di) {
-        var _loc = di / dl,
-            _pos = calcPos(_loc),
-            _dist = dist(_pos, mPos);
+  for (var di = 0; di < dl; ++di) {
+    var _loc = di / dl, _pos = calcPos(_loc), _dist = dist(_pos, mPos);
 
-        if (minDist === undefined || minDist > _dist) {
-            minDist = _dist;
-            loc = _loc;
-            pos = _pos;
-        }
+    if (minDist === undefined || minDist > _dist) {
+      minDist = _dist;
+      loc = _loc;
+      pos = _pos;
+    }
+  }
+
+  p.anchor = pos;
+
+  pm.x = pa.handleRight.x + (pb.handleLeft.x - pa.handleRight.x) * loc;
+  pm.y = pa.handleRight.y + (pb.handleLeft.y - pa.handleRight.y) * loc;
+  pa.handleRight.x = pa.anchor.x + (pa.handleRight.x - pa.anchor.x) * loc;
+  pa.handleRight.y = pa.anchor.y + (pa.handleRight.y - pa.anchor.y) * loc;
+  pb.handleLeft.x = pb.handleLeft.x + (pb.anchor.x - pb.handleLeft.x) * loc;
+  pb.handleLeft.y = pb.handleLeft.y + (pb.anchor.y - pb.handleLeft.y) * loc;
+  p.handleLeft.x = pa.handleRight.x + (pm.x - pa.handleRight.x) * loc;
+  p.handleLeft.y = pa.handleRight.y + (pm.y - pa.handleRight.y) * loc;
+  p.handleRight.x = pm.x + (pb.handleLeft.x - pm.x) * loc;
+  p.handleRight.y = pm.y + (pb.handleLeft.y - pm.y) * loc;
+
+  function calcPos(pos) {
+    var p = curve.slice(), l = p.length / 2;
+
+    while (--l > 0) {
+      for (var i = 0; i < l; ++i) {
+        count(i * 2);
+      }
     }
 
-    p.anchor = pos;
+    return { x: p[0], y: p[1] };
 
-    pm.x = pa.handleRight.x + (pb.handleLeft.x - pa.handleRight.x) * loc;
-    pm.y = pa.handleRight.y + (pb.handleLeft.y - pa.handleRight.y) * loc;
-    pa.handleRight.x = pa.anchor.x + (pa.handleRight.x - pa.anchor.x) * loc;
-    pa.handleRight.y = pa.anchor.y + (pa.handleRight.y - pa.anchor.y) * loc;
-    pb.handleLeft.x = pb.handleLeft.x + (pb.anchor.x - pb.handleLeft.x) * loc;
-    pb.handleLeft.y = pb.handleLeft.y + (pb.anchor.y - pb.handleLeft.y) * loc;
-    p.handleLeft.x = pa.handleRight.x + (pm.x - pa.handleRight.x) * loc;
-    p.handleLeft.y = pa.handleRight.y + (pm.y - pa.handleRight.y) * loc;
-    p.handleRight.x = pm.x + (pb.handleLeft.x - pm.x) * loc;
-    p.handleRight.y = pm.y + (pb.handleLeft.y - pm.y) * loc;
-
-    function calcPos(pos) {
-        var p = curve.slice(),
-            l = p.length / 2;
-
-        while (--l > 0) {
-            for (var i = 0; i < l; ++i) {
-                count(i * 2);
-            }
-        }
-
-        return { x: p[0], y: p[1] };
-
-        function count(i) {
-            p[i + 0] = p[i + 0] + (p[i + 2] - p[i + 0]) * pos;
-            p[i + 1] = p[i + 1] + (p[i + 3] - p[i + 1]) * pos;
-        }
+    function count(i) {
+      p[i + 0] = p[i + 0] + (p[i + 2] - p[i + 0]) * pos;
+      p[i + 1] = p[i + 1] + (p[i + 3] - p[i + 1]) * pos;
     }
+  }
 
-    function dist(pa, pb) {
-        var dx = pb.x - pa.x,
-            dy = pb.y - pa.y;
+  function dist(pa, pb) {
+    var dx = pb.x - pa.x, dy = pb.y - pa.y;
 
-        return Math.sqrt(dx * dx + dy * dy);
-    }
+    return Math.sqrt(dx * dx + dy * dy);
+  }
 
-    return p;
+  return p;
 };
 
 
 p.createGraphics = function () {
-    this.domElem = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-    this.domElem.style.position = "absolute";
-    this.domElem.style.overflow = "visible";
-    this.domElem.style.width = "100%";
-    this.domElem.style.height = "100%";
+  this.domElem = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  this.domElem.style.position = "absolute";
+  this.domElem.style.overflow = "visible";
+  this.domElem.style.width = "100%";
+  this.domElem.style.height = "100%";
 
-    this._dePathCont = document.createElementNS("http://www.w3.org/2000/svg", "g");
-    this.domElem.appendChild(this._dePathCont);
+  this._dePathCont = document.createElementNS("http://www.w3.org/2000/svg", "g");
+  this.domElem.appendChild(this._dePathCont);
 
-    this._deHandleCont = document.createElementNS("http://www.w3.org/2000/svg", "g");
-    this.domElem.appendChild(this._deHandleCont);
+  this._deHandleCont = document.createElementNS("http://www.w3.org/2000/svg", "g");
+  this.domElem.appendChild(this._deHandleCont);
 
-    this._deAnchorCont = document.createElementNS("http://www.w3.org/2000/svg", "g");
-    this.domElem.appendChild(this._deAnchorCont);
+  this._deAnchorCont = document.createElementNS("http://www.w3.org/2000/svg", "g");
+  this.domElem.appendChild(this._deAnchorCont);
 };
-// amgui.createCursorFromText({
-//     icon: 'vector-pencil',
-//     color: '#def',
-//     width: 16,
-//     height: 16,
-//     hotspotX: 15,
-//     hotspotY: 0,
-//     rotateOriginX: 8,
-//     rotateOriginY: 8,
-//     backgroundColor: '#123',
-//     rotate: 0,
-//     stroke: {color:'black', width: 2},
-//     debug: false,
-// })
-/*TODO*/ /*TODO*/ /*TODO*/
 
 },{"../../make-draggable":9,"eventman":1,"inherits":2,"lodash":3}],9:[function(require,module,exports){
 "use strict";
 
 module.exports = function makeDraggable(opt) {
-    opt = opt || {};
+  opt = opt || {};
 
-    var md, isOver, isDrag, waitingMoveEvent, waitingMoveRaf;
+  var md, isOver, isDrag, waitingMoveEvent, waitingMoveRaf;
 
-    if (opt.deTarget) {
-        opt.deTarget.addEventListener("mousedown", onDown);
-        opt.deTarget.addEventListener("mouseover", onEnter);
-        opt.deTarget.addEventListener("mouseleave", onLeave);
+  if (opt.deTarget) {
+    opt.deTarget.addEventListener("mousedown", onDown);
+    opt.deTarget.addEventListener("mouseover", onEnter);
+    opt.deTarget.addEventListener("mouseleave", onLeave);
+  }
+
+  return {
+    emitDown: function (e) {
+      onDown(e);
+    },
+    destroy: function () {}
+  };
+
+  function onDown(e) {
+    if (e.button !== 0) {
+      return;
     }
 
-    return {
-        emitDown: function (e) {
-            onDown(e);
-        },
-        destroy: function () {}
-    };
+    // e.stopPropagation();
+    // e.preventDefault();
 
-    function onDown(e) {
-        if (e.button !== 0) {
-            return;
-        }
+    isDrag = true;
 
-        // e.stopPropagation();
-        // e.preventDefault();
+    var custom = call("onDown", [e]);
 
-        isDrag = true;
+    if (custom === false) {
+      //prevent dragging
 
-        var custom = call("onDown", [e]);
-
-        if (custom === false) {
-            //prevent dragging
-
-            return;
-        }
-
-        md = custom || {};
-
-        md.mx = e.clientX;
-        md.my = e.clientY;
-        md.dx = 0;
-        md.dy = 0;
-
-        window.addEventListener("mousemove", onMove);
-        window.addEventListener("mouseup", onUp);
-        window.addEventListener("mouseleave", onUp);
+      return;
     }
 
-    function onMove(e) {
-        waitingMoveEvent = e;
+    md = custom || {};
 
-        if (!waitingMoveRaf) {
-            waitingMoveRaf = window.requestAnimationFrame(rafOnMove);
-        }
+    md.mx = e.clientX;
+    md.my = e.clientY;
+    md.dx = 0;
+    md.dy = 0;
+
+    window.addEventListener("mousemove", onMove);
+    window.addEventListener("mouseup", onUp);
+    window.addEventListener("mouseleave", onUp);
+  }
+
+  function onMove(e) {
+    waitingMoveEvent = e;
+
+    if (!waitingMoveRaf) {
+      waitingMoveRaf = window.requestAnimationFrame(rafOnMove);
+    }
+  }
+
+  function rafOnMove() {
+    window.cancelAnimationFrame(waitingMoveRaf);
+
+    var wme = waitingMoveEvent;
+    waitingMoveRaf = undefined;
+    waitingMoveEvent = undefined;
+
+    var mx = wme.clientX, my = wme.clientY;
+
+    md.dx = mx - md.mx;
+    md.dy = my - md.my;
+
+    call(["onMove", "onDrag"], [md, mx, my]);
+  }
+
+  function onUp(e) {
+    window.removeEventListener("mousemove", onMove);
+    window.removeEventListener("mouseup", onUp);
+    window.removeEventListener("mouseleave", onUp);
+
+    if (waitingMoveEvent) {
+      rafOnMove();
     }
 
-    function rafOnMove() {
-        window.cancelAnimationFrame(waitingMoveRaf);
-
-        var wme = waitingMoveEvent;
-        waitingMoveRaf = undefined;
-        waitingMoveEvent = undefined;
-
-        var mx = wme.clientX,
-            my = wme.clientY;
-
-        md.dx = mx - md.mx;
-        md.dy = my - md.my;
-
-        call(["onMove", "onDrag"], [md, mx, my]);
+    isDrag = false;
+    if (!isOver) {
+      onLeave();
     }
 
-    function onUp(e) {
-        window.removeEventListener("mousemove", onMove);
-        window.removeEventListener("mouseup", onUp);
-        window.removeEventListener("mouseleave", onUp);
+    call("onUp", [md, e.clientX, e.clientY, e]);
+  }
 
-        if (waitingMoveEvent) {
-            rafOnMove();
-        }
+  function onEnter() {
+    isOver = true;
 
-        isDrag = false;
-        if (!isOver) {
-            onLeave();
-        }
+    if (!isDrag) {
+      call("onEnter");
+    }
+  }
 
-        call("onUp", [md, e.clientX, e.clientY, e]);
+  function onLeave() {
+    isOver = false;
+
+    if (!isDrag) {
+      call("onLeave");
+    }
+  }
+
+  function call(name, args) {
+    if (name instanceof Array) {
+      name.forEach(function (name) {
+        call(name, args);
+      });
+
+      return;
     }
 
-    function onEnter() {
-        isOver = true;
-
-        if (!isDrag) {
-            call("onEnter");
-        }
+    if (name in opt) {
+      return opt[name].apply(opt.thisArg, args);
     }
-
-    function onLeave() {
-        isOver = false;
-
-        if (!isDrag) {
-            call("onLeave");
-        }
-    }
-
-    function call(name, args) {
-        if (name instanceof Array) {
-            name.forEach(function (name) {
-                call(name, args);
-            });
-
-            return;
-        }
-
-        if (name in opt) {
-            return opt[name].apply(opt.thisArg, args);
-        }
-    }
+  }
 };
 
 },{}]},{},[5])(5)
