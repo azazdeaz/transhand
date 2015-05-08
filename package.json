@@ -1,12 +1,8 @@
 {
   "name": "transhand",
-  "version": "0.0.6",
+  "version": "0.1.0",
   "description": "A transform tool for web applications",
-  "main": "es5/Transhand.js",
-  "scripts": {
-    "build": "browserify -t 6to5ify src/Transhand.js --standalone Transhand --debug | exorcist build/transhand.js.map > build/transhand.js",
-    "es5": "6to5 src --out-dir es5"
-  },
+  "main": "lib/Transhand.js",
   "repository": {
     "type": "git",
     "url": "git://github.com/animachine/transhand.git"
@@ -17,12 +13,27 @@
     "url": "https://github.com/animachine/transhand/issues"
   },
   "homepage": "https://github.com/animachine/transhand",
+  "peerDependencies": {
+    "react": "^0.13.2"
+  },
   "devDependencies": {
-    "browserify": "^6.2.0",
-    "6to5ify": "^4.1.0",
-    "6to5": "^3.3.12"
+    "babelify": "^6.0.2",
+    "browser-sync": "^2.7.1",
+    "browserify": "^10.1.3",
+    "gulp": "^3.8.11",
+    "gulp-babel": "^5.1.0",
+    "gulp-callback": "0.0.3",
+    "gulp-filesize": "0.0.6",
+    "gulp-plumber": "^1.0.0",
+    "gulp-rimraf": "^0.1.1",
+    "gulp-sourcemaps": "^1.5.2",
+    "gulp-util": "^3.0.4",
+    "gulp-watch": "^4.2.4",
+    "vinyl-buffer": "^1.0.0",
+    "vinyl-source-stream": "^1.1.0",
+    "watchify": "^3.2.1"
   },
   "dependencies": {
-    "eventman": "0.0.1"
+    "lodash": "^3.8.0"
   }
 }
