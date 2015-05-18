@@ -1,10 +1,15 @@
 import React from 'react';
-import Transhand from '../lib/Transhand';
+import Transhand from 'SRC/Transhand';
+import CssCoordinator from 'SRC/CssCoordinator';
 import assign from 'lodash/object/assign';
 
 export default class App extends React.Component {
 
   constructor() {
+
+    super();
+
+    this.coordinator = new CssCoordinator();
 
     this.state = {
       currDomElem: undefined,
@@ -37,9 +42,11 @@ export default class App extends React.Component {
 
     currDomElem.style.transform = this.generateCssTransform(params);
     currDomElem.style.transformOrigin = `${params.ox*100}% ${params.oy*100}%`;
+
+    this.forceUpdate();
   }
 
-  generateCssTransform() {
+  generateCssTransform(params) {
 
     var cssTransform = '';
 
@@ -52,34 +59,21 @@ export default class App extends React.Component {
     return cssTransform;
   }
 
-  applyTransform(de) {
-
-    var params = this.state.currDomElem._handlerParams,
-        cssTransform = '';
-
-    cssTransform += ' translateX(' + params.tx + 'px)';
-    cssTransform += ' translateY(' + params.ty + 'px)';
-    cssTransform += ' rotate(' + params.rz + 'rad)';
-    cssTransform += ' scaleX(' + params.sx + ')';
-    cssTransform += ' scaleY(' + params.sy + ')';
-
-    de.style.transform = cssTransform;
-    de.style.transformOrigin = (params.ox * 100) + '% ' + (params.oy * 100) + '%';
-  }
-
   render() {
 
-    var { currDomElem } = state;
+    var {currDomElem} = this.state;
 
     if (currDomElem) {
 
       let deParent = currDomElem.parentNode;
 
+      let base = this.coordinator.setLocalRoot(deParent, currDomElem);
+
       return <Transhand
-        deParent = {deParent}
-        deTarget = {currentDomElem}
+        base = {base}
         params = {currDomElem._handlerParams}
-        onChange = {this.handleChange}/>;
+        coordinator = {this.coordinator}
+        onChange = {change => this.handleChange(change)}/>;
     }
     else {
       return <div hidden={true}/>;

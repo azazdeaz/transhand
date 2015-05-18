@@ -1,7 +1,6 @@
 import defaults from 'lodash/object/defaults';
 
-
-export default class Style {
+export default class Styles {
 
   constructor(config) {
 
@@ -20,35 +19,15 @@ export default class Style {
     };
 
     this.group = {
-      pointerEvents: 'none'
-    };
-
-    this.canvas = {
-      position: 'absolute',
+      pointerEvents: 'none',
+      overflow: 'visible'
     };
 
     this.fullHit = {
       position: 'absolute',
-      pointerEvents: 'none',
+      pointerEvents: 'auto',
       width: '100%',
       height: '100%',
-    };
-
-    this.originHit = {
-      position: 'absolute',
-      border: `${config.rotateFingerDist}px solid rgba(234,0,0,0)`,
-      borderRadius: `${config.rotateFingerDist}px`,
-    };
-
-    this.svgRoot = {
-      overflow: 'visible',
-    };
-
-    this.hitBox = {
-      strokeWidth: config.rotateFingerDist * 2,
-      stroke: 'rgba(0,0,0,0)',
-      fill: 'rgba(0,0,0,0)',
-      strokeLinejoin: 'round',
     };
   }
 }

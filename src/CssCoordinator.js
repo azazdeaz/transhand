@@ -1,9 +1,15 @@
 import heuristicGlobalToLocal from './heuristicGlobalToLocal';
+import findWhere from 'lodash/collection/findWhere';
 
 const tProps = ['transform', 'transformOrigin', 'prespective',
   'prespectiveOrigin', 'transformStyle'];
 
-export default class Cooldinator {
+export default class CssCooldinator {
+
+  constructor() {
+
+    this._buffMockDiv = [];
+  }
 
   L2G(p) {
 
@@ -93,7 +99,21 @@ export default class Cooldinator {
 
     function walkBack(de) {
 
-        if (de.nodeName === 'BODY') return;
+        // if (de.nodeName === 'BODY') return;
+        if (!de || de === window.document.body) return;
+
+        if (de.nodeName === '#document') {
+
+          var iframes = de.defaultView.parent.document.querySelectorAll('iframe');
+          var iframe = findWhere(iframes, {contentDocument: de});
+
+          if (iframe) {
+            return walkBack(iframe);
+          }
+          else {
+            return;
+          }
+        }
 
         var reg,
             computedStyle = window.getComputedStyle(de);

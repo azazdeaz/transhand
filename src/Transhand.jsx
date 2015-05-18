@@ -1,70 +1,90 @@
 import React from 'react';
 import clone from 'lodash/lang/clone';
+import cloneDeep from 'lodash/lang/cloneDeep';
+import shallowEquals from 'shallow-equals';
 import Styles from './Styles';
-import Coordinator from './Coordinator';
+import DefaultCoordinator from './DefaultCoordinator';
 import {radDiff, sqr, dist2, distToSegmentSquared, distToSegment,
   distToPointInAngle, isInside, equPoints} from './utils';
 
-var Transhand;
-export default Transhand =  React.createClass({
+const MOUSESTATES = {
+  'move': 'move',
+  'rotate': '-webkit-grab',
+  'origin': 'crosshair',
+  '1000': 'ns-resize',
+  '1100': 'nesw-resize',
+  '0100': 'ew-resize',
+  '0110': 'nwse-resize',
+  '0010': 'ns-resize',
+  '0011': 'nesw-resize',
+  '0001': 'ew-resize',
+  '1001': 'nwse-resize',
+};
 
-  getDefaultProps() {
+export default class Transhand extends React.Component {
 
-    var rotateFingerDist = 16;
-    var originRadius =  6;
+  static defaultProps = {
+    params: {
+        tx: 0, ty: 0,
+        sx: 1, sy: 1,
+        rz: 0,
+        ox: 0.5, oy: 0.5,
+    },
+    base: {
+      x: 0, y: 0, w: 0, h: 0,
+    },
+    rotateFingerDist: 16,
+    originRadius: 6,
+    coordinator: new DefaultCoordinator(),
+    stroke: {
+      strokeWidth: '1',
+      stroke: 'lime',
+    },
+    styles: new Styles(),
+  }
 
-    return {
-      params: {
-          tx: 0, ty: 0,
-          sx: 1, sy: 1,
-          rz: 0,
-          ox: 0.5, oy: 0.5,
-      },
-      base: {
-        x: 0, y: 0, w: 0, h: 0,
-      },
-      rotateFingerDist,
-      originRadius,
-      coordinator: new Coordinator(),
-      styles: new Styles({
-        rotateFingerDist: rotateFingerDist,
-        originRadius: originRadius,
-      }),
-    };
-  },
+  constructor(prosp) {
+    super(prosp);
 
-  getInitialState() {
-    return {
+    this.state = {
       points: [{}, {}, {}, {}],
       pOrigin: {},
     };
-  },
 
-  componentWillMount() {
+    this.handleMouseDown = this.handleMouseDown.bind(this);
+    this.handleMouseUp = this.handleMouseUp.bind(this);
+    this.handleMouseUp = this.handleMouseUp.bind(this);
+    this.handleDrag = this.handleDrag.bind(this);
+    this.deferredHandleDrag = this.deferredHandleDrag.bind(this);
+  }
 
-    var {deParent, deTarget, coordinator} = this.props;
+  componentDidMount() {
 
-    if (this.props.de) {
+    this.refreshPoints();
 
-    }
+    window.addEventListener('mousemove', e => this.handleMouseMove(e));
   }
 
   componentWillReceiveProps(nextProps) {
 
     this.refreshPoints(nextProps);
-  },
+  }
 
   shouldComponentUpdate(nextProps, nextState) {
 
     var {points, pOrigin} = this.state;
 
-    return !(equPoints(pOrigin, nextState.pOrigin) &&
+    return !(
+      shallowEquals(this.props, nextProps) &&
+      shallowEquals(this.state, nextState) &&
+      shallowEquals(this.props.stroke, nextProps.stroke) &&
+
+      equPoints(pOrigin, nextState.pOrigin) &&
       equPoints(points[0], nextState.points[0]) &&
       equPoints(points[1], nextState.points[1]) &&
       equPoints(points[2], nextState.points[2]) &&
       equPoints(points[3], nextState.points[3]));
-  },
-
+  }
 
 
 
@@ -95,6 +115,11 @@ export default Transhand =  React.createClass({
     t(p[2], base.x + base.w, base.y + base.h);
     t(p[3], base.x, base.y + base.h);
 
+    this.setState({
+      points: p,
+      pOrigin: po,
+    });
+
     function t(p, x, y) {
 
       var dx = (x - tox) * params.sx,
@@ -111,10 +136,7 @@ export default Transhand =  React.createClass({
         p.x = px;
         p.y = py;
     }
-  },
-
-
-
+  }
 
 
 
@@ -122,7 +144,8 @@ export default Transhand =  React.createClass({
   // Event Handlers ////////////////////////////////////////////////////////////
 
   handleMouseDown(e) {
-    if (!this._finger) {
+
+    if (!this.state.finger) {
         return;
     }
 
@@ -131,124 +154,53 @@ export default Transhand =  React.createClass({
 
     this._isHandle = true;
 
-    this._deFullHit.style.pointerEvents = 'auto';
+    React.findDOMNode(this.refs.root).style.pointerEvents = 'auto';
 
     this._mdPos = {
-        m: this._th.G2L({x: e.clientX, y: e.clientY}),
-        params: _.cloneDeep(this._params),
-        points: _.cloneDeep(this._points),
-        pOrigin: _.cloneDeep(this._pOrigin)
+        m: this.props.coordinator.G2L({x: e.clientX, y: e.clientY}),
+        params: cloneDeep(this.props.params),
+        points: cloneDeep(this.state.points),
+        pOrigin: clone(this.state.pOrigin)
     };
 
-    window.addEventListener('mouseup', this._onMouseUp);
-    window.addEventListener('mouseleave', this._onMouseUp);
-    window.addEventListener('mousemove', this._onDrag);
-  },
+    window.addEventListener('mouseup', this.handleMouseUp);
+    window.addEventListener('mouseleave', this.handleMouseUp);
+    window.addEventListener('mousemove', this.handleDrag);
 
-  getHitEvents() {
-    //TODO onFirstMove - handle when transhand appears under the mouse
-    return {
-      onMouseEnter: () => this.setState({overHitbox: true}),
-      onMouseLeave: () => this.setState({overHitbox: false}),
-      onMouseDown: e => this.handleMouseDown(e),
-    };
-  },
+    if (this.props.onStartDrag) {
+      this.props.onStartDrag();
+    }
+  }
 
   handleMouseMove(e) {
 
-    if (!this._isHandle && this._isOverHitbox) {
+    if (!this._isHandle && this.state.hoverHitbox) {
 
-      this._setFinger(e);
+      this.setFinger(e);
     }
     else {
-      this._th.cursorHint.setHints(null);
+      // this._th.cursorHint.setHints(null);
     }
-
-    if (this._cursorFunc) {
-      this._setCursor(this._cursorFunc(e.clientX, e.clientY));
-    }
-  },
+  }
 
   handleMouseUp() {
 
-    window.removeEventListener('mouseup', this._onMouseUp);
-    window.removeEventListener('mouseleave', this._onMouseUp);
-    window.removeEventListener('mousemove', this._onDrag);
+    window.removeEventListener('mouseup', this.handleMouseUp);
+    window.removeEventListener('mouseleave', this.handleMouseUp);
+    window.removeEventListener('mousemove', this.handleDrag);
 
     if (this._rafOnDragRafId) {
-        this._rafOnDrag();
+        this.deferredHandleDrag();
     }
 
     this._isHandle = false;
 
-    this._deFullHit.style.pointerEvents = 'none';
-  },
+    React.findDOMNode(this.refs.root).style.pointerEvents = 'none';
 
-
-
-
-
-
-
-
-  renderHandler() {
-
-    var p = this._points.map(p => coordinator.L2G(p)),
-        po = this._th.L2G(this._pOrigin),
-        c = this._deCanvas,
-        or = this._originRadius,
-        ctx = c.getContext('2d'),
-        margin = 7,
-        minX = Math.min(p[0].x, p[1].x, p[2].x, p[3].x, po.x),
-        maxX = Math.max(p[0].x, p[1].x, p[2].x, p[3].x, po.x),
-        minY = Math.min(p[0].y, p[1].y, p[2].y, p[3].y, po.y),
-        maxY = Math.max(p[0].y, p[1].y, p[2].y, p[3].y, po.y);
-
-    c.style.left = (minX - margin) + 'px';
-    c.style.top = (minY - margin) + 'px';
-    c.width = (maxX - minX) + (margin * 2);
-    c.height = (maxY - minY) + (margin * 2);
-
-    ctx.save();
-    ctx.translate(margin - minX, margin - minY);
-    ctx.beginPath();
-    ctx.moveTo(p[0].x, p[0].y);
-    ctx.lineTo(p[1].x, p[1].y);
-    ctx.lineTo(p[2].x, p[2].y);
-    ctx.lineTo(p[3].x, p[3].y);
-    ctx.closePath();
-
-    ctx.moveTo(po.x - or, po.y);
-    ctx.lineTo(po.x + or, po.y);
-    ctx.moveTo(po.x, po.y - or);
-    ctx.lineTo(po.x, po.y + or);
-
-    ctx.strokeStyle = '#4f2';
-    ctx.lineWidth = 1;
-    ctx.stroke();
-    ctx.restore();
-
-
-
-    //hitboxes
-
-    this._deOriginHit.style.left = (po.x - this._rotateFingerDist) + 'px';
-    this._deOriginHit.style.top = (po.y - this._rotateFingerDist) + 'px';
-
-    var hbp = '';
-    hbp += p[0].x + ',' + p[0].y + ' ';
-    hbp += p[1].x + ',' + p[1].y + ' ';
-    hbp += p[2].x + ',' + p[2].y + ' ';
-    hbp += p[3].x + ',' + p[3].y;
-    this._deHitbox.setAttribute('points', hbp);
-  },
-
-
-
-
-
-
-
+    if (this.props.onEndDrag) {
+      this.props.onEndDrag();
+    }
+  }
 
   handleDrag(e) {
 
@@ -256,9 +208,9 @@ export default Transhand =  React.createClass({
 
     if (!this._rafOnDragRafId) {
 
-      this._rafOnDragRafId = requestAnimationFrame(this._rafOnDrag);
+      this._rafOnDragRafId = requestAnimationFrame(this.deferredHandleDrag);
     }
-  },
+  }
 
   deferredHandleDrag () {
 
@@ -268,12 +220,10 @@ export default Transhand =  React.createClass({
     window.cancelAnimationFrame(this._rafOnDragRafId);
     this._rafOnDragRafId = undefined;
 
-    var params = this._params,
-        base = this._base,
-        pOrigin = this._pOrigin,
+    var {base, params, coordinator, onChange} = this.props,
+        {pOrigin, finger} = this.state,
         md = this._mdPos,
-        finger = this._finger,
-        m = this._th.G2L({x: e.clientX, y: e.clientY}),
+        m = coordinator.G2L({x: e.clientX, y: e.clientY}),
         dx = m.x - md.m.x,
         dy = m.y - md.m.y,
         alt = e.altKey,
@@ -321,7 +271,9 @@ export default Transhand =  React.createClass({
     }
 
 
-    this.emit('change', change, 'transform');
+    if (onChange) {
+      onChange(change);
+    }
 
 
 
@@ -419,7 +371,7 @@ export default Transhand =  React.createClass({
       change.tx = params.tx = md.params.tx + (mx - x);
       change.ty = params.ty = md.params.ty + (my - y);
     }
-  },
+  }
 
 
 
@@ -431,26 +383,26 @@ export default Transhand =  React.createClass({
 
   setFinger(e) {
 
-      var base = this._base,
-          params = this._params,
-          p = this._points,
-          po = this._pOrigin,
-          diff = 3,
-          rDiff = 16,
-          m = this._th.G2L({x: e.clientX, y: e.clientY}),
-          dox = po.x - m.x,
-          doy = po.y - m.y,
-          dOrigin = Math.sqrt(dox*dox + doy*doy),
-          dTop = distToSegment(m, p[0], p[1]),
-          dLeft = distToSegment(m, p[1], p[2]),
-          dBottom = distToSegment(m, p[2], p[3]),
-          dRight = distToSegment(m, p[3], p[0]),
-          top = dTop < diff,
-          left = dLeft < diff,
-          bottom = dBottom < diff,
-          right = dRight < diff,
-          inside = isInside(m, p),
-          cursorScale;
+    var {base, params, coordinator, originRadius} = this.props,
+        {finger} = this.state,
+        p = this.state.points,
+        po = this.state.pOrigin,
+        diff = 3,
+        rDiff = 16,
+        m = coordinator.G2L({x: e.clientX, y: e.clientY}),
+        dox = po.x - m.x,
+        doy = po.y - m.y,
+        dOrigin = Math.sqrt(dox*dox + doy*doy),
+        dTop = distToSegment(m, p[0], p[1]),
+        dLeft = distToSegment(m, p[1], p[2]),
+        dBottom = distToSegment(m, p[2], p[3]),
+        dRight = distToSegment(m, p[3], p[0]),
+        top = dTop < diff,
+        left = dLeft < diff,
+        bottom = dBottom < diff,
+        right = dRight < diff,
+        inside = isInside(m, p),
+        cursorScale;
 
       if (base.w * params.sx < diff * 2 && inside) {
 
@@ -464,111 +416,196 @@ export default Transhand =  React.createClass({
           bottom = false;
       }
 
-      if (dOrigin < this._originRadius) {
+      if (dOrigin < originRadius) {
 
-          this._finger = 'origin';
+          finger = 'origin';
       }
       else if (top || right || bottom || left) {
           //TODO its sould be top-right-bottom-left
-          this._finger = ('000' + (top * 1000 + left * 100 + bottom * 10 + right * 1)).substr(-4);
+          finger = ('000' + (top * 1000 + left * 100 + bottom * 10 + right * 1)).substr(-4);
           cursorScale = true;
-          this._th.cursorHint.setHints(hints.scale);
+          // this._th.cursorHint.setHints(hints.scale);
       }
       else if (inside) {
 
-          this._finger = 'move';
-          this._th.cursorHint.setHints(hints.move);
+          finger = 'move';
+          // this._th.cursorHint.setHints(hints.move);
       }
       else if (dTop < rDiff || dRight < rDiff || dBottom < rDiff || dLeft < rDiff || dOrigin < rDiff) {
 
-          this._finger = 'rotate';
-          this._th.cursorHint.setHints(hints.rotate);
+          finger = 'rotate';
+          // this._th.cursorHint.setHints(hints.rotate);
       }
       else {
-          this._finger = false;
-          this._th.cursorHint.setHints(null);
+          finger = false;
+          // this._th.cursorHint.setHints(null);
       }
 
-      if (this._finger === 'rotate') {
+      var cursor = this.getCursor(e, finger, cursorScale);
 
-          this._cursorFunc = this._getRotateCursor;
-      }
-      else if (cursorScale) {
+      this.setState({finger, cursorScale, cursor});
+  }
 
-          this._cursorFunc = this._getScaleCursor;
-      }
-      else {
-          this._cursorFunc = undefined;
+  getCursor(e, finger, cursorScale) {
 
-          if (this._finger) {
+    var cursor = 'auto';
 
-              this._setCursor(MOUSESTATES[this._finger]);
-          }
-          else {
-              this._setCursor('auto');
-          }
-      }
-  },
+    if (finger === 'rotate') {
+      cursor = this.getRotateCursor(e.clientX, e.clientY);
+    }
+    else if (cursorScale) {
+      cursor = this.getScaleCursor(e.clientX, e.clientY);
+    }
+    else if (finger) {
+      cursor = MOUSESTATES[finger];
+    }
+
+    return cursor;
+  }
 
 
 
-
-  setCursor(cursor) {
-
-    this._deHitbox.style.cursor = cursor;
-    this._deOriginHit.style.cursor = cursor;
-    this._deFullHit.style.cursor = cursor
-  },
+  // setCursor(cursor) {
+  //
+  //   React.findDOMNode(this.refs.originHit).style.cursor = cursor;
+  //   React.findDOMNode(this.refs.boxHit).style.cursor = cursor;
+  //   React.findDOMNode(this.refs.root).style.cursor = cursor;
+  // },
 
   getRotateCursor(mx, my) {
 
-    var po = this._th.L2G(this._pOrigin),
+    var po = this.props.coordinator.L2G(this.state.pOrigin),
         r = Math.atan2(my - po.y, mx - po.x) / Math.PI * 180;
 
     return 'url(\'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" ><path transform="rotate('+r+', 16, 16)" d="M18.907 3.238l-7.54-2.104s8.35 3.9 8.428 15.367c.08 11.794-7.807 14.49-7.807 14.49l7.363-1.725" stroke="#000" stroke-width="2.054" fill="none"/></svg>\') 16 16, auto';
-  },
+  }
 
-  getScaleCursor: (function () {
+  getScaleCursor() {
 
     var FINGERS = ['0100', '0110', '0010', '0011', '0001', '1001', '1000', '1100'];
 
-    return function () {
+    var {coordinator, params} = this.props,
+        {pOrigin, finger} = this.state,
+        sideDeg = FINGERS.indexOf(finger) * 45,
+        po = coordinator.L2G(pOrigin),
+        oTweak = {x: pOrigin.x + 1234, y: pOrigin.y},
+        pot = coordinator.L2G(oTweak),
+        baseRad = Math.atan2(pot.y - po.y, pot.x - po.x) + params.rz,
+        r = sideDeg + (baseRad / Math.PI * 180);
 
-      var sideDeg = FINGERS.indexOf(this._finger) * 45,
-          po = this._th.L2G(this._pOrigin),
-          oTweak = {x: this._pOrigin.x + 1234, y: this._pOrigin.y},
-          pot = this._th.L2G(oTweak),
-          baseRad = Math.atan2(pot.y - po.y, pot.x - po.x) + this._params.rz,
-          r = sideDeg + (baseRad / Math.PI * 180);
+
+    return 'url(\'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32"><path transform="rotate('+r+', 16, 16)" d="M22.406 12.552l5.88 4.18H3.677l5.728 4.36" stroke="#000" stroke-width="2.254" fill="none"/></svg>\') 16 16, auto';
+  }
 
 
-      return 'url(\'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32"><path transform="rotate('+r+', 16, 16)" d="M22.406 12.552l5.88 4.18H3.677l5.728 4.36" stroke="#000" stroke-width="2.254" fill="none"/></svg>\') 16 16, auto';
+
+
+
+
+
+
+
+
+
+
+
+
+  getHitEvents() {
+    //TODO onFirstMove - handle when transhand appears under the mouse
+    return {
+      onMouseEnter: () => this.setState({hoverHitbox: true}),
+      onMouseLeave: () => this.setState({hoverHitbox: false}),
+      onMouseDown: e => this.handleMouseDown(e),
     };
-  }()),
-
-
-
-
-
-
-
-
-
-
-
+  }
 
   render() {
 
-    var {styles} = this.state;
+    var {styles, coordinator, rotateFingerDist, originRadius,
+          stroke} = this.props,
+        {cursor} = this.state,
+        p = this.state.points.map(p => coordinator.L2G(p)),
+        po = coordinator.L2G(this.state.pOrigin),
+        or = this.props.originRadius,
+        originHit = React.findDOMNode(this.refs.originHit),
+        boxHit = React.findDOMNode(this.refs.boxHit),
+        canvas = React.findDOMNode(this.refs.canvas),
+        margin = 7,
+        minX = Math.min(p[0].x, p[1].x, p[2].x, p[3].x, po.x),
+        maxX = Math.max(p[0].x, p[1].x, p[2].x, p[3].x, po.x),
+        minY = Math.min(p[0].y, p[1].y, p[2].y, p[3].y, po.y),
+        maxY = Math.max(p[0].y, p[1].y, p[2].y, p[3].y, po.y);
 
-    return <div style={styles.root}>
-      <div ref='group' style={styles.group}>
-        <canvas ref='canvas' style={styles.canvas}/>
-        <div ref='fullHit' style={styles.fullHit} {...this.getHitEvents()}/>
-        <div ref='originHit' style={styles.originHit} {...this.getHitEvents()}/>
-        <svg ref='svgRoot' style={styles.svgRoot}>
-        </svg>
-      </div>
+    // c.style.left = (minX - margin) + 'px';
+    // c.style.top = (minY - margin) + 'px';
+    // c.width = (maxX - minX) + (margin * 2);
+    // c.height = (maxY - minY) + (margin * 2);
+
+    // ctx.save();
+    // ctx.translate(margin - minX, margin - minY);
+    // ctx.beginPath();
+    // ctx.moveTo(p[0].x, p[0].y);
+    // ctx.lineTo(p[1].x, p[1].y);
+    // ctx.lineTo(p[2].x, p[2].y);
+    // ctx.lineTo(p[3].x, p[3].y);
+    // ctx.closePath();
+    //
+    // ctx.moveTo(po.x - or, po.y);
+    // ctx.lineTo(po.x + or, po.y);
+    // ctx.moveTo(po.x, po.y - or);
+    // ctx.lineTo(po.x, po.y + or);
+    //
+    // ctx.strokeStyle = '#4f2';
+    // ctx.lineWidth = 1;
+    // ctx.stroke();
+    // ctx.restore();
+
+
+    var boxHitPoints =
+      `${p[0].x},${p[0].y} ` +
+      `${p[1].x},${p[1].y} ` +
+      `${p[2].x},${p[2].y} ` +
+      `${p[3].x},${p[3].y}`;
+
+    styles.group.cursor = cursor;
+
+
+
+    return <div ref='root' style={styles.root}>
+      <svg ref='group' style={styles.group}>
+        <polygon ref='canvas'
+          fill='none'
+          {...stroke}
+          points = {boxHitPoints}>
+        </polygon>
+
+        <line x1={po.x - or} y1={po.y} x2={po.x + or} y2={po.y} {...stroke}/>
+        <line x1={po.x} y1={po.y - or} x2={po.x} y2={po.y + or} {...stroke}/>
+
+        <polygon ref='boxHit'
+          fill="black" opacity="0"
+          stroke="black"
+          strokeLinejoin='round'
+          strokeLocation='outside'
+          strokeWidth={rotateFingerDist}
+          points = {boxHitPoints}
+          style={{
+            cursor,
+            pointerEvents: 'auto',
+          }}
+          {...this.getHitEvents()}/>
+
+        <circle ref='originHit'
+          fill="black" opacity="0"
+          cx = {po.x}
+          cy = {po.y}
+          r = {originRadius}
+          style={{
+            cursor,
+            pointerEvents: 'auto',
+          }}
+          {...this.getHitEvents()}/>
+      </svg>
     </div>;
   }
-});
+};

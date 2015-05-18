@@ -1,4 +1,5 @@
 node_modules
 lib
-demo/build
+demo/dist
 browser
+*.log
