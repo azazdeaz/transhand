@@ -1,9 +1,9 @@
 {
+  "parser": "babel-eslint",
   "env": {
     "browser": true,
     "node": true
   },
-  "parser": "babel-eslint",
   "rules": {
     "modules": true,
     "quotes": [2, "single"],
@@ -11,7 +11,8 @@
     "no-mixed-requires": [0],
     "no-underscore-dangle": [0],
     "comma-dangle": [0],
-    "curly": [0]
+    "curly": [0],
+    "srict": [0]
   },
   "globals": {
     "Api": false,

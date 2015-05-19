@@ -1,6 +1,6 @@
 {
   "name": "transhand",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A transform tool for web applications",
   "main": "lib/index.js",
   "repository": {
@@ -8,7 +8,8 @@
     "url": "git://github.com/animachine/transhand.git"
   },
   "scripts": {
-    "lib": "babel ./src --out-dir lib  --source-maps --stage 0"
+    "lib": "babel ./src --out-dir lib  --source-maps --stage 0",
+    "lib-watch": "babel ./src --out-dir lib  --source-maps --stage 0 --watch"
   },
   "author": "",
   "license": "ISC",

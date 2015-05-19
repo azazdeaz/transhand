@@ -1,8 +1,9 @@
 import heuristicGlobalToLocal from './heuristicGlobalToLocal';
 import findWhere from 'lodash/collection/findWhere';
 
-const tProps = ['transform', 'transformOrigin', 'prespective',
+const TRANSFORM_PROPS = ['transform', 'transformOrigin', 'prespective',
   'prespectiveOrigin', 'transformStyle'];
+const NULL_VALUES = ['none', 'matrix(1, 0, 0, 1, 0, 0)'];
 
 export default class CssCooldinator {
 
@@ -99,7 +100,6 @@ export default class CssCooldinator {
 
     function walkBack(de) {
 
-        // if (de.nodeName === 'BODY') return;
         if (!de || de === window.document.body) return;
 
         if (de.nodeName === '#document') {
@@ -118,10 +118,12 @@ export default class CssCooldinator {
         var reg,
             computedStyle = window.getComputedStyle(de);
 
-        tProps.forEach(function (propName) {
+        TRANSFORM_PROPS.forEach(function (propName) {
 
             var value = computedStyle.getPropertyValue(propName);
-            if (value) set(propName, value);
+            if (value && NULL_VALUES.indexOf(value) === -1) {
+              set(propName, value);
+            }
         });
 
         walkBack(de.parentNode);
