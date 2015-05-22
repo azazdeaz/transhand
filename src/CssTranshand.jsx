@@ -23,7 +23,15 @@ export default class CssTranshand() {
     this.coordinator = new CssCoordinator();
   }
 
-  shouldComponentUpdate(nextProps) {
+  componentWillReceiveProps(nextProps) {
+    var {deTarget} = nextProps;
+
+    this.coordinator.setLocalRoot(deTarget.parentElement, deTarget, );
+  }
+
+  shouldComponentUpdate() {
+
+    return false;
 
     var {deTarget} = nextProps;
 
@@ -39,6 +47,28 @@ export default class CssTranshand() {
   }
 
   render() {
+    var node = Editor.getModuleDOMNodeById(module.id);
+    var base = this.coordinator.setLocalRoot(node.parentNode, node);
+    var params = {};
 
+    forIn(PROPMAP, (styleKey, key) => {
+
+      var value = parseFloat(styleEditor.interface.transform[styleKey]);
+
+      if (styleKey === 'rotate') value = value / 180 * Math.PI;
+
+      params[key] = value;
+    });
+
+    params.oy = 0.5;
+    params.ox = 0.5;
+
+    return <Transhand
+      base = {base}
+      params = {params}
+      coordinator = {this.coordinator}
+      onStartDrag = {() => Editor.performanceMode = true}
+      onEndDrag = {() => Editor.performanceMode = false}
+      onChange = {change => this.handleChange(change)}/>
   }
 }
