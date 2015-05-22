@@ -71,6 +71,15 @@ export default class Transhand extends React.Component {
   }
 
   shouldComponentUpdate(nextProps, nextState) {
+    var {coordinator} = nextProps;
+
+    if (coordinator.isProcessing) {
+      coordinator.onProcessingDone = () => {
+        this.forceUpdate();
+        console.log('this.forceUpdate();');
+      };
+      return false;
+    }
 
     var {points, pOrigin} = this.state;
 
@@ -157,7 +166,7 @@ export default class Transhand extends React.Component {
     React.findDOMNode(this.refs.root).style.pointerEvents = 'auto';
 
     this._mdPos = {
-        m: this.props.coordinator.G2L({x: e.clientX, y: e.clientY}),
+        m: this.props.coordinator.globalToLocal({x: e.clientX, y: e.clientY}),
         params: cloneDeep(this.props.params),
         points: cloneDeep(this.state.points),
         pOrigin: clone(this.state.pOrigin)
@@ -223,7 +232,7 @@ export default class Transhand extends React.Component {
     var {base, params, coordinator, onChange} = this.props,
         {pOrigin, finger} = this.state,
         md = this._mdPos,
-        m = coordinator.G2L({x: e.clientX, y: e.clientY}),
+        m = coordinator.globalToLocal({x: e.clientX, y: e.clientY}),
         dx = m.x - md.m.x,
         dy = m.y - md.m.y,
         alt = e.altKey,
@@ -389,7 +398,7 @@ export default class Transhand extends React.Component {
         po = this.state.pOrigin,
         diff = 3,
         rDiff = 16,
-        m = coordinator.G2L({x: e.clientX, y: e.clientY}),
+        m = coordinator.globalToLocal({x: e.clientX, y: e.clientY}),
         dox = po.x - m.x,
         doy = po.y - m.y,
         dOrigin = Math.sqrt(dox*dox + doy*doy),
@@ -474,7 +483,7 @@ export default class Transhand extends React.Component {
 
   getRotateCursor(mx, my) {
 
-    var po = this.props.coordinator.L2G(this.state.pOrigin),
+    var po = this.props.coordinator.localToGlobal(this.state.pOrigin),
         r = Math.atan2(my - po.y, mx - po.x) / Math.PI * 180;
 
     return 'url(\'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" ><path transform="rotate('+r+', 16, 16)" d="M18.907 3.238l-7.54-2.104s8.35 3.9 8.428 15.367c.08 11.794-7.807 14.49-7.807 14.49l7.363-1.725" stroke="#000" stroke-width="2.054" fill="none"/></svg>\') 16 16, auto';
@@ -487,9 +496,9 @@ export default class Transhand extends React.Component {
     var {coordinator, params} = this.props,
         {pOrigin, finger} = this.state,
         sideDeg = FINGERS.indexOf(finger) * 45,
-        po = coordinator.L2G(pOrigin),
+        po = coordinator.localToGlobal(pOrigin),
         oTweak = {x: pOrigin.x + 1234, y: pOrigin.y},
-        pot = coordinator.L2G(oTweak),
+        pot = coordinator.localToGlobal(oTweak),
         baseRad = Math.atan2(pot.y - po.y, pot.x - po.x) + params.rz,
         r = sideDeg + (baseRad / Math.PI * 180);
 
@@ -520,21 +529,22 @@ export default class Transhand extends React.Component {
   }
 
   render() {
+    var {coordinator} = this.props;
 
-    var {styles, coordinator, rotateFingerDist, originRadius,
-          stroke} = this.props,
+    if (coordinator.isProcessing) {
+      coordinator.onProcessingDone = () => {
+        this.forceUpdate();
+        console.log('this.forceUpdate();');
+      };
+
+      return <div hidden={true}/>;
+    }
+
+    var {styles, rotateFingerDist, originRadius, stroke} = this.props,
         {cursor} = this.state,
-        p = this.state.points.map(p => coordinator.L2G(p)),
-        po = coordinator.L2G(this.state.pOrigin),
-        or = this.props.originRadius,
-        originHit = React.findDOMNode(this.refs.originHit),
-        boxHit = React.findDOMNode(this.refs.boxHit),
-        canvas = React.findDOMNode(this.refs.canvas),
-        margin = 7,
-        minX = Math.min(p[0].x, p[1].x, p[2].x, p[3].x, po.x),
-        maxX = Math.max(p[0].x, p[1].x, p[2].x, p[3].x, po.x),
-        minY = Math.min(p[0].y, p[1].y, p[2].y, p[3].y, po.y),
-        maxY = Math.max(p[0].y, p[1].y, p[2].y, p[3].y, po.y);
+        p = this.state.points.map(p => coordinator.localToGlobal(p)),
+        po = coordinator.localToGlobal(this.state.pOrigin),
+        or = this.props.originRadius;
 
     // c.style.left = (minX - margin) + 'px';
     // c.style.top = (minY - margin) + 'px';

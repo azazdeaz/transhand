@@ -9,13 +9,13 @@ export default function heuristicGlobalToLocal (mPos, dePicker) {
         dist = tweakDist * 2,
         rad = 0,
         nullPos = {x:0, y: 0},
-        globalNullPos = L2G(nullPos),
+        globalNullPos = localToGlobal(nullPos),
         globalRad = getRad(globalNullPos, mPos),
         globalDist = posDist(globalNullPos, mPos);
 
     while (tweakRad > 0.000001) {
 
-        var globalTestRad = getRad(mPos, L2G(Rad2Pos(rad, tweakDist)));
+        var globalTestRad = getRad(mPos, localToGlobal(Rad2Pos(rad, tweakDist)));
 
         if (radDiff(globalRad, globalTestRad) < 0) {
 
@@ -29,14 +29,14 @@ export default function heuristicGlobalToLocal (mPos, dePicker) {
     }
 
 
-    while (posDist(globalNullPos, L2G(Rad2Pos(rad, dist + 2*tweakDist))) < globalDist && dist < tweakDist * 64) {
+    while (posDist(globalNullPos, localToGlobal(Rad2Pos(rad, dist + 2*tweakDist))) < globalDist && dist < tweakDist * 64) {
 
         dist += 4*tweakDist;
     }
 
     while (tweakDist > 1) {
 
-        if (posDist(globalNullPos, L2G(Rad2Pos(rad, dist))) < globalDist) {
+        if (posDist(globalNullPos, localToGlobal(Rad2Pos(rad, dist))) < globalDist) {
 
             dist += tweakDist;
         }
@@ -66,7 +66,7 @@ export default function heuristicGlobalToLocal (mPos, dePicker) {
         };
     }
 
-    function L2G(pos) {
+    function localToGlobal(pos) {
 
         dePicker.style.left = pos.x + 'px';
         dePicker.style.top = pos.y + 'px';

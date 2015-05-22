@@ -12,10 +12,7 @@
     "no-underscore-dangle": [0],
     "comma-dangle": [0],
     "curly": [0],
-    "srict": [0]
-  },
-  "globals": {
-    "Api": false,
-    "Editor": false
+    "strict": [0],
+    "no-use-before-define": "nofunc"
   }
 }
