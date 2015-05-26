@@ -2,11 +2,11 @@ import React from 'react';
 import Transhand from './Transhand';
 import CssCoordinator from './CssCoordinator';
 
-export default class CssTranshand() {
+export default class CssTranshand extends React.Component {
 
   static propTypes = {
     deTarget: React.PropTypes.node.isRequired,
-    props: React.propTypes.shape({
+    props: React.PropTypes.shape({
       tx: React.PropTypes.number,
       ty: React.PropTypes.number,
       sx: React.PropTypes.number,
@@ -21,54 +21,42 @@ export default class CssTranshand() {
     super(props);
 
     this.coordinator = new CssCoordinator();
+
+    this.state = {x: 0, y: 0, w: 0, h: 0};
+
+    this.takeNextDeTarget(props.deTarget);
   }
 
   componentWillReceiveProps(nextProps) {
-    var {deTarget} = nextProps;
+    this.takeNextDeTarget(nextProps.deTarget);
+  }
 
-    this.coordinator.setLocalRoot(deTarget.parentElement, deTarget, );
+  takeNextDeTarget(nextDeTarget) {
+
+    if (this.props.deTarget !== nextDeTarget) {
+      this.coordinator.setLocalRoot(
+        nextDeTarget.parentElement, nextDeTarget, (base) => {
+          this.setState({base});
+        }
+      );
+    }
   }
 
   shouldComponentUpdate() {
-
-    return false;
-
-    var {deTarget} = nextProps;
-
-    this.coordinator.setLocalRoot(deTarget.parentElement, deTarget);
-
-    if (this.coordinator.isProcessing) {
-      this.coordinator.onDoneProcessing(() => this.forceUpdate());
-      return false;
-    }
-    else {
-      return true;
-    }
+    return !this.coordinator.isProcessing;
   }
 
   render() {
-    var node = Editor.getModuleDOMNodeById(module.id);
-    var base = this.coordinator.setLocalRoot(node.parentNode, node);
-    var params = {};
 
-    forIn(PROPMAP, (styleKey, key) => {
-
-      var value = parseFloat(styleEditor.interface.transform[styleKey]);
-
-      if (styleKey === 'rotate') value = value / 180 * Math.PI;
-
-      params[key] = value;
-    });
-
-    params.oy = 0.5;
-    params.ox = 0.5;
+    var {params, onChange, onStartDrag, onEndDrag} = this.props;
+    var {base} = this.state;
 
     return <Transhand
       base = {base}
       params = {params}
       coordinator = {this.coordinator}
-      onStartDrag = {() => Editor.performanceMode = true}
-      onEndDrag = {() => Editor.performanceMode = false}
-      onChange = {change => this.handleChange(change)}/>
+      onStartDrag = {onStartDrag}
+      onEndDrag = {onEndDrag}
+      onChange = {onChange}/>;
   }
 }

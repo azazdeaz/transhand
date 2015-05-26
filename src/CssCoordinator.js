@@ -7,7 +7,7 @@ const TRANSFORM_PROPS = ['transform', 'transformOrigin', 'prespective',
   'prespectiveOrigin', 'transformStyle'];
 const NULL_VALUES = ['none', 'matrix(1, 0, 0, 1, 0, 0)'];
 
-export default class CssCooldinator {
+export default class CssCoordinator {
 
   constructor() {
 
@@ -28,6 +28,7 @@ export default class CssCooldinator {
     // document.body.appendChild(this._mockMount);
 
     var dePicker = this._dePicker;
+    if (!dePicker) return p;
 
     dePicker.style.left = p.x + 'px';
     dePicker.style.top = p.y + 'px';
@@ -39,7 +40,7 @@ export default class CssCooldinator {
     console.log('localToGlobal', p, {
       x: br.left,
       y: br.top,
-    })
+    });
     return {
       x: br.left,
       y: br.top,
@@ -50,46 +51,23 @@ export default class CssCooldinator {
 
     // document.body.appendChild(this._mockMount);
 
-    var ret = heuristicGlobalToLocal(p, this._dePicker);
+    var dePicker = this._dePicker;
+    if (!dePicker) return p;
+
+    var ret = heuristicGlobalToLocal(p, dePicker);
 
     // document.body.removeChild(this._mockMount);
-    console.log('globalToLocal', p, ret)
+    console.log('globalToLocal', p)
     return ret;
   }
 
-  setLocalRoot() {
-    if (this.isProcessing) {
-      console.warn('fednek a setLocalRoor-ok!!!')
-      return;
-    }
-    this.isProcessing = true;//tells the the Transhand that it isn't ready
+  setLocalRoot(deParent, deTarget, onDone) {
+    var transformeds = [], base;
 
-    setTimeout(() => this._setLocalRoot(...arguments));
-  }
-
-  _setLocalRoot(deParent, deTarget) {
-
-
-    var transformeds = [], ret;
+    this.isProcessing = true;
+    this.onProcessingDone = onDone;
 
     walkBack(deParent);
-
-    React.render(<MockDiv
-      parentLeft = {-window.scrollX}
-      parentTop = {-window.scrollY}
-      transformList={transformeds}>
-      <div id='picker'/>
-    </MockDiv>, this._mockMount, () => {
-
-      this._dePicker = this._mockMount.querySelector('#picker');
-      this.isProcessing = false;
-
-      if (this.onProcessingDone) {
-        this.onProcessingDone();
-        this.onProcessingDone = undefined;
-      }
-    });
-
 
     if (deTarget) {
       //calculate the offset from the local root. It can be used as
@@ -100,7 +78,7 @@ export default class CssCooldinator {
       let brA = deTarget.getBoundingClientRect(),
         brB = deParent.getBoundingClientRect();
 
-      ret = {
+      base = {
         x: brA.left - brB.left,
         y: brA.top - brB.top,
         w: brA.width,
@@ -110,12 +88,27 @@ export default class CssCooldinator {
       deTarget.style.transform = inlineTransform;
     }
 
+    React.render(<MockDiv
+      parentLeft = {-window.scrollX}
+      parentTop = {-window.scrollY}
+      transformList={transformeds}>
+
+      <div id='picker' style={{position: 'absolute'}}/>
+    </MockDiv>, this._mockMount, () => {
+
+      this._dePicker = this._mockMount.querySelector('#picker');
+      this.isProcessing = false;
+
+      if (this.onProcessingDone) {
+        this.onProcessingDone(base);
+        this.onProcessingDone = undefined;
+      }
+    });
+
 
     transformeds.forEach(reg => {
       reg.de.style.transform = reg.inlineTransform;
     });
-
-    return ret;
 
 
     function walkBack(de) {
@@ -253,6 +246,7 @@ class MockDiv extends React.Component {
     };
 
     return <div style={assign({
+      position: 'absolute',
       left: pos.left - parentLeft,
       top: pos.top - parentTop,
       width: pos.width,
