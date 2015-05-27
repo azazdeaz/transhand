@@ -25,40 +25,39 @@ export default class CssCoordinator {
   }
 
   localToGlobal(p) {
-    // document.body.appendChild(this._mockMount);
+    if (this.hasPretransformation) {
+        var dePicker = this._dePicker;
+        if (!dePicker) return p;
 
-    var dePicker = this._dePicker;
-    if (!dePicker) return p;
+        dePicker.style.left = p.x + 'px';
+        dePicker.style.top = p.y + 'px';
 
-    dePicker.style.left = p.x + 'px';
-    dePicker.style.top = p.y + 'px';
+        var br = dePicker.getBoundingClientRect();
 
-    var br = dePicker.getBoundingClientRect();
-
-    // document.body.removeChild(this._mockMount);
-
-    console.log('localToGlobal', p, {
-      x: br.left,
-      y: br.top,
-    });
-    return {
-      x: br.left,
-      y: br.top,
-    };
+        return {
+          x: br.left,
+          y: br.top,
+        };
+    }
+    else {
+      return p;
+    }
   }
 
   globalToLocal(p) {
+    if (this.hasPretransformation) {
+        let dePicker = this._dePicker;
+        if (!dePicker) return p;
 
-    // document.body.appendChild(this._mockMount);
+        let ret = heuristicGlobalToLocal(p, dePicker);
 
-    var dePicker = this._dePicker;
-    if (!dePicker) return p;
-
-    var ret = heuristicGlobalToLocal(p, dePicker);
-
-    // document.body.removeChild(this._mockMount);
-    console.log('globalToLocal', p)
-    return ret;
+        // document.body.removeChild(this._mockMount);
+        console.log('globalToLocal', p)
+        return ret;
+    }
+    else {
+        return p;
+    }
   }
 
   setLocalRoot(deParent, deTarget, onDone) {
@@ -69,6 +68,17 @@ export default class CssCoordinator {
 
     walkBack(deParent);
 
+    this.hasPretransformation = transformeds.length !== 0;
+
+    var done = () => {
+        this.isProcessing = false;
+
+        if (this.onProcessingDone) {
+          this.onProcessingDone(base);
+          this.onProcessingDone = undefined;
+        }
+    }
+
     if (deTarget) {
       //calculate the offset from the local root. It can be used as
       // the base prop of Transhand
@@ -78,38 +88,46 @@ export default class CssCoordinator {
       let brA = deTarget.getBoundingClientRect(),
         brB = deParent.getBoundingClientRect();
 
-      base = {
-        x: brA.left - brB.left,
-        y: brA.top - brB.top,
-        w: brA.width,
-        h: brA.height,
-      };
+      if (this.hasPretransformation) {
+          base = {
+            x: brA.left - brB.left,
+            y: brA.top - brB.top,
+            w: brA.width,
+            h: brA.height,
+          };
+      }
+      else {
+          base = {
+            x: brA.left,
+            y: brA.top,
+            w: brA.width,
+            h: brA.height,
+          };
+      }
 
       deTarget.style.transform = inlineTransform;
     }
 
-    React.render(<MockDiv
-      parentLeft = {-window.scrollX}
-      parentTop = {-window.scrollY}
-      transformList={transformeds}>
+    if (this.hasPretransformation) {
+        React.render(<MockDiv
+          parentLeft = {-window.scrollX}
+          parentTop = {-window.scrollY}
+          transformList={transformeds}>
 
-      <div id='picker' style={{position: 'absolute'}}/>
-    </MockDiv>, this._mockMount, () => {
+          <div id='picker' style={{position: 'absolute'}}/>
+        </MockDiv>, this._mockMount, () => {
 
-      this._dePicker = this._mockMount.querySelector('#picker');
-      this.isProcessing = false;
-
-      if (this.onProcessingDone) {
-        this.onProcessingDone(base);
-        this.onProcessingDone = undefined;
-      }
-    });
-
+          this._dePicker = this._mockMount.querySelector('#picker');
+          done();
+        });
+    }
+    else {
+      done();
+    }
 
     transformeds.forEach(reg => {
       reg.de.style.transform = reg.inlineTransform;
     });
-
 
     function walkBack(de) {
 
