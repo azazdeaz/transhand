@@ -116,7 +116,7 @@ export default class CssCoordinator {
         if (!de || de === window.document.body) return;
 
         if (de.nodeName === '#document') {
-
+          //handle if it is inside an iframe
           var iframes = de.defaultView.parent.document.querySelectorAll('iframe');
           var iframe = findWhere(iframes, {contentDocument: de});
 
@@ -158,61 +158,6 @@ export default class CssCoordinator {
             reg.style[propName] = value;
         }
     }
-    //
-    // function assemble() {
-    //
-    //     var transformReg = transformeds[assembleIdx++],
-    //         deNext = transformReg ? transformReg.de : de,
-    //         nextPos = deNext.getBoundingClientRect();
-    //
-    //     var deNew = getDiv();
-    //     deTop.appendChild(deNew);
-    //     deTop = deNew;
-    //
-    //     deNew.style.left = (nextPos.left - parentPos.left) + 'px';
-    //     deNew.style.top = (nextPos.top - parentPos.top) + 'px';
-    //
-    //     parentPos = nextPos;
-    //
-    //     if (transformReg) {
-    //
-    //         //for the transform and perspective origin
-    //         deNew.style.width = nextPos.width + 'px';
-    //         deNew.style.height = nextPos.height + 'px';
-    //
-    //         Object.keys(transformReg.style).forEach(function (propName) {
-    //
-    //             deNew.style[propName] = transformReg.style[propName];
-    //         });
-    //
-    //         assemble();
-    //     }
-    // }
-    //
-    //
-    // function disassemble(de) {
-    //
-    //     de.removeAttribute('style');
-    //     de.removeAttribute('picker');//debug
-    //     that._buffMockDiv.push(de);
-    //
-    //     var child = de.firstChild;
-    //     if (child) {
-    //         de.removeChild(child);
-    //         disassemble(child);
-    //     }
-    // }
-    //
-    // function getDiv() {
-    //
-    //     var de = that._buffMockDiv.pop() || document.createElement('div');
-    //     de.style.position = 'absolute';
-    //     de.style.left = '0px';
-    //     de.style.top = '0px';
-    //     de.setAttribute('mock', 1);//debug
-    //
-    //     return de;
-    // }
   }
 }
 

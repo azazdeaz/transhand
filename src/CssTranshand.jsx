@@ -1,11 +1,16 @@
 import React from 'react';
 import Transhand from './Transhand';
 import CssCoordinator from './CssCoordinator';
+import isElement from 'lodash/lang/isElement';
 
 export default class CssTranshand extends React.Component {
 
   static propTypes = {
-    deTarget: React.PropTypes.node.isRequired,
+    deTarget: (props, name) => {
+      if (!isElement(props[name])) {
+        return new Error('deTarget should be a DOM Element!');
+      }
+    },
     props: React.PropTypes.shape({
       tx: React.PropTypes.number,
       ty: React.PropTypes.number,
@@ -22,7 +27,9 @@ export default class CssTranshand extends React.Component {
 
     this.coordinator = new CssCoordinator();
 
-    this.state = {x: 0, y: 0, w: 0, h: 0};
+    this.state = {
+      base: {x: 0, y: 0, w: 0, h: 0}
+    };
 
     this.takeNextDeTarget(props.deTarget);
   }
@@ -47,6 +54,10 @@ export default class CssTranshand extends React.Component {
   }
 
   render() {
+
+    if (this.coordinator.isProcessing) {
+      return <div hidden={true}/>;
+    }
 
     var {params, onChange, onStartDrag, onEndDrag} = this.props;
     var {base} = this.state;

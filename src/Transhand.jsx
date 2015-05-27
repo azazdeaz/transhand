@@ -58,7 +58,7 @@ export default class Transhand extends React.Component {
     this.deferredHandleDrag = this.deferredHandleDrag.bind(this);
   }
 
-  componentDidMount() {
+  componentWillMount() {
 
     this.refreshPoints();
 
@@ -71,16 +71,6 @@ export default class Transhand extends React.Component {
   }
 
   shouldComponentUpdate(nextProps, nextState) {
-    var {coordinator} = nextProps;
-
-    if (coordinator.isProcessing) {
-      coordinator.onProcessingDone = () => {
-        this.forceUpdate();
-        console.log('this.forceUpdate();');
-      };
-      return false;
-    }
-
     var {points, pOrigin} = this.state;
 
     return !(
@@ -529,47 +519,12 @@ export default class Transhand extends React.Component {
   }
 
   render() {
-    var {coordinator} = this.props;
-
-    if (coordinator.isProcessing) {
-      coordinator.onProcessingDone = () => {
-        this.forceUpdate();
-        console.log('this.forceUpdate();');
-      };
-
-      return <div hidden={true}/>;
-    }
-
-    var {styles, rotateFingerDist, originRadius, stroke} = this.props,
+    var {styles, rotateFingerDist, originRadius, stroke,
+          coordinator} = this.props,
         {cursor} = this.state,
         p = this.state.points.map(p => coordinator.localToGlobal(p)),
         po = coordinator.localToGlobal(this.state.pOrigin),
         or = this.props.originRadius;
-
-    // c.style.left = (minX - margin) + 'px';
-    // c.style.top = (minY - margin) + 'px';
-    // c.width = (maxX - minX) + (margin * 2);
-    // c.height = (maxY - minY) + (margin * 2);
-
-    // ctx.save();
-    // ctx.translate(margin - minX, margin - minY);
-    // ctx.beginPath();
-    // ctx.moveTo(p[0].x, p[0].y);
-    // ctx.lineTo(p[1].x, p[1].y);
-    // ctx.lineTo(p[2].x, p[2].y);
-    // ctx.lineTo(p[3].x, p[3].y);
-    // ctx.closePath();
-    //
-    // ctx.moveTo(po.x - or, po.y);
-    // ctx.lineTo(po.x + or, po.y);
-    // ctx.moveTo(po.x, po.y - or);
-    // ctx.lineTo(po.x, po.y + or);
-    //
-    // ctx.strokeStyle = '#4f2';
-    // ctx.lineWidth = 1;
-    // ctx.stroke();
-    // ctx.restore();
-
 
     var boxHitPoints =
       `${p[0].x},${p[0].y} ` +

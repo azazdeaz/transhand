@@ -1,6 +1,5 @@
 import React from 'react';
-import Transhand from 'SRC/Transhand';
-import CssCoordinator from 'SRC/CssCoordinator';
+import CssTranshand from 'SRC/CssTranshand';
 import assign from 'lodash/object/assign';
 
 export default class App extends React.Component {
@@ -8,8 +7,6 @@ export default class App extends React.Component {
   constructor() {
 
     super();
-
-    this.coordinator = new CssCoordinator();
 
     this.state = {
       currDomElem: undefined,
@@ -65,14 +62,9 @@ export default class App extends React.Component {
 
     if (currDomElem) {
 
-      let deParent = currDomElem.parentNode;
-
-      let base = this.coordinator.setLocalRoot(deParent, currDomElem);
-
-      return <Transhand
-        base = {base}
+      return <CssTranshand
+        deTarget = {currDomElem}
         params = {currDomElem._handlerParams}
-        coordinator = {this.coordinator}
         onChange = {change => this.handleChange(change)}/>;
     }
     else {
