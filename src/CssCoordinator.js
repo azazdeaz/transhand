@@ -25,39 +25,40 @@ export default class CssCoordinator {
   }
 
   localToGlobal(p) {
-    if (this.hasPretransformation) {
-        var dePicker = this._dePicker;
-        if (!dePicker) return p;
+    // document.body.appendChild(this._mockMount);
 
-        dePicker.style.left = p.x + 'px';
-        dePicker.style.top = p.y + 'px';
+    var dePicker = this._dePicker;
+    if (!dePicker) return p;
 
-        var br = dePicker.getBoundingClientRect();
+    dePicker.style.left = p.x + 'px';
+    dePicker.style.top = p.y + 'px';
 
-        return {
-          x: br.left,
-          y: br.top,
-        };
-    }
-    else {
-      return p;
-    }
+    var br = dePicker.getBoundingClientRect();
+
+    // document.body.removeChild(this._mockMount);
+
+    console.log('localToGlobal', p, {
+      x: br.left,
+      y: br.top,
+    });
+    return {
+      x: br.left,
+      y: br.top,
+    };
   }
 
   globalToLocal(p) {
-    if (this.hasPretransformation) {
-        let dePicker = this._dePicker;
-        if (!dePicker) return p;
 
-        let ret = heuristicGlobalToLocal(p, dePicker);
+    // document.body.appendChild(this._mockMount);
 
-        // document.body.removeChild(this._mockMount);
-        console.log('globalToLocal', p)
-        return ret;
-    }
-    else {
-        return p;
-    }
+    var dePicker = this._dePicker;
+    if (!dePicker) return p;
+
+    var ret = heuristicGlobalToLocal(p, dePicker);
+
+    // document.body.removeChild(this._mockMount);
+    console.log('globalToLocal', p)
+    return ret;
   }
 
   setLocalRoot(deParent, deTarget, onDone) {
@@ -68,17 +69,6 @@ export default class CssCoordinator {
 
     walkBack(deParent);
 
-    this.hasPretransformation = transformeds.length !== 0;
-
-    var done = () => {
-        this.isProcessing = false;
-
-        if (this.onProcessingDone) {
-          this.onProcessingDone(base);
-          this.onProcessingDone = undefined;
-        }
-    }
-
     if (deTarget) {
       //calculate the offset from the local root. It can be used as
       // the base prop of Transhand
@@ -88,53 +78,45 @@ export default class CssCoordinator {
       let brA = deTarget.getBoundingClientRect(),
         brB = deParent.getBoundingClientRect();
 
-      if (this.hasPretransformation) {
-          base = {
-            x: brA.left - brB.left,
-            y: brA.top - brB.top,
-            w: brA.width,
-            h: brA.height,
-          };
-      }
-      else {
-          base = {
-            x: brA.left,
-            y: brA.top,
-            w: brA.width,
-            h: brA.height,
-          };
-      }
+      base = {
+        x: brA.left - brB.left,
+        y: brA.top - brB.top,
+        w: brA.width,
+        h: brA.height,
+      };
 
       deTarget.style.transform = inlineTransform;
     }
 
-    if (this.hasPretransformation) {
-        React.render(<MockDiv
-          parentLeft = {-window.scrollX}
-          parentTop = {-window.scrollY}
-          transformList={transformeds}>
+    React.render(<MockDiv
+      parentLeft = {-window.scrollX}
+      parentTop = {-window.scrollY}
+      transformList={transformeds}>
 
-          <div id='picker' style={{position: 'absolute'}}/>
-        </MockDiv>, this._mockMount, () => {
+      <div id='picker' style={{position: 'absolute'}}/>
+    </MockDiv>, this._mockMount, () => {
 
-          this._dePicker = this._mockMount.querySelector('#picker');
-          done();
-        });
-    }
-    else {
-      done();
-    }
+      this._dePicker = this._mockMount.querySelector('#picker');
+      this.isProcessing = false;
+
+      if (this.onProcessingDone) {
+        this.onProcessingDone(base);
+        this.onProcessingDone = undefined;
+      }
+    });
+
 
     transformeds.forEach(reg => {
       reg.de.style.transform = reg.inlineTransform;
     });
+
 
     function walkBack(de) {
 
         if (!de || de === window.document.body) return;
 
         if (de.nodeName === '#document') {
-          //handle if it is inside an iframe
+
           var iframes = de.defaultView.parent.document.querySelectorAll('iframe');
           var iframe = findWhere(iframes, {contentDocument: de});
 
@@ -176,6 +158,61 @@ export default class CssCoordinator {
             reg.style[propName] = value;
         }
     }
+    //
+    // function assemble() {
+    //
+    //     var transformReg = transformeds[assembleIdx++],
+    //         deNext = transformReg ? transformReg.de : de,
+    //         nextPos = deNext.getBoundingClientRect();
+    //
+    //     var deNew = getDiv();
+    //     deTop.appendChild(deNew);
+    //     deTop = deNew;
+    //
+    //     deNew.style.left = (nextPos.left - parentPos.left) + 'px';
+    //     deNew.style.top = (nextPos.top - parentPos.top) + 'px';
+    //
+    //     parentPos = nextPos;
+    //
+    //     if (transformReg) {
+    //
+    //         //for the transform and perspective origin
+    //         deNew.style.width = nextPos.width + 'px';
+    //         deNew.style.height = nextPos.height + 'px';
+    //
+    //         Object.keys(transformReg.style).forEach(function (propName) {
+    //
+    //             deNew.style[propName] = transformReg.style[propName];
+    //         });
+    //
+    //         assemble();
+    //     }
+    // }
+    //
+    //
+    // function disassemble(de) {
+    //
+    //     de.removeAttribute('style');
+    //     de.removeAttribute('picker');//debug
+    //     that._buffMockDiv.push(de);
+    //
+    //     var child = de.firstChild;
+    //     if (child) {
+    //         de.removeChild(child);
+    //         disassemble(child);
+    //     }
+    // }
+    //
+    // function getDiv() {
+    //
+    //     var de = that._buffMockDiv.pop() || document.createElement('div');
+    //     de.style.position = 'absolute';
+    //     de.style.left = '0px';
+    //     de.style.top = '0px';
+    //     de.setAttribute('mock', 1);//debug
+    //
+    //     return de;
+    // }
   }
 }
 
