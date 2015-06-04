@@ -136,6 +136,7 @@ export default class CssCoordinator {
         };
       }
       else {
+          console.log(JSON.stringify(brA))
         this._base = {
           x: brA.left,
           y: brA.top,

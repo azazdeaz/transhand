@@ -30,8 +30,8 @@ export default class CssTranshand extends React.Component {
     this.state = {
       base: {x: 0, y: 0, w: 0, h: 0}
     };
-
-    this.takeNextDeTarget(props.deTarget);
+    //TODO do this somehow better!
+    setTimeout(() => this.takeNextDeTarget(props.deTarget));
   }
 
   componentWillReceiveProps(nextProps) {
@@ -40,10 +40,13 @@ export default class CssTranshand extends React.Component {
 
   takeNextDeTarget(nextDeTarget) {
 
-    if (this.props.deTarget !== nextDeTarget) {
+    if (this._lastTakenDeTarget !== nextDeTarget) {
+
+      this._lastTakenDeTarget = nextDeTarget;
+
       this.coordinator.setLocalRoot(
         nextDeTarget.parentElement, nextDeTarget, (base) => {
-          this.setState({base});
+          this.setState({base, foo:3});
         }
       );
     }

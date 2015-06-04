@@ -18,11 +18,6 @@ export default class Styles {
       height: '100%',
     };
 
-    this.group = {
-      pointerEvents: 'none',
-      overflow: 'visible'
-    };
-
     this.fullHit = {
       position: 'absolute',
       pointerEvents: 'auto',

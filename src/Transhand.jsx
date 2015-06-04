@@ -94,6 +94,8 @@ export default class Transhand extends React.Component {
         p = this.state.points.map(p => clone(p)),
         po = clone(this.state.pOrigin);
 
+    base = clone(base);
+
     base.x += params.tx;
     base.y += params.ty;
 
@@ -167,7 +169,6 @@ export default class Transhand extends React.Component {
   handleMouseMove = (e) => {
 
     if (!this._isHandle && this.state.hoverHitbox) {
-      console.log('setfingetr')
       this.setFinger(e);
     }
     else {
@@ -525,43 +526,41 @@ export default class Transhand extends React.Component {
       `${p[2].x},${p[2].y} ` +
       `${p[3].x},${p[3].y}`;
 
-    styles.group.cursor = cursor;
+    styles.root.cursor = cursor;
 
-    return <div ref='root' style={styles.root}>
-      <svg ref='group' style={styles.group}>
-        <polygon ref='canvas'
-          fill='none'
-          {...stroke}
-          points = {boxHitPoints}>
-        </polygon>
+    return <svg ref='root' style={styles.root}>
+      <polygon ref='canvas'
+        fill='none'
+        {...stroke}
+        points = {boxHitPoints}>
+      </polygon>
 
-        <line x1={po.x - or} y1={po.y} x2={po.x + or} y2={po.y} {...stroke}/>
-        <line x1={po.x} y1={po.y - or} x2={po.x} y2={po.y + or} {...stroke}/>
+      <line x1={po.x - or} y1={po.y} x2={po.x + or} y2={po.y} {...stroke}/>
+      <line x1={po.x} y1={po.y - or} x2={po.x} y2={po.y + or} {...stroke}/>
 
-        <polygon ref='boxHit'
-          fill="black" opacity="0"
-          stroke="black"
-          strokeLinejoin='round'
-          strokeLocation='outside'
-          strokeWidth={rotateFingerDist}
-          points = {boxHitPoints}
-          style={{
-            cursor,
-            pointerEvents: 'auto',
-          }}
-          {...this.getHitEvents()}/>
+      <polygon ref='boxHit'
+        fill="black" opacity="0"
+        stroke="black"
+        strokeLinejoin='round'
+        strokeLocation='outside'
+        strokeWidth={rotateFingerDist}
+        points = {boxHitPoints}
+        style={{
+          cursor,
+          pointerEvents: 'auto',
+        }}
+        {...this.getHitEvents()}/>
 
-        <circle ref='originHit'
-          fill="black" opacity="0"
-          cx = {po.x}
-          cy = {po.y}
-          r = {originRadius}
-          style={{
-            cursor,
-            pointerEvents: 'auto',
-          }}
-          {...this.getHitEvents()}/>
-      </svg>
-    </div>;
+      <circle ref='originHit'
+        fill="black" opacity="0"
+        cx = {po.x}
+        cy = {po.y}
+        r = {originRadius}
+        style={{
+          cursor,
+          pointerEvents: 'auto',
+        }}
+        {...this.getHitEvents()}/>
+    </svg>;
   }
 }
