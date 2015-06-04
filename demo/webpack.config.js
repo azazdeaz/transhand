@@ -18,7 +18,7 @@ module.exports = {
       {
         test: /\.jsx?$/,
         exclude: /node_modules/,
-        loader: 'babel-loader?stage=0'
+        loader: 'babel-loader'
       }, {
         test: /\.(html|png)/,
         exclude: /node_modules/,

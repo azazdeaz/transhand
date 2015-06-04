@@ -8,8 +8,8 @@
     "url": "git://github.com/animachine/transhand.git"
   },
   "scripts": {
-    "lib": "babel ./src --out-dir lib  --source-maps --stage 0 --source-maps",
-    "lib-watch": "npm run lib && babel ./src --out-dir lib  --source-maps --stage 0 --source-maps --watch"
+    "lib": "babel ./src --out-dir lib  --source-maps --source-maps",
+    "lib-watch": "npm run lib && babel ./src --out-dir lib  --source-maps --source-maps --watch"
   },
   "author": "",
   "license": "ISC",

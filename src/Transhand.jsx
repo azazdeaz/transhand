@@ -25,10 +25,10 @@ export default class Transhand extends React.Component {
 
   static defaultProps = {
     params: {
-        tx: 0, ty: 0,
-        sx: 1, sy: 1,
-        rz: 0,
-        ox: 0.5, oy: 0.5,
+      tx: 0, ty: 0,
+      sx: 1, sy: 1,
+      rz: 0,
+      ox: 0.5, oy: 0.5,
     },
     base: {
       x: 0, y: 0, w: 0, h: 0,
@@ -50,12 +50,6 @@ export default class Transhand extends React.Component {
       points: [{}, {}, {}, {}],
       pOrigin: {},
     };
-
-    this.handleMouseDown = this.handleMouseDown.bind(this);
-    this.handleMouseUp = this.handleMouseUp.bind(this);
-    this.handleMouseUp = this.handleMouseUp.bind(this);
-    this.handleDrag = this.handleDrag.bind(this);
-    this.deferredHandleDrag = this.deferredHandleDrag.bind(this);
   }
 
   componentWillMount() {
@@ -120,7 +114,6 @@ export default class Transhand extends React.Component {
     });
 
     function t(p, x, y) {
-
       var dx = (x - tox) * params.sx,
           dy = (y - toy) * params.sy,
           d = Math.sqrt(dx*dx + dy*dy),
@@ -132,8 +125,8 @@ export default class Transhand extends React.Component {
           px = tox + rx,
           py = toy + ry;
 
-        p.x = px;
-        p.y = py;
+      p.x = px;
+      p.y = py;
     }
   }
 
@@ -142,7 +135,7 @@ export default class Transhand extends React.Component {
 
   // Event Handlers ////////////////////////////////////////////////////////////
 
-  handleMouseDown(e) {
+  handleMouseDown = (e) => {
 
     if (!this.state.finger) {
         return;
@@ -171,10 +164,10 @@ export default class Transhand extends React.Component {
     }
   }
 
-  handleMouseMove(e) {
+  handleMouseMove = (e) => {
 
     if (!this._isHandle && this.state.hoverHitbox) {
-
+      console.log('setfingetr')
       this.setFinger(e);
     }
     else {
@@ -182,7 +175,7 @@ export default class Transhand extends React.Component {
     }
   }
 
-  handleMouseUp() {
+  handleMouseUp = () => {
 
     window.removeEventListener('mouseup', this.handleMouseUp);
     window.removeEventListener('mouseleave', this.handleMouseUp);
@@ -201,7 +194,7 @@ export default class Transhand extends React.Component {
     }
   }
 
-  handleDrag(e) {
+  handleDrag = (e) => {
 
     this._onDragMe = e;
 
@@ -211,7 +204,7 @@ export default class Transhand extends React.Component {
     }
   }
 
-  deferredHandleDrag () {
+  deferredHandleDrag = () => {
 
     var e = this._onDragMe;
     this._onDragMe = undefined;
@@ -357,7 +350,7 @@ export default class Transhand extends React.Component {
 
       var mx = m.x - md.pOrigin.x,
           my = m.y - md.pOrigin.y,
-          dist = Math.sqrt(mx*mx + my*my),
+          dist = Math.sqrt(mx ** 2 + my ** 2),
           r = Math.atan2(my, mx) - params.rz,
           x = (Math.cos(r) * dist) / params.sx,
           y = (Math.sin(r) * dist) / params.sy;
@@ -534,8 +527,6 @@ export default class Transhand extends React.Component {
 
     styles.group.cursor = cursor;
 
-
-
     return <div ref='root' style={styles.root}>
       <svg ref='group' style={styles.group}>
         <polygon ref='canvas'
@@ -573,4 +564,4 @@ export default class Transhand extends React.Component {
       </svg>
     </div>;
   }
-};
+}
