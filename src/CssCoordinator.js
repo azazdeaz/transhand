@@ -25,195 +25,162 @@ export default class CssCoordinator {
   }
 
   localToGlobal(p) {
-    // document.body.appendChild(this._mockMount);
 
-    var dePicker = this._dePicker;
-    if (!dePicker) return p;
+    if (this._hasTransform) {
+      let dePicker = this._dePicker;
+      if (!dePicker) return p;
 
-    dePicker.style.left = p.x + 'px';
-    dePicker.style.top = p.y + 'px';
+      dePicker.style.left = p.x + 'px';
+      dePicker.style.top = p.y + 'px';
 
-    var br = dePicker.getBoundingClientRect();
+      let br = dePicker.getBoundingClientRect();
 
-    // document.body.removeChild(this._mockMount);
-
-    console.log('localToGlobal', p, {
-      x: br.left,
-      y: br.top,
-    });
-    return {
-      x: br.left,
-      y: br.top,
-    };
+      return {
+        x: br.left,
+        y: br.top,
+      };
+    }
+    else {
+      return p;
+    }
   }
 
   globalToLocal(p) {
 
-    // document.body.appendChild(this._mockMount);
+    if (this._hasTransform) {
+      let dePicker = this._dePicker;
+      if (!dePicker) return p;
 
-    var dePicker = this._dePicker;
-    if (!dePicker) return p;
+      let ret = heuristicGlobalToLocal(p, dePicker);
 
-    var ret = heuristicGlobalToLocal(p, dePicker);
-
-    // document.body.removeChild(this._mockMount);
-    console.log('globalToLocal', p)
-    return ret;
+      console.log('globalToLocal', p);
+      return ret;
+    }
+    else {
+      return p;
+    }
   }
 
   setLocalRoot(deParent, deTarget, onDone) {
-    var transformeds = [], base;
+    var done = () => {
+      this.isProcessing = false;
+
+      if (this.onProcessingDone) {
+        this.onProcessingDone(this._base);
+        this.onProcessingDone = undefined;
+      }
+    };
+
+    var walkBack = (de) => {
+
+      if (!de || de === window.document.body) return;
+
+      if (de.nodeName === '#document') {
+
+        var iframes = de.defaultView.parent.document.querySelectorAll('iframe');
+        var iframe = findWhere(iframes, {contentDocument: de});
+
+        if (iframe) {
+          walkBack(iframe);
+          return;
+        }
+        else {
+          return;
+        }
+      }
+
+      var reg;
+      var computedStyle = window.getComputedStyle(de);
+
+      TRANSFORM_PROPS.forEach(function (propName) {
+
+        var value = computedStyle.getPropertyValue(propName);
+        if (value && NULL_VALUES.indexOf(value) === -1) {
+          set(propName, value);
+        }
+      });
+
+      walkBack(de.parentNode);
+
+      function set(propName, value) {
+
+        if (!reg) {
+          reg = {
+            de: de,
+            inlineTransform: de.style.transform,
+            style: {}
+          };
+
+          transformeds.unshift(reg);
+        }
+
+        de.style.transform = 'none';
+        reg.style[propName] = value;
+      }
+    };
+
+    var setBase = () => {
+      let inlineTransform = deTarget.style.transform;
+      deTarget.style.transform = 'none';
+
+      let brA = deTarget.getBoundingClientRect();
+
+      if (this._hasTransform) {
+        let brB = deParent.getBoundingClientRect();
+
+        this._base = {
+          x: brA.left - brB.left,
+          y: brA.top - brB.top,
+          w: brA.width,
+          h: brA.height,
+        };
+      }
+      else {
+        this._base = {
+          x: brA.left,
+          y: brA.top,
+          w: brA.width,
+          h: brA.height,
+        };
+      }
+
+      deTarget.style.transform = inlineTransform;
+    };
+
+    ////////////////////////////////////////////////////////////////////////////
+
+    var transformeds = [];
 
     this.isProcessing = true;
     this.onProcessingDone = onDone;
 
     walkBack(deParent);
 
-    if (deTarget) {
-      //calculate the offset from the local root. It can be used as
-      // the base prop of Transhand
-      let inlineTransform = deTarget.style.transform;
-      deTarget.style.transform = 'none';
+    this._hasTransform = transformeds.length !== 0;
 
-      let brA = deTarget.getBoundingClientRect(),
-        brB = deParent.getBoundingClientRect();
+    setBase();
 
-      base = {
-        x: brA.left - brB.left,
-        y: brA.top - brB.top,
-        w: brA.width,
-        h: brA.height,
-      };
+    if (this._hasTransform) {
+      React.render(<MockDiv
+        parentLeft = {-window.scrollX}
+        parentTop = {-window.scrollY}
+        transformList={transformeds}>
 
-      deTarget.style.transform = inlineTransform;
+        <div id='picker' style={{position: 'absolute'}}/>
+      </MockDiv>, this._mockMount, () => {
+
+        this._dePicker = this._mockMount.querySelector('#picker');
+        done();
+      });
     }
-
-    React.render(<MockDiv
-      parentLeft = {-window.scrollX}
-      parentTop = {-window.scrollY}
-      transformList={transformeds}>
-
-      <div id='picker' style={{position: 'absolute'}}/>
-    </MockDiv>, this._mockMount, () => {
-
-      this._dePicker = this._mockMount.querySelector('#picker');
-      this.isProcessing = false;
-
-      if (this.onProcessingDone) {
-        this.onProcessingDone(base);
-        this.onProcessingDone = undefined;
-      }
-    });
-
+    else {
+      done();
+    }
 
     transformeds.forEach(reg => {
       reg.de.style.transform = reg.inlineTransform;
     });
-
-
-    function walkBack(de) {
-
-        if (!de || de === window.document.body) return;
-
-        if (de.nodeName === '#document') {
-
-          var iframes = de.defaultView.parent.document.querySelectorAll('iframe');
-          var iframe = findWhere(iframes, {contentDocument: de});
-
-          if (iframe) {
-            walkBack(iframe);
-            return;
-          }
-          else {
-            return;
-          }
-        }
-
-        var reg,
-            computedStyle = window.getComputedStyle(de);
-
-        TRANSFORM_PROPS.forEach(function (propName) {
-
-            var value = computedStyle.getPropertyValue(propName);
-            if (value && NULL_VALUES.indexOf(value) === -1) {
-              set(propName, value);
-            }
-        });
-
-        walkBack(de.parentNode);
-
-        function set(propName, value) {
-
-            if (!reg) {
-                reg = {
-                    de: de,
-                    inlineTransform: de.style.transform,
-                    style: {}
-                };
-
-                transformeds.unshift(reg);
-            }
-
-            de.style.transform = 'none';
-            reg.style[propName] = value;
-        }
-    }
-    //
-    // function assemble() {
-    //
-    //     var transformReg = transformeds[assembleIdx++],
-    //         deNext = transformReg ? transformReg.de : de,
-    //         nextPos = deNext.getBoundingClientRect();
-    //
-    //     var deNew = getDiv();
-    //     deTop.appendChild(deNew);
-    //     deTop = deNew;
-    //
-    //     deNew.style.left = (nextPos.left - parentPos.left) + 'px';
-    //     deNew.style.top = (nextPos.top - parentPos.top) + 'px';
-    //
-    //     parentPos = nextPos;
-    //
-    //     if (transformReg) {
-    //
-    //         //for the transform and perspective origin
-    //         deNew.style.width = nextPos.width + 'px';
-    //         deNew.style.height = nextPos.height + 'px';
-    //
-    //         Object.keys(transformReg.style).forEach(function (propName) {
-    //
-    //             deNew.style[propName] = transformReg.style[propName];
-    //         });
-    //
-    //         assemble();
-    //     }
-    // }
-    //
-    //
-    // function disassemble(de) {
-    //
-    //     de.removeAttribute('style');
-    //     de.removeAttribute('picker');//debug
-    //     that._buffMockDiv.push(de);
-    //
-    //     var child = de.firstChild;
-    //     if (child) {
-    //         de.removeChild(child);
-    //         disassemble(child);
-    //     }
-    // }
-    //
-    // function getDiv() {
-    //
-    //     var de = that._buffMockDiv.pop() || document.createElement('div');
-    //     de.style.position = 'absolute';
-    //     de.style.left = '0px';
-    //     de.style.top = '0px';
-    //     de.setAttribute('mock', 1);//debug
-    //
-    //     return de;
-    // }
-  }
+  };
 }
 
 class MockDiv extends React.Component {
