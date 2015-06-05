@@ -146,6 +146,7 @@ export default class Transhand extends React.Component {
     e.stopPropagation();
     e.preventDefault();
 
+    this._isDraggedSinceDown = false;
     this._isHandle = true;
 
     React.findDOMNode(this.refs.root).style.pointerEvents = 'auto';
@@ -168,6 +169,8 @@ export default class Transhand extends React.Component {
 
   handleMouseMove = (e) => {
 
+    this._isDraggedSinceDown = true;
+
     if (!this._isHandle && this.state.hoverHitbox) {
       this.setFinger(e);
     }
@@ -176,14 +179,13 @@ export default class Transhand extends React.Component {
     }
   }
 
-  handleMouseUp = () => {
-
+  handleMouseUp = (e) => {
     window.removeEventListener('mouseup', this.handleMouseUp);
     window.removeEventListener('mouseleave', this.handleMouseUp);
     window.removeEventListener('mousemove', this.handleDrag);
 
     if (this._rafOnDragRafId) {
-        this.deferredHandleDrag();
+      this.deferredHandleDrag();
     }
 
     this._isHandle = false;
@@ -192,6 +194,10 @@ export default class Transhand extends React.Component {
 
     if (this.props.onEndDrag) {
       this.props.onEndDrag();
+    }
+
+    if (!this._isDraggedSinceDown && this.props.onClick) {
+      this.props.onClick(e);
     }
   }
 

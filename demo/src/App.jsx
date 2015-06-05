@@ -14,21 +14,39 @@ export default class App extends React.Component {
   }
 
   componentDidMount() {
-    window.addEventListener('click', e => this.handleClickWindow(e));
+    window.addEventListener('click', this.handleSelectClick);
   }
 
-  handleClickWindow(e) {
+  handleSelectClick = (e) => {
+    var deTarget = this.elementFromPoint(e.clientX, e.clientY);
 
-    if (e.target._handlerDemo) {
-
-      this.setState({currDomElem: e.target});
+    if (deTarget && deTarget._handlerDemo) {
+      this.setState({currDomElem: deTarget});
     }
-    else if (e.target.nodeName === 'BODY') {
+    else {
       this.setState({currDomElem: undefined});
     }
   }
 
-  handleChange(change) {
+  elementFromPoint(x, y) {
+    var deHandler = React.findDOMNode(this.refs.handler);
+    var deTarget;
+    var get = () => deTarget = document.elementFromPoint(x, y);
+
+    if (deHandler) {
+      let save = deHandler.style.display;
+      deHandler.style.display = 'none';
+      get();
+      deHandler.style.display = save;
+    }
+    else {
+      get();
+    }
+
+    return deTarget;
+  }
+
+  handleChange = (change) => {
 
     console.log('change event:', change);
 
@@ -63,9 +81,11 @@ export default class App extends React.Component {
     if (currDomElem) {
 
       return <CssTranshand
+        ref = 'handler'
         deTarget = {currDomElem}
         params = {currDomElem._handlerParams}
-        onChange = {change => this.handleChange(change)}/>;
+        onChange = {this.handleChange}
+        onClick = {this.handleSelectClick}/>;
     }
     else {
       return <div hidden={true}/>;
