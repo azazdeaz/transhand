@@ -107,7 +107,6 @@ export default class CssCoordinator {
         if (!reg) {
           reg = {
             de: de,
-            br: de.getBoundingClientRect(),
             inlineTransform: de.style.transform,
             style: {}
           };
@@ -163,6 +162,10 @@ export default class CssCoordinator {
     setBase();
 
     if (this._hasTransform) {
+      transformeds.forEach(reg => {
+        reg.br = reg.de.getBoundingClientRect();
+      });
+
       React.render(<MockDiv
         parentLeft = {-window.scrollX}
         parentTop = {-window.scrollY}
@@ -178,7 +181,6 @@ export default class CssCoordinator {
     else {
       done();
     }
-
     transformeds.forEach(reg => {
       reg.de.style.transform = reg.inlineTransform;
     });
