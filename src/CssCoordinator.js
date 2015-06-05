@@ -107,6 +107,7 @@ export default class CssCoordinator {
         if (!reg) {
           reg = {
             de: de,
+            br: de.getBoundingClientRect(),
             inlineTransform: de.style.transform,
             style: {}
           };
@@ -194,15 +195,14 @@ class MockDiv extends React.Component {
   render() {
     var {transformList, transformListIdx, parentLeft, parentTop} = this.props,
       transformReg = transformList[transformListIdx],
-      node = transformReg.de,
-      pos = node.getBoundingClientRect();
+      {br} = transformReg;
 
     var renderChild = () => {
       if (transformListIdx < transformList.length - 1) {
         return <MockDiv
           picker={this.props.picker}
-          parentLeft = {pos.left}
-          parentTop = {pos.top}
+          parentLeft = {br.left}
+          parentTop = {br.top}
           transformList = {transformList}
           transformListIdx = {transformListIdx + 1}>
           {this.props.chidren}
@@ -215,10 +215,10 @@ class MockDiv extends React.Component {
 
     return <div style={assign({
       position: 'absolute',
-      left: pos.left - parentLeft,
-      top: pos.top - parentTop,
-      width: pos.width,
-      height: pos.height,
+      left: br.left - parentLeft,
+      top: br.top - parentTop,
+      width: br.width,
+      height: br.height,
     }, transformReg.style)}>
 
       {renderChild()}
