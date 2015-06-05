@@ -1,13 +1,14 @@
 require.context('./assets', false, /\.png$/);
 var random = require('lodash/number/random');
 var clone = require('lodash/lang/clone');
+var pullAt = require('lodash/array/pullAt');
+
 const INIT_PARAMS = {
   tx: 0, ty: 0,
   sx: 1, sy: 1,
   rz: 0,
   ox: 0.5, oy: 0.5,
 };
-const IMG_SIZE = 96;
 
 export default function scatterThings() {
 
@@ -16,39 +17,53 @@ export default function scatterThings() {
       return `./assets/obj_${name}.png`;
     });
 
+  var colors = ['#7FDBFF', '#0074D9', '#01FF70', '#001F3F', '#39CCCC', '#3D9970',
+    '#2ECC40', '#FF4136', '#85144B', '#FF851B', '#B10DC9', '#FFDC00', '#F012BE',
+    '#aaa', '#fff', '#111', '#ddd'];
+
+  var takeOne = arr => pullAt(arr, random(arr.length - 1));
+
   var rootNode = document.querySelector('#stuffs');
 
   for (let i = 0; i < 3; ++i) {
+    let deParent = rootNode;
 
-    var div = document.createElement('div');
-    div.style.width = (232 + 132 * Math.random()) + 'px';
-    div.style.height = (232 + 132 * Math.random()) + 'px';
-    div.style.background = '#' + Math.random().toString(16).substr(-3);
-    div.style.boxShadow = '1px 1px 4px 0px rgba(50, 50, 50, 0.75)';
-
-    div._handlerParams = clone(INIT_PARAMS);
-
-    place(div, rootNode);
-
-    div._handlerDemo = 'boxer';
-
-    div._handlerBase = {
-        x: div.offsetLeft,
-        y: div.offsetTop,
-        w: div.offsetWidth,
-        h: div.offsetHeight,
-    };
+    let w = 242 + 132 * Math.random();
+    let h = 242 + 132 * Math.random();
 
     for (let j = 0; j < 3; ++j) {
-      let img = createImg(srcs[random(srcs.length - 1)]);
-      place(img, div);
+      deParent = createDiv(w, h, deParent);
+      w -= 23;
+      h -= 23;
+    }
+
+    for (let j = 0; j < 3; ++j) {
+      createImg(deParent);
     }
   }
 
-function createImg(src) {
-    var img = new Image();
+  function createDiv(w, h, deParent) {
+    var div = document.createElement('div');
+    div.style.width = w + 'px';
+    div.style.height = h + 'px';
+    div.style.backgroundColor = takeOne(colors);
+    div.style.boxShadow = '1px 1px 4px 0px rgba(50, 50, 50, 0.75)';
+    div._handlerParams = clone(INIT_PARAMS);
 
-    img._handlerDemo = 'transformer';
+    place(div, deParent);
+
+    div._handlerBase = {
+      x: div.offsetLeft,
+      y: div.offsetTop,
+      w: div.offsetWidth,
+      h: div.offsetHeight,
+    };
+
+    return div;
+  }
+
+  function createImg(deParent) {
+    var img = new Image();
 
     img._handlerParams = clone(INIT_PARAMS);
 
@@ -72,9 +87,11 @@ function createImg(src) {
         w: br.width,
         h: br.height,
       };
+
+      place(img, deParent);
     };
 
-    img.src = src;
+    img.src = takeOne(srcs);
 
     return img;
   }
@@ -82,12 +99,14 @@ function createImg(src) {
   function place(de, deParent) {
     deParent.appendChild(de);
 
-    var w = deParent.offsetWidth - (de.offsetWidth || IMG_SIZE);
-    var h = deParent.offsetHeight - (de.offsetHeight || IMG_SIZE);
+    var w = deParent.offsetWidth - de.offsetWidth;
+    var h = deParent.offsetHeight - de.offsetHeight;
 
     de.style.left = parseInt(w * Math.random()) + 'px';
     de.style.top = parseInt(h * Math.random()) + 'px';
     de.style.position = 'absolute';
     de.style.cursor = 'pointer';
+
+    de._handlerDemo = true;
   }
 }

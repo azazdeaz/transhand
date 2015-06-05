@@ -167,6 +167,7 @@ export default class CssCoordinator {
       });
 
       React.render(<MockDiv
+        deParent = {deParent}
         parentLeft = {-window.scrollX}
         parentTop = {-window.scrollY}
         transformList={transformeds}>
@@ -195,7 +196,8 @@ class MockDiv extends React.Component {
   }
 
   render() {
-    var {transformList, transformListIdx, parentLeft, parentTop} = this.props,
+    var {transformList, transformListIdx, parentLeft, parentTop,
+      deParent} = this.props,
       transformReg = transformList[transformListIdx],
       {br} = transformReg;
 
@@ -205,13 +207,21 @@ class MockDiv extends React.Component {
           picker={this.props.picker}
           parentLeft = {br.left}
           parentTop = {br.top}
+          deParent = {deParent}
           transformList = {transformList}
           transformListIdx = {transformListIdx + 1}>
-          {this.props.chidren}
+          {this.props.children}
         </MockDiv>;
       }
       else {
-        return this.props.children;
+        let brParent = deParent.getBoundingClientRect();
+        return <div style={{
+          position: 'absolute',
+          left: brParent.left - br.left,
+          top: brParent.top - br.top,
+        }}>
+          {this.props.children}
+        </div>;
       }
     };
 
