@@ -165,8 +165,16 @@ export default class CssCoordinator {
         reg.br = reg.de.getBoundingClientRect();
       });
 
+      let brParent = deParent.getBoundingClientRect();
+      let brLastTransformed = transformeds[transformeds.length - 1];
+
+      let parentOffsetFromLastTransformed = {
+        x: brParent.left - brLastTransformed.left,
+        y: brParent.top - brLastTransformed.top,
+      };
+
       React.render(<MockDiv
-        deParent = {deParent}
+        parentOffsetFromLastTransformed = {parentOffsetFromLastTransformed}
         parentLeft = {-window.scrollX}
         parentTop = {-window.scrollY}
         transformList={transformeds}>
@@ -196,7 +204,7 @@ class MockDiv extends React.Component {
 
   render() {
     var {transformList, transformListIdx, parentLeft, parentTop,
-      deParent} = this.props,
+      parentOffsetFromLastTransformed} = this.props,
       transformReg = transformList[transformListIdx],
       {br} = transformReg;
 
@@ -206,18 +214,18 @@ class MockDiv extends React.Component {
           picker={this.props.picker}
           parentLeft = {br.left}
           parentTop = {br.top}
-          deParent = {deParent}
+          parentOffsetFromLastTransformed = {parentOffsetFromLastTransformed}
           transformList = {transformList}
           transformListIdx = {transformListIdx + 1}>
           {this.props.children}
         </MockDiv>;
       }
       else {
-        let brParent = deParent.getBoundingClientRect();
+        let {x, y} = parentOffsetFromLastTransformed;
         return <div style={{
           position: 'absolute',
-          left: brParent.left - br.left,
-          top: brParent.top - br.top,
+          left: x,
+          top: y,
         }}>
           {this.props.children}
         </div>;
