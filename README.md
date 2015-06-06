@@ -11,8 +11,6 @@ Developed as part of the [Animachine project](https://github.com/animachine/anim
 
 ####Demos:
 [transformer][demo-transformer]
-[nested transforms][demo-nested]
-[curver][demo-curver]
 
 ####Install
 ```
@@ -21,6 +19,7 @@ npm install --save transhand
 ```
 
 ####Usage
+###!Depracated!
 ```javascript
 var handler = new Transhand(),
     de = document.querySelector('#mazsola'),
@@ -45,7 +44,7 @@ handler.setup({
 });
 
 handler.on('change', function (changedParams) {
-  
+
   //The handler doesn't refresh itself,
   //you can make modifications on the dom using the "changedParams"
   //and setup the handler again.
@@ -55,6 +54,4 @@ handler.on('change', function (changedParams) {
 });
 ```
 
-[demo-transformer]: https://animachine.github.io/transhand/demos/0/
-[demo-nested]: https://animachine.github.io/transhand/demos/1/
-[demo-curver]: https://animachine.github.io/transhand/demos/curver/
+[demo-transformer]: https://azazdeaz.github.io/transhand/

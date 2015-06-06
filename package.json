@@ -34,6 +34,7 @@
     "gulp-babel": "^5.1.0",
     "gulp-callback": "0.0.3",
     "gulp-filesize": "0.0.6",
+    "gulp-gh-pages": "^0.5.2",
     "gulp-plumber": "^1.0.0",
     "gulp-rimraf": "^0.1.1",
     "gulp-sourcemaps": "^1.5.2",
