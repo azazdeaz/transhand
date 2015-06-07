@@ -1,13 +1,12 @@
-![](http://img.shields.io/badge/status-draft-red.svg?style=flat-square)
+![](https://img.shields.io/badge/status-not%20ready%20to%20use-red.svg?style=flat-square)
 
-Transhand is a transform tool for web applications.
-
-Work in progress.
+Transhand is a React based 2d transformation tool. It's aiming to have all the features that you would expect from a transform handler in a modern graphics editor.
 
 Developed as part of the [Animachine project](https://github.com/animachine/animachine).
 
-
 ![](http://fat.gfycat.com/SilverExhaustedEquestrian.gif)
+
+#### --- Work in progress --- 
 
 ####Demos:
 [transformer][demo-transformer]
@@ -18,40 +17,42 @@ bower install --save transhand
 npm install --save transhand
 ```
 
-####Usage
-###!Depracated!
-```javascript
-var handler = new Transhand(),
-    de = document.querySelector('#mazsola'),
-    br = de.getBoundingClientRect();
+###Current features:
+- translate, rotate, scale, move transform origin
+- shift + scale/move/rotate
+- alt + scale from the origin or opposite side
 
-//setup for css transform 2d editing
-handler.setup({
-    hand: {
-      type: 'transformer',
-      base: {x: br.left, y: br.top, w: br.width, h: br.height},
-      params: {tx: 123, ty: -3, sx: 1.2, sy: 1, rz: 0.12, ox: 0.5, oy: 0.6},
-    }
-  });
+####API ```//TODO```
+
+###Basic useage
+```javascript
+//the current transformation
+var transform = {
+  tx: 0, ty: 0,     //translate in px
+  sx: 1, sy: 1,     //scale
+  rz: 0,            //rotation in radian
+  ox: 0.5, oy: 0.5, //transform origin
+}
+//the bounding box without transformations
+var rect = {x: 10, y: 10, w: 100, h: 100}
+var onChange = (change) => {
+  //change object contains only the transformed properties
+  //ex. change = {tx: -12, sx: 1.12}
 }
 
-//setup for layout editing
-handler.setup({
-  hand: {
-    type: 'boxer',
-    params: {x: br.left, y: br.top, w: br.width, h: br.height},
-  }
-});
-
-handler.on('change', function (changedParams) {
-
-  //The handler doesn't refresh itself,
-  //you can make modifications on the dom using the "changedParams"
-  //and setup the handler again.
-  ```
-  [For more information check the source of the demo](https://github.com/animachine/transhand/blob/master/demo/0/script.js)
-  ```javascript
-});
+<Transhand
+  transform = {transform}
+  rect = {rect}
+  onChange = {onChange}/>
 ```
+
+###Basic useage with CSS Transform
+```javascript
+<CssTranshand 
+  transforms = {transforms}
+  deTarget = {transformedDOMElement}
+  onChange = {onChange}/>
+```
+```CssTranshand``` is a wrapper for ```Transhand```. It use the provided DOM Element to calculate the ```rect``` and handle if the parent elements also transformed and when ```deTarget``` is inside an iframe.
 
 [demo-transformer]: https://azazdeaz.github.io/transhand/
