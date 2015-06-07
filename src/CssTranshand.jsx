@@ -38,6 +38,10 @@ export default class CssTranshand extends React.Component {
     this.takeNextDeTarget(nextProps.deTarget);
   }
 
+  componentWillUnmount() {
+    this.coordinator.destroy();
+  }
+
   takeNextDeTarget(nextDeTarget) {
 
     if (this._lastTakenDeTarget !== nextDeTarget) {
@@ -46,7 +50,7 @@ export default class CssTranshand extends React.Component {
 
       this.coordinator.setLocalRoot(
         nextDeTarget.parentElement, nextDeTarget, (base) => {
-          this.setState({base, foo:3});
+          this.setState({base, foo: 3});
         }
       );
     }
@@ -62,15 +66,11 @@ export default class CssTranshand extends React.Component {
       return <div hidden={true}/>;
     }
 
-    var {params, onChange, onStartDrag, onEndDrag} = this.props;
     var {base} = this.state;
 
     return <Transhand
+      {...this.props}
       base = {base}
-      params = {params}
-      coordinator = {this.coordinator}
-      onStartDrag = {onStartDrag}
-      onEndDrag = {onEndDrag}
-      onChange = {onChange}/>;
+      coordinator = {this.coordinator}/>;
   }
 }

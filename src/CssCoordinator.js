@@ -1,5 +1,6 @@
 import React from 'react';
 import heuristicGlobalToLocal from './heuristicGlobalToLocal';
+import getGlobalBoundingClientRect from './getGlobalBoundingClientRect';
 import findWhere from 'lodash/collection/findWhere';
 import assign from 'lodash/object/assign';
 
@@ -22,6 +23,12 @@ export default class CssCoordinator {
     this._mockMount.style.left = '0px';
     this._mockMount.setAttribute('transhand-dom-tree-mock', 1);//just for debug
     document.body.appendChild(this._mockMount);
+  }
+
+  destroy() {
+    if (this._mockMount.parentNode) {
+      this._mockMount.parentNode.removeChild(this._mockMount);
+    }
   }
 
   localToGlobal(p) {
@@ -123,10 +130,10 @@ export default class CssCoordinator {
       let inlineTransform = deTarget.style.transform;
       deTarget.style.transform = 'none';
 
-      let brA = deTarget.getBoundingClientRect();
+      let brA = getGlobalBoundingClientRect(deTarget);
 
       if (this._hasTransform) {
-        let brB = deParent.getBoundingClientRect();
+        let brB = getGlobalBoundingClientRect(deParent);
 
         this._base = {
           x: brA.left - brB.left,
@@ -162,10 +169,10 @@ export default class CssCoordinator {
 
     if (this._hasTransform) {
       transformeds.forEach(reg => {
-        reg.br = reg.de.getBoundingClientRect();
+        reg.br = getGlobalBoundingClientRect(reg.de);
       });
 
-      let brParent = deParent.getBoundingClientRect();
+      let brParent = getGlobalBoundingClientRect(deParent);
       let brLastTransformed = transformeds[transformeds.length - 1];
 
       let parentOffsetFromLastTransformed = {
@@ -189,6 +196,7 @@ export default class CssCoordinator {
     else {
       done();
     }
+
     transformeds.forEach(reg => {
       reg.de.style.transform = reg.inlineTransform;
     });
