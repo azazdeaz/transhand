@@ -1,16 +1,21 @@
+var path = require('path');
+
 module.exports = {
   context: __dirname,
-  entry: "./src/index.js",
+  entry: {
+    nested: './src/nested/index.js',
+    iframes: './src/iframes/index.js',
+  },
   output: {
-    publicPath: '/dist/',
-    path: __dirname + "/dist",
-    filename: 'index.js'
+    publicPath: '/demo/',
+    path: path.join(__dirname, '/dist'),
+    filename: '[name]/index.js'
   },
   resolve: {
     packageMains: ['main'],
     extensions: ['', '.js', '.jsx'],
     alias: {
-      SRC: __dirname + '/../src',
+      SRC: path.join(__dirname, '/../src'),
     }
   },
   module: {
@@ -22,8 +27,8 @@ module.exports = {
       }, {
         test: /\.(html|png)/,
         exclude: /node_modules/,
-        loader: 'file?name=[path][name].[ext]&context=' + __dirname + '/src'
+        loader: 'file?name=[path][name].[ext]&context=' + path.join(__dirname, '/src')
       }
     ]
   }
-};
+}
