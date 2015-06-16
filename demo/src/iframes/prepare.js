@@ -19,41 +19,39 @@ export default function scatterThings() {
 
   var rootNode = document.querySelector('#stuffs');
 
-  let deParent = rootNode;
+  createElement(
+    242 + 132 * Math.random(),
+    242 + 132 * Math.random(),
+    'iframe',
+    rootNode,
+    function (e) {
+      for (let j = 0; j < 3; ++j) {
+        createElement(63, 63, 'div', e.target.contentDocument.body);
+      }
+    }
+  );
 
 
-  for (
-    let w = 242 + 132 * Math.random(),
-      h = 242 + 132 * Math.random(),
-      j = 0; j < 3; ++j
-  ) {
-    deParent = createElement(w, h, 'iframe', deParent);
-    w -= 23;
-    h -= 23;
-  }
+  function createElement(w, h, type, deParent, onload) {
+    var de = document.createElement(type);
+    de.style.width = w + 'px';
+    de.style.height = h + 'px';
+    de.style.backgroundColor = takeOne(colors);
+    de.style.boxShadow = '1px 1px 4px 0px rgba(50, 50, 50, 0.75)';
+    de._handlerParams = clone(INIT_PARAMS);
 
-  for (let j = 0; j < 3; ++j) {
-    createElement(63, 63, 'div', deParent);
-  }
+    de.onload = onload;
 
-  function createElement(w, h, type, deParent) {
-    var div = document.createElement(type);
-    div.style.width = w + 'px';
-    div.style.height = h + 'px';
-    div.style.backgroundColor = takeOne(colors);
-    div.style.boxShadow = '1px 1px 4px 0px rgba(50, 50, 50, 0.75)';
-    div._handlerParams = clone(INIT_PARAMS);
+    place(de, deParent);
 
-    place(div, deParent);
-
-    div._handlerBase = {
-      x: div.offsetLeft,
-      y: div.offsetTop,
-      w: div.offsetWidth,
-      h: div.offsetHeight,
+    de._handlerBase = {
+      x: de.offsetLeft,
+      y: de.offsetTop,
+      w: de.offsetWidth,
+      h: de.offsetHeight,
     };
 
-    return div;
+    return de;
   }
 
   function place(de, deParent) {
