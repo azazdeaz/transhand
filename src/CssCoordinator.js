@@ -173,7 +173,7 @@ export default class CssCoordinator {
       });
 
       let brParent = getGlobalBoundingClientRect(deParent);
-      let brLastTransformed = transformeds[transformeds.length - 1];
+      let brLastTransformed = transformeds[transformeds.length - 1].br;
 
       let parentOffsetFromLastTransformed = {
         x: brParent.left - brLastTransformed.left,

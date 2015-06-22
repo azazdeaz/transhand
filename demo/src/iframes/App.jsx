@@ -14,11 +14,23 @@ export default class App extends React.Component {
   }
 
   componentDidMount() {
-    window.addEventListener('click', this.handleSelectClick);
+    var iframeWindow = document.querySelector('iframe').contentWindow
+    iframeWindow.addEventListener('click', this.handleIframeSelectClick);
+  }
+
+  handleIframeSelectClick = (e) => {
+    this.selectFromPoint(e.clientX, e.clientY);
   }
 
   handleSelectClick = (e) => {
-    var deTarget = this.elementFromPoint(e.clientX, e.clientY);
+    var br = document.querySelector('iframe').getBoundingClientRect();
+    var x = e.clientX - br.left;
+    var y = e.clientY - br.top;
+    this.selectFromPoint(x, y);
+  }
+
+  selectFromPoint(x, y) {
+    var deTarget = this.elementFromPoint(x, y);
 
     if (deTarget && deTarget._handlerDemo) {
       this.setState({currDomElem: deTarget});
@@ -30,8 +42,10 @@ export default class App extends React.Component {
 
   elementFromPoint(x, y) {
     var deHandler = React.findDOMNode(this.refs.handler);
+    var deFrame = document.querySelector('iframe');
+    var frameDoc = deFrame.contentDocument;
     var deTarget;
-    var get = () => deTarget = document.elementFromPoint(x, y);
+    var get = () => deTarget = frameDoc.elementFromPoint(x, y);
 
     if (deHandler) {
       let save = deHandler.style.display;
@@ -43,6 +57,9 @@ export default class App extends React.Component {
       get();
     }
 
+    if (deTarget === frameDoc.body) {
+      deTarget = deFrame
+    }
     return deTarget;
   }
 
