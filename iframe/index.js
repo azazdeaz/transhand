@@ -52,15 +52,15 @@
 
 	var _react2 = _interopRequireDefault(_react);
 
-	var _prepare = __webpack_require__(6);
+	var _prepare = __webpack_require__(4);
 
 	var _prepare2 = _interopRequireDefault(_prepare);
 
-	var _App = __webpack_require__(7);
+	var _App = __webpack_require__(5);
 
 	var _App2 = _interopRequireDefault(_App);
 
-	__webpack_require__(11);
+	__webpack_require__(10);
 
 	(0, _prepare2['default'])();
 
@@ -108,9 +108,7 @@
 /***/ },
 /* 2 */,
 /* 3 */,
-/* 4 */,
-/* 5 */,
-/* 6 */
+/* 4 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -130,8 +128,7 @@
 	  ox: 0.5, oy: 0.5 };
 
 	function scatterThings() {
-
-	  var colors = ['#7FDBFF', '#0074D9', '#01FF70', '#001F3F', '#39CCCC', '#3D9970', '#2ECC40', '#FF4136', '#85144B', '#FF851B', '#B10DC9', '#FFDC00', '#F012BE', '#aaa', '#fff', '#111', '#ddd'];
+	  var colors = ['#7FDBFF', '#0074D9', '#001F3F', '#39CCCC', '#3D9970', '#FF4136', '#85144B', '#FF851B', '#B10DC9', '#FFDC00', '#F012BE', '#aaa', '#fff', '#111', '#ddd'];
 
 	  var takeOne = function takeOne(arr) {
 	    return pullAt(arr, random(arr.length - 1));
@@ -139,31 +136,38 @@
 
 	  var rootNode = document.querySelector('#stuffs');
 
-	  var red = createDiv(122, 122, rootNode, '#aaa');
-	  red.transhandProps = {
-	    stroke: {
-	      stroke: '#FF4136',
-	      strokeWidth: 3,
-	      strokeDasharray: '20,10,5,5,5,10' }
-	  };
+	  // for (let j = 0; j < 7; ++j) {
+	  //   createElement(63, 63, 'div', rootNode);
+	  // }
 
-	  function createDiv(w, h, deParent, color) {
-	    var div = document.createElement('div');
-	    div.style.width = w + 'px';
-	    div.style.height = h + 'px';
-	    div.style.backgroundColor = color;
-	    div.style.boxShadow = '1px 1px 4px 0px rgba(50, 50, 50, 0.75)';
-	    div._handlerParams = clone(INIT_PARAMS);
+	  createElement(242 + 132 * Math.random(), 242 + 132 * Math.random(), 'iframe', rootNode, function (e) {
+	    var iframe = e.target;
+	    iframe.style.border = 'none';
+	    iframe.contentDocument.write('this is an iframe');
+	    for (var j = 0; j < 3; ++j) {
+	      createElement(63, 63, 'div', iframe.contentDocument.body);
+	    }
+	  });
 
-	    place(div, deParent);
+	  function createElement(w, h, type, deParent, onload) {
+	    var de = document.createElement(type);
+	    de.style.width = w + 'px';
+	    de.style.height = h + 'px';
+	    de.style.backgroundColor = takeOne(colors);
+	    de.style.boxShadow = '1px 1px 4px 0px rgba(50, 50, 50, 0.75)';
+	    de._handlerParams = clone(INIT_PARAMS);
 
-	    div._handlerBase = {
-	      x: div.offsetLeft,
-	      y: div.offsetTop,
-	      w: div.offsetWidth,
-	      h: div.offsetHeight };
+	    de.onload = onload;
 
-	    return div;
+	    place(de, deParent);
+
+	    de._handlerBase = {
+	      x: de.offsetLeft,
+	      y: de.offsetTop,
+	      w: de.offsetWidth,
+	      h: de.offsetHeight };
+
+	    return de;
 	  }
 
 	  function place(de, deParent) {
@@ -184,7 +188,7 @@
 	module.exports = exports['default'];
 
 /***/ },
-/* 7 */
+/* 5 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -192,8 +196,6 @@
 	Object.defineProperty(exports, '__esModule', {
 	  value: true
 	});
-
-	var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
 
 	var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 
@@ -225,14 +227,15 @@
 
 	    _get(Object.getPrototypeOf(App.prototype), 'constructor', this).call(this, props);
 
-	    this.handleSelectClick = function (e) {
-	      var deTarget = _this.elementFromPoint(e.clientX, e.clientY);
+	    this.handleIframeSelectClick = function (e) {
+	      _this.selectFromPoint(e.clientX, e.clientY);
+	    };
 
-	      if (deTarget && deTarget._handlerDemo) {
-	        _this.setState({ currDomElem: deTarget });
-	      } else {
-	        _this.setState({ currDomElem: undefined });
-	      }
+	    this.handleSelectClick = function (e) {
+	      var br = document.querySelector('iframe').getBoundingClientRect();
+	      var x = e.clientX - br.left;
+	      var y = e.clientY - br.top;
+	      _this.selectFromPoint(x, y);
 	    };
 
 	    this.handleChange = function (change) {
@@ -259,15 +262,29 @@
 	  _createClass(App, [{
 	    key: 'componentDidMount',
 	    value: function componentDidMount() {
-	      window.addEventListener('click', this.handleSelectClick);
+	      var iframeWindow = document.querySelector('iframe').contentWindow;
+	      iframeWindow.addEventListener('click', this.handleIframeSelectClick);
+	    }
+	  }, {
+	    key: 'selectFromPoint',
+	    value: function selectFromPoint(x, y) {
+	      var deTarget = this.elementFromPoint(x, y);
+
+	      if (deTarget && deTarget._handlerDemo) {
+	        this.setState({ currDomElem: deTarget });
+	      } else {
+	        this.setState({ currDomElem: undefined });
+	      }
 	    }
 	  }, {
 	    key: 'elementFromPoint',
 	    value: function elementFromPoint(x, y) {
 	      var deHandler = _react2['default'].findDOMNode(this.refs.handler);
+	      var deFrame = document.querySelector('iframe');
+	      var frameDoc = deFrame.contentDocument;
 	      var deTarget;
 	      var get = function get() {
-	        return deTarget = document.elementFromPoint(x, y);
+	        return deTarget = frameDoc.elementFromPoint(x, y);
 	      };
 
 	      if (deHandler) {
@@ -279,6 +296,9 @@
 	        get();
 	      }
 
+	      if (deTarget === frameDoc.body) {
+	        deTarget = deFrame;
+	      }
 	      return deTarget;
 	    }
 	  }, {
@@ -302,13 +322,12 @@
 
 	      if (currDomElem) {
 
-	        return _react2['default'].createElement(_SRCCssTranshand2['default'], _extends({
+	        return _react2['default'].createElement(_SRCCssTranshand2['default'], {
 	          ref: 'handler',
 	          deTarget: currDomElem,
 	          params: currDomElem._handlerParams,
 	          onChange: this.handleChange,
-	          onClick: this.handleSelectClick
-	        }, currDomElem.transhandProps));
+	          onClick: this.handleSelectClick });
 	      } else {
 	        return _react2['default'].createElement('div', { hidden: true });
 	      }
@@ -322,6 +341,8 @@
 	module.exports = exports['default'];
 
 /***/ },
+/* 6 */,
+/* 7 */,
 /* 8 */
 /***/ function(module, exports, __webpack_require__) {
 
@@ -330,13 +351,13 @@
 
 /***/ },
 /* 9 */,
-/* 10 */,
-/* 11 */
+/* 10 */
 /***/ function(module, exports, __webpack_require__) {
 
-	module.exports = __webpack_require__.p + "custom/index.html"
+	module.exports = __webpack_require__.p + "iframe/index.html"
 
 /***/ },
+/* 11 */,
 /* 12 */,
 /* 13 */
 /***/ function(module, exports, __webpack_require__) {
