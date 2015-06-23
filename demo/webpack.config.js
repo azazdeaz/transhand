@@ -4,7 +4,7 @@ module.exports = {
   context: __dirname,
   entry: {
     nested: './src/nested/index.js',
-    iframes: './src/iframes/index.js',
+    iframes: './src/iframe/index.js',
     custom: './src/custom/index.js',
   },
   output: {
