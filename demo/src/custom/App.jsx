@@ -84,7 +84,8 @@ export default class App extends React.Component {
         deTarget = {currDomElem}
         params = {currDomElem._handlerParams}
         onChange = {this.handleChange}
-        onClick = {this.handleSelectClick}/>;
+        onClick = {this.handleSelectClick}
+        {...currDomElem.transhandProps}/>;
     }
     else {
       return <div hidden={true}/>;

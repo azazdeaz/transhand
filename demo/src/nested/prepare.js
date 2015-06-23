@@ -17,8 +17,8 @@ export default function scatterThings() {
       return `./assets/obj_${name}.png`;
     });
 
-  var colors = ['#7FDBFF', '#0074D9', '#01FF70', '#001F3F', '#39CCCC', '#3D9970',
-    '#2ECC40', '#FF4136', '#85144B', '#FF851B', '#B10DC9', '#FFDC00', '#F012BE',
+  var colors = ['#7FDBFF', '#0074D9', '#001F3F', '#39CCCC', '#3D9970',
+    '#FF4136', '#85144B', '#FF851B', '#B10DC9', '#FFDC00', '#F012BE',
     '#aaa', '#fff', '#111', '#ddd'];
 
   var takeOne = arr => pullAt(arr, random(arr.length - 1));

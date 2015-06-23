@@ -5,6 +5,7 @@ module.exports = {
   entry: {
     nested: './src/nested/index.js',
     iframes: './src/iframes/index.js',
+    custom: './src/custom/index.js',
   },
   output: {
     publicPath: '/demo/',

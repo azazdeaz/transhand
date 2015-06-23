@@ -4,9 +4,8 @@ import assign from 'lodash/object/assign';
 
 export default class App extends React.Component {
 
-  constructor() {
-
-    super();
+  constructor(props) {
+    super(props);
 
     this.state = {
       currDomElem: undefined,
