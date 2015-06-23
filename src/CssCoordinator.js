@@ -60,7 +60,6 @@ export default class CssCoordinator {
 
       let ret = heuristicGlobalToLocal(p, dePicker);
 
-      console.log('globalToLocal', p);
       return ret;
     }
     else {

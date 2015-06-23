@@ -4,8 +4,8 @@ import cloneDeep from 'lodash/lang/cloneDeep';
 import shallowEquals from 'shallow-equals';
 import Styles from './Styles';
 import DefaultCoordinator from './DefaultCoordinator';
-import {radDiff, sqr, dist2, distToSegmentSquared, distToSegment,
-  distToPointInAngle, isInside, equPoints} from './utils';
+import {radDiff, distToSegment, distToPointInAngle, isInside,
+  equPoints} from './utils';
 
 const MOUSESTATES = {
   'move': 'move',
@@ -143,9 +143,6 @@ export default class Transhand extends React.Component {
         return;
     }
 
-    e.stopPropagation();
-    e.preventDefault();
-
     this._isDraggedSinceDown = false;
     this._isHandle = true;
 
@@ -184,13 +181,20 @@ export default class Transhand extends React.Component {
     window.removeEventListener('mouseleave', this.handleMouseUp);
     window.removeEventListener('mousemove', this.handleDrag);
 
+    e.stopPropagation();
+    e.preventDefault();
+
     if (this._rafOnDragRafId) {
       this.deferredHandleDrag();
     }
 
     this._isHandle = false;
 
-    React.findDOMNode(this.refs.root).style.pointerEvents = 'none';
+    //hack! fix to click behind the handler on releasing it
+    var deRoot = React.findDOMNode(this.refs.root);
+    setTimeout(() => {
+      deRoot.style.pointerEvents = 'none';
+    });
 
     if (this.props.onEndDrag) {
       this.props.onEndDrag();
@@ -518,6 +522,10 @@ export default class Transhand extends React.Component {
     };
   }
 
+  stopPropagation = (e) => {
+    e.stopPropagation();
+  }
+
   render() {
     var {styles, rotateFingerDist, originRadius, stroke,
           coordinator} = this.props,
@@ -531,11 +539,15 @@ export default class Transhand extends React.Component {
       `${p[1].x},${p[1].y} ` +
       `${p[2].x},${p[2].y} ` +
       `${p[3].x},${p[3].y}`;
-
+      
     styles.root.cursor = cursor;
 
-    return <svg ref='root' style={styles.root}>
-      <polygon ref='canvas'
+    return <svg
+      ref = 'root'
+      style = {styles.root}
+      onClick = {this.stopPropagation}>
+
+      <polygon
         fill='none'
         {...stroke}
         points = {boxHitPoints}>
