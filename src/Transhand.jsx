@@ -3,6 +3,7 @@ import clone from 'lodash/lang/clone';
 import cloneDeep from 'lodash/lang/cloneDeep';
 import shallowEquals from 'shallow-equals';
 import Styles from './Styles';
+import TranshandDesign from './TranshandDesign';
 import DefaultCoordinator from './DefaultCoordinator';
 import {radDiff, distToSegment, distToPointInAngle, isInside,
   equPoints} from './utils';
@@ -146,7 +147,7 @@ export default class Transhand extends React.Component {
     this._isDraggedSinceDown = false;
     this._isHandle = true;
 
-    React.findDOMNode(this.refs.root).style.pointerEvents = 'auto';
+    React.findDOMNode(this).style.pointerEvents = 'auto';
 
     this._mdPos = {
         m: this.props.coordinator.globalToLocal({x: e.clientX, y: e.clientY}),
@@ -191,7 +192,7 @@ export default class Transhand extends React.Component {
     this._isHandle = false;
 
     //hack! fix to click behind the handler on releasing it
-    var deRoot = React.findDOMNode(this.refs.root);
+    var deRoot = React.findDOMNode(this);
     setTimeout(() => {
       deRoot.style.pointerEvents = 'none';
     });
@@ -466,15 +467,6 @@ export default class Transhand extends React.Component {
     return cursor;
   }
 
-
-
-  // setCursor(cursor) {
-  //
-  //   React.findDOMNode(this.refs.originHit).style.cursor = cursor;
-  //   React.findDOMNode(this.refs.boxHit).style.cursor = cursor;
-  //   React.findDOMNode(this.refs.root).style.cursor = cursor;
-  // },
-
   getRotateCursor(mx, my) {
 
     var po = this.props.coordinator.localToGlobal(this.state.pOrigin),
@@ -500,20 +492,7 @@ export default class Transhand extends React.Component {
     return 'url(\'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32"><path transform="rotate('+r+', 16, 16)" d="M22.406 12.552l5.88 4.18H3.677l5.728 4.36" stroke="#000" stroke-width="2.254" fill="none"/></svg>\') 16 16, auto';
   }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-  getHitEvents() {
+  getHitEvents = () => {
     //TODO onFirstMove - handle when transhand appears under the mouse
     return {
       onMouseEnter: () => this.setState({hoverHitbox: true}),
@@ -522,63 +501,14 @@ export default class Transhand extends React.Component {
     };
   }
 
-  stopPropagation = (e) => {
-    e.stopPropagation();
-  }
-
   render() {
-    var {styles, rotateFingerDist, originRadius, stroke,
-          coordinator} = this.props,
-        {cursor} = this.state,
-        p = this.state.points.map(p => coordinator.localToGlobal(p)),
-        po = coordinator.localToGlobal(this.state.pOrigin),
-        or = this.props.originRadius;
+    var {cursor, points, pOrigin} = this.state;
 
-    var boxHitPoints =
-      `${p[0].x},${p[0].y} ` +
-      `${p[1].x},${p[1].y} ` +
-      `${p[2].x},${p[2].y} ` +
-      `${p[3].x},${p[3].y}`;
-      
-    styles.root.cursor = cursor;
-
-    return <svg
-      ref = 'root'
-      style = {styles.root}
-      onClick = {this.stopPropagation}>
-
-      <polygon
-        fill='none'
-        {...stroke}
-        points = {boxHitPoints}>
-      </polygon>
-
-      <line x1={po.x - or} y1={po.y} x2={po.x + or} y2={po.y} {...stroke}/>
-      <line x1={po.x} y1={po.y - or} x2={po.x} y2={po.y + or} {...stroke}/>
-
-      <polygon ref='boxHit'
-        fill="black" opacity="0"
-        stroke="black"
-        strokeLinejoin='round'
-        strokeLocation='outside'
-        strokeWidth={rotateFingerDist}
-        points = {boxHitPoints}
-        style={{
-          cursor,
-          pointerEvents: 'auto',
-        }}
-        {...this.getHitEvents()}/>
-
-      <circle ref='originHit'
-        fill="black" opacity="0"
-        cx = {po.x}
-        cy = {po.y}
-        r = {originRadius}
-        style={{
-          cursor,
-          pointerEvents: 'auto',
-        }}
-        {...this.getHitEvents()}/>
-    </svg>;
+    return <TranshandDesign
+      {...this.props}
+      cursor={cursor}
+      points={points}
+      pOrigin={pOrigin}
+      getHitEvents={this.getHitEvents}/>;
   }
 }
