@@ -1,10 +1,10 @@
 import React, {PropTypes} from 'react'
 import Transhand from './Transhand'
-import CssCoordinator from './CssCoordinator'
+import CSSCoordinator from './CSSCoordinator'
 import isElement from 'lodash/lang/isElement'
 import assign from 'lodash/object/assign'
 
-export default class CssTranshand extends React.Component {
+export default class CSSTranshand extends React.Component {
   static propTypes = assign(Transhand.propTypes, {
     deTarget: (props, name) => {
       if (!isElement(props[name])) {
@@ -18,7 +18,7 @@ export default class CssTranshand extends React.Component {
   constructor(props) {
     super(props)
 
-    this.coordinator = new CssCoordinator()
+    this.coordinator = new CSSCoordinator()
 
     this.state = {
       rect: {x: 0, y: 0, w: 0, h: 0}

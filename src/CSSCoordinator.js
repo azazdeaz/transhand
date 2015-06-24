@@ -8,7 +8,7 @@ const TRANSFORM_PROPS = ['transform', 'transformOrigin', 'prespective',
   'prespectiveOrigin', 'transformStyle']
 const NULL_VALUES = ['none', 'matrix(1, 0, 0, 1, 0, 0)']
 
-export default class CssCoordinator {
+export default class CSSCoordinator {
   constructor() {
     this._buffMockDiv = []
     this._picker = <div key='picker'/>

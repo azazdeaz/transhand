@@ -1,5 +1,5 @@
 import React from 'react'
-import CssTranshand from 'SRC/CssTranshand'
+import CSSTranshand from 'SRC/CSSTranshand'
 import assign from 'lodash/object/assign'
 
 export default class App extends React.Component {
@@ -79,7 +79,7 @@ export default class App extends React.Component {
 
     if (currDomElem) {
 
-      return <CssTranshand
+      return <CSSTranshand
         ref = 'handler'
         deTarget = {currDomElem}
         transform = {currDomElem._handlerParams}

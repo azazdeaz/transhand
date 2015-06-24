@@ -46,6 +46,10 @@ export default class Transhand extends React.Component {
     }),
     stroke: PropTypes.object,
     DesignComponent: React.PropTypes.func,
+    onChange: React.PropTypes.func,
+    onClick: React.PropTypes.func,
+    onStartDrag: React.PropTypes.func,
+    onEndDrag: React.PropTypes.func,
   }
 
   static defaultProps = {
@@ -115,8 +119,8 @@ export default class Transhand extends React.Component {
 
     props = props || this.props
 
-    var {rect, transform, coordinator} = props,
-        p = this.state.points.map(p => clone(p)),
+    var {rect, transform} = props,
+        p = this.state.points.map(point => clone(point)),
         po = clone(this.state.pOrigin)
 
     rect = clone(rect)
