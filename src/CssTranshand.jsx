@@ -1,26 +1,19 @@
-import React from 'react'
+import React, {PropTypes} from 'react'
 import Transhand from './Transhand'
 import CssCoordinator from './CssCoordinator'
 import isElement from 'lodash/lang/isElement'
+import assign from 'lodash/object/assign'
 
 export default class CssTranshand extends React.Component {
-
-  static propTypes = {
+  static propTypes = assign(Transhand.propTypes, {
     deTarget: (props, name) => {
       if (!isElement(props[name])) {
         return new Error('deTarget should be a DOM Element!')
       }
     },
-    props: React.PropTypes.shape({
-      tx: React.PropTypes.number,
-      ty: React.PropTypes.number,
-      sx: React.PropTypes.number,
-      sy: React.PropTypes.number,
-      rz: React.PropTypes.number,
-      ox: React.PropTypes.number,
-      oy: React.PropTypes.number,
-    }),
-  }
+    base: PropTypes.oneOf([undefined]),
+    coordinator: PropTypes.oneOf([undefined])
+  })
 
   constructor(props) {
     super(props)

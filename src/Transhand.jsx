@@ -1,8 +1,7 @@
-import React from 'react'
+import React, {PropTypes} from 'react'
 import clone from 'lodash/lang/clone'
 import cloneDeep from 'lodash/lang/cloneDeep'
 import shallowEquals from 'shallow-equals'
-import Styles from './Styles'
 import TranshandDesign from './TranshandDesign'
 import DefaultCoordinator from './DefaultCoordinator'
 import {radDiff, distToSegment, distToPointInAngle, isInside,
@@ -23,6 +22,31 @@ const MOUSESTATES = {
 }
 
 export default class Transhand extends React.Component {
+  static propsTypes = {
+    params: PropTypes.shape({
+      tx: PropTypes.number.isRequired,
+      ty: PropTypes.number.isRequired,
+      sx: PropTypes.number.isRequired,
+      sy: PropTypes.number.isRequired,
+      rz: PropTypes.number.isRequired,
+      ox: PropTypes.number.isRequired,
+      oy: PropTypes.number.isRequired,
+    }).isRequired,
+    base: PropTypes.shape({
+      x: PropTypes.number.isRequired,
+      y: PropTypes.number.isRequired,
+      w: PropTypes.number.isRequired,
+      h: PropTypes.number.isRequired,
+    }).isRequired,
+    rotateFingerDist: PropTypes.number,
+    originRadius: PropTypes.number,
+    coordinator: PropTypes.shape({
+      localToGlobal: PropTypes.func.isRequired,
+      globalToLocal: PropTypes.func.isRequired,
+    }),
+    stroke: PropTypes.object,
+    DesignComponent: React.PropTypes.func,
+  }
 
   static defaultProps = {
     params: {
@@ -41,7 +65,7 @@ export default class Transhand extends React.Component {
       strokeWidth: '1',
       stroke: 'lime',
     },
-    styles: new Styles(),
+    DesignComponent: TranshandDesign,
   }
 
   constructor(prosp) {
@@ -502,10 +526,11 @@ export default class Transhand extends React.Component {
   }
 
   render() {
+    var {DesignComponent, ...props} = this.props
     var {cursor, points, pOrigin} = this.state
 
-    return <TranshandDesign
-      {...this.props}
+    return <DesignComponent
+      {...props}
       cursor={cursor}
       points={points}
       pOrigin={pOrigin}

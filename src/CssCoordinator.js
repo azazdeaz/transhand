@@ -21,7 +21,7 @@ export default class CssCoordinator {
     this._mockMount.style.position = 'absolute'
     this._mockMount.style.top = '0px'
     this._mockMount.style.left = '0px'
-    this._mockMount.setAttribute('transhand-dom-tree-mock', 1);//just for debug
+    this._mockMount.setAttribute('transhand-dom-tree-mock', 1) //just for debug
     document.body.appendChild(this._mockMount)
   }
 

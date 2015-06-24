@@ -1,12 +1,23 @@
 import React from 'react'
 
+const styles = {
+  root: {
+    position: 'fixed',
+    pointerEvents: 'none',
+    left: '0px',
+    top: '0px',
+    width: '100%',
+    height: '100%',
+  }
+}
+
 export default class TranshandDesign extends React.Component {
   stopPropagation = (e) => {
     e.stopPropagation()
   }
 
   render() {
-    var {styles, rotateFingerDist, originRadius, stroke, getHitEvents,
+    var {rotateFingerDist, originRadius, stroke, getHitEvents,
           coordinator, cursor, points, pOrigin} = this.props,
         p = points.map(point => coordinator.localToGlobal(point)),
         po = coordinator.localToGlobal(pOrigin),
