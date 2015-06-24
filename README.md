@@ -9,7 +9,9 @@ Developed as part of the [Animachine project](https://github.com/animachine/anim
 #### --- Work in progress --- 
 
 ####Demos:
-[transformer][demo-transformer]
+[nested](http://azazdeaz.github.io/transhand/nested/), 
+[iframe](http://azazdeaz.github.io/transhand/iframe/), 
+[custom](http://azazdeaz.github.io/transhand/custom/)
 
 ####Install
 ```
@@ -22,7 +24,6 @@ npm install --save transhand
 - shift + scale/move/rotate
 - alt + scale from the origin or opposite side
 
-####API ```//TODO```
 
 ###Basic useage
 ```javascript
@@ -55,4 +56,4 @@ var onChange = (change) => {
 ```
 ```CssTranshand``` is a wrapper for ```Transhand```. It use the provided DOM Element to calculate the ```rect``` and handle if the parent elements also transformed and when ```deTarget``` is inside an iframe.
 
-[demo-transformer]: https://azazdeaz.github.io/transhand/
+###API ```//TODO```
