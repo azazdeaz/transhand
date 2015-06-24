@@ -1,10 +1,10 @@
-require('./index.html');
+require('./index.html')
 
-import React from 'react';
+import React from 'react'
 
-import scatterThings from './prepare';
-import App from './App';
+import scatterThings from './prepare'
+import App from './App'
 
-scatterThings();
+scatterThings()
 
-React.render(<App/>, document.querySelector('#mount-app'));
+React.render(<App/>, document.querySelector('#mount-app'))

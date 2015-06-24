@@ -1,6 +1,6 @@
 {
   "name": "transhand",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "description": "A transform tool for web applications",
   "main": "lib/index.js",
   "repository": {
@@ -11,6 +11,13 @@
     "lib": "babel ./src --out-dir lib  --source-maps --source-maps",
     "lib-watch": "npm run lib && babel ./src --out-dir lib  --source-maps --source-maps --watch"
   },
+  "keywords": [
+    "react",
+    "react-component",
+    "transform",
+    "editor",
+    "tool"
+  ],
   "author": "",
   "license": "ISC",
   "bugs": {

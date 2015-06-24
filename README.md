@@ -6,11 +6,11 @@ Developed as part of the [Animachine project](https://github.com/animachine/anim
 
 ![](http://fat.gfycat.com/SilverExhaustedEquestrian.gif)
 
-#### --- Work in progress --- 
+#### --- Work in progress ---
 
 ####Demos:
-[nested](http://azazdeaz.github.io/transhand/nested/), 
-[iframe](http://azazdeaz.github.io/transhand/iframe/), 
+[nested](http://azazdeaz.github.io/transhand/nested/),
+[iframe](http://azazdeaz.github.io/transhand/iframe/),
 [custom](http://azazdeaz.github.io/transhand/custom/)
 
 ####Install
@@ -49,7 +49,7 @@ var onChange = (change) => {
 
 ###Basic useage with CSS Transform
 ```javascript
-<CssTranshand 
+<CssTranshand
   transforms = {transforms}
   deTarget = {transformedDOMElement}
   onChange = {onChange}/>
