@@ -9,9 +9,7 @@ const TRANSFORM_PROPS = ['transform', 'transformOrigin', 'prespective',
 const NULL_VALUES = ['none', 'matrix(1, 0, 0, 1, 0, 0)']
 
 export default class CssCoordinator {
-
   constructor() {
-
     this._buffMockDiv = []
     this._picker = <div key='picker'/>
 
@@ -72,7 +70,7 @@ export default class CssCoordinator {
       this.isProcessing = false
 
       if (this.onProcessingDone) {
-        this.onProcessingDone(this._base)
+        this.onProcessingDone(this._rect)
         this.onProcessingDone = undefined
       }
     }
@@ -125,7 +123,7 @@ export default class CssCoordinator {
       }
     }
 
-    var setBase = () => {
+    var setRect = () => {
       let inlineTransform = deTarget.style.transform
       deTarget.style.transform = 'none'
 
@@ -134,7 +132,7 @@ export default class CssCoordinator {
       if (this._hasTransform) {
         let brB = getGlobalBoundingClientRect(deParent)
 
-        this._base = {
+        this._rect = {
           x: brA.left - brB.left,
           y: brA.top - brB.top,
           w: brA.width,
@@ -142,7 +140,7 @@ export default class CssCoordinator {
         }
       }
       else {
-        this._base = {
+        this._rect = {
           x: brA.left,
           y: brA.top,
           w: brA.width,
@@ -164,7 +162,7 @@ export default class CssCoordinator {
 
     this._hasTransform = transformeds.length !== 0
 
-    setBase()
+    setRect()
 
     if (this._hasTransform) {
       transformeds.forEach(reg => {

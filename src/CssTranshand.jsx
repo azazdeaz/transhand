@@ -11,7 +11,7 @@ export default class CssTranshand extends React.Component {
         return new Error('deTarget should be a DOM Element!')
       }
     },
-    base: PropTypes.oneOf([undefined]),
+    rect: PropTypes.oneOf([undefined]),
     coordinator: PropTypes.oneOf([undefined])
   })
 
@@ -21,7 +21,7 @@ export default class CssTranshand extends React.Component {
     this.coordinator = new CssCoordinator()
 
     this.state = {
-      base: {x: 0, y: 0, w: 0, h: 0}
+      rect: {x: 0, y: 0, w: 0, h: 0}
     }
     //TODO do this somehow better!
     setTimeout(() => this.takeNextDeTarget(props.deTarget))
@@ -42,8 +42,8 @@ export default class CssTranshand extends React.Component {
       this._lastTakenDeTarget = nextDeTarget
 
       this.coordinator.setLocalRoot(
-        nextDeTarget.parentElement, nextDeTarget, (base) => {
-          this.setState({base, foo: 3})
+        nextDeTarget.parentElement, nextDeTarget, (rect) => {
+          this.setState({rect, foo: 3})
         }
       )
     }
@@ -59,11 +59,11 @@ export default class CssTranshand extends React.Component {
       return <div hidden={true}/>
     }
 
-    var {base} = this.state
+    var {rect} = this.state
 
     return <Transhand
       {...this.props}
-      base = {base}
+      rect = {rect}
       coordinator = {this.coordinator}/>
   }
 }

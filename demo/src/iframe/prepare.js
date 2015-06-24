@@ -2,7 +2,7 @@ var random = require('lodash/number/random')
 var clone = require('lodash/lang/clone')
 var pullAt = require('lodash/array/pullAt')
 
-const INIT_PARAMS = {
+const INIT_TRANSFORM = {
   tx: 0, ty: 0,
   sx: 1, sy: 1,
   rz: 0,
@@ -44,7 +44,7 @@ export default function scatterThings() {
     de.style.height = h + 'px'
     de.style.backgroundColor = takeOne(colors)
     de.style.boxShadow = '1px 1px 4px 0px rgba(50, 50, 50, 0.75)'
-    de._handlerParams = clone(INIT_PARAMS)
+    de._handlerParams = clone(INIT_TRANSFORM)
 
     de.onload = onload
 

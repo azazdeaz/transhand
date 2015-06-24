@@ -50,25 +50,25 @@ export default class App extends React.Component {
     console.log('change event:', change)
 
     var { currDomElem } = this.state,
-        params = currDomElem._handlerParams
+        transform = currDomElem._handlerParams
 
-    assign(params, change)
+    assign(transform, change)
 
-    currDomElem.style.transform = this.generateCssTransform(params)
-    currDomElem.style.transformOrigin = `${params.ox*100}% ${params.oy*100}%`
+    currDomElem.style.transform = this.generateCssTransform(transform)
+    currDomElem.style.transformOrigin = `${transform.ox*100}% ${transform.oy*100}%`
 
     this.forceUpdate()
   }
 
-  generateCssTransform(params) {
+  generateCssTransform(transform) {
 
     var cssTransform = ''
 
-    cssTransform += ' translateX(' + params.tx + 'px)'
-    cssTransform += ' translateY(' + params.ty + 'px)'
-    cssTransform += ' rotate(' + params.rz + 'rad)'
-    cssTransform += ' scaleX(' + params.sx + ')'
-    cssTransform += ' scaleY(' + params.sy + ')'
+    cssTransform += ' translateX(' + transform.tx + 'px)'
+    cssTransform += ' translateY(' + transform.ty + 'px)'
+    cssTransform += ' rotate(' + transform.rz + 'rad)'
+    cssTransform += ' scaleX(' + transform.sx + ')'
+    cssTransform += ' scaleY(' + transform.sy + ')'
 
     return cssTransform
   }
@@ -82,7 +82,7 @@ export default class App extends React.Component {
       return <CssTranshand
         ref = 'handler'
         deTarget = {currDomElem}
-        params = {currDomElem._handlerParams}
+        transform = {currDomElem._handlerParams}
         onChange = {this.handleChange}
         onClick = {this.handleSelectClick}
         {...currDomElem.transhandProps}/>

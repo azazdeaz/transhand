@@ -3,7 +3,7 @@ var clone = require('lodash/lang/clone')
 var pullAt = require('lodash/array/pullAt')
 var CustomTranshandDesign = require('./CustomTranshandDesign')
 
-const INIT_PARAMS = {
+const INIT_TRANSFORM = {
   tx: 0, ty: 0,
   sx: 1, sy: 1,
   rz: 0,
@@ -44,7 +44,7 @@ export default function scatterThings() {
     div.style.height = h + 'px'
     div.style.backgroundColor = color
     div.style.boxShadow = '1px 1px 4px 0px rgba(50, 50, 50, 0.75)'
-    div._handlerParams = clone(INIT_PARAMS)
+    div._handlerParams = clone(INIT_TRANSFORM)
 
     place(div, deParent)
 
