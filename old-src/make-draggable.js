@@ -4,11 +4,11 @@ module.exports = function makeDraggable(opt) {
 
     opt = opt || {};
 
-    var md, isOver, isDrag, 
+    var md, isOver, isDrag,
         waitingMoveEvent, waitingMoveRaf;
 
     if (opt.deTarget) {
-        
+
         opt.deTarget.addEventListener('mousedown', onDown);
         opt.deTarget.addEventListener('mouseover', onEnter);
         opt.deTarget.addEventListener('mouseleave', onLeave);
@@ -25,7 +25,7 @@ module.exports = function makeDraggable(opt) {
     function onDown(e) {
 
         if (e.button !== 0) {
-            
+
             return;
         }
 
@@ -58,7 +58,7 @@ module.exports = function makeDraggable(opt) {
         waitingMoveEvent = e;
 
         if (!waitingMoveRaf) {
-            
+
             waitingMoveRaf = window.requestAnimationFrame(rafOnMove);
         }
     }
@@ -110,7 +110,7 @@ module.exports = function makeDraggable(opt) {
     function onLeave() {
 
         isOver = false;
-        
+
         if (!isDrag) {
             call('onLeave');
         }
@@ -127,7 +127,7 @@ module.exports = function makeDraggable(opt) {
 
             return;
         }
-        
+
         if (name in opt) {
 
             return opt[name].apply(opt.thisArg, args);

@@ -1,4 +1,4 @@
-import React from 'react';
+import React from 'react'
 
 const styles = {
   ul: {
@@ -17,16 +17,16 @@ const styles = {
     color: '#000',
     background: 'rgba(222,232,222,.785)',
   }
-};
+}
 
 export default class Content extends React.Component {
   render() {
-    var {hints} = this.props;
+    var {hints} = this.props
 
     return <ul style={styles.ul}>
       {hints.map(hint => {
-        return <li>{hint}</li>;
+        return <li>{hint}</li>
       })}
-    </ul>;
+    </ul>
   }
 }

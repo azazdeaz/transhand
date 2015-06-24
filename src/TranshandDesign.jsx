@@ -1,8 +1,8 @@
-import React from 'react';
+import React from 'react'
 
 export default class TranshandDesign extends React.Component {
   stopPropagation = (e) => {
-    e.stopPropagation();
+    e.stopPropagation()
   }
 
   render() {
@@ -10,15 +10,15 @@ export default class TranshandDesign extends React.Component {
           coordinator, cursor, points, pOrigin} = this.props,
         p = points.map(point => coordinator.localToGlobal(point)),
         po = coordinator.localToGlobal(pOrigin),
-        or = originRadius;
+        or = originRadius
 
     var boxHitPoints =
-      `${p[0].x},${p[0].y} ` +
-      `${p[1].x},${p[1].y} ` +
-      `${p[2].x},${p[2].y} ` +
-      `${p[3].x},${p[3].y}`;
+      `${p[0].x} ,${p[0].y} ` +
+      `${p[1].x} ,${p[1].y} ` +
+      `${p[2].x} ,${p[2].y} ` +
+      `${p[3].x} ,${p[3].y}`
 
-    styles.root.cursor = cursor;
+    styles.root.cursor = cursor
 
     return <svg
       style = {styles.root}
@@ -56,6 +56,6 @@ export default class TranshandDesign extends React.Component {
           pointerEvents: 'auto',
         }}
         {...getHitEvents()}/>
-    </svg>;
+    </svg>
   }
 }
