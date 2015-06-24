@@ -64,6 +64,7 @@ var onChange = (change) => {
  - ```stroke = {strokeWidth: '1', stroke: 'lime'}```:  A set of svg attributes to customize drawed svg.
  - ```DesignComponent = TranshandDesign```:  You can replace the basic dumb component that Transhand renders to fully customize its appearance. Please check out [the source](src/TranshandDesign.jsx) for more detail.
  - ```tooltips```: ```//TODO`
+ - ```cursors```: ```//TODO`
  - **events:**
    - ```onChange(change)```: [see above](#basic-usage)
    - ```onClick(mouseEvent)```: Called on the user just clicks on the handler and not changing it. Useful for selecting items behind the handler.
