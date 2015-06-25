@@ -25,6 +25,8 @@ npm install --save transhand
 
 ###Basic usage
 ```javascript
+import { Transhand } from 'transhand'
+
 //the current transformation
 var transform = {
   tx: 0, ty: 0,     //translate in px
@@ -47,12 +49,14 @@ var onChange = (change) => {
 
 ###Basic usage with CSS Transform
 ```javascript
-<CssTranshand
+import { CSSTranshand } from 'transhand'
+
+<CSSTranshand
   transforms = {transforms}
   deTarget = {transformedDOMElement}
   onChange = {onChange}/>
 ```
-```CssTranshand``` is a wrapper for ```Transhand```. It use the provided DOM Element to calculate the ```rect``` and handle if the parent elements are onalso transformed and when ```deTarget``` is inside an iframe.
+```CSSTranshand``` is a wrapper for ```Transhand```. It use the provided DOM Element to calculate the ```rect``` and handle if the parent elements are onalso transformed and when ```deTarget``` is inside an iframe.
 
 ###API
 ####Transhand
@@ -71,5 +75,5 @@ var onChange = (change) => {
    - ```onStartDrag```: Called on the user grab the handler.
    - ```onEndDrag```: Called on the user release the handler. ``
  
-####CssTranshand
+####CSSTranshand
   Inherits all the properties of transhand but replaces ```coordinator``` and ```rect```  with an extra property called ```deTarget```.  [see above](#basic-usage-with-css-transform)
