@@ -13,7 +13,6 @@ Developed as part of the [Animachine project](https://github.com/animachine/anim
 
 ####Install
 ```
-bower install --save transhand
 npm install --save transhand
 ```
 
