@@ -6,17 +6,17 @@ Developed as part of the [Animachine project](https://github.com/animachine/anim
 
 ![](http://fat.gfycat.com/SilverExhaustedEquestrian.gif)
 
-####Demos:
+###Demos
 [nested](http://azazdeaz.github.io/transhand/nested/),
 [iframe](http://azazdeaz.github.io/transhand/iframe/),
 [custom](http://azazdeaz.github.io/transhand/custom/)
 
-####Install
+###Install
 ```
 npm install --save transhand
 ```
 
-###Current features:
+###Current features
 - translate, rotate, scale, move transform origin
 - shift + scale/move/rotate
 - alt + scale from the origin or opposite side
