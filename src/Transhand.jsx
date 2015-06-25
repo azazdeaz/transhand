@@ -497,27 +497,27 @@ export default class Transhand extends React.Component {
 
   getRotateCursor(mx, my) {
 
-    var po = this.props.coordinator.localToGlobal(this.state.pOrigin),
-        r = Math.atan2(my - po.y, mx - po.x) / Math.PI * 180
+    var po = this.props.coordinator.localToGlobal(this.state.pOrigin)
+    var r = Math.atan2(my - po.y, mx - po.x) / Math.PI * 180
 
-    return `url(\'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" ><path transform="rotate(${r}, 16, 16)" d="M18.907 3.238l-7.54-2.104s8.35 3.9 8.428 15.367c.08 11.794-7.807 14.49-7.807 14.49l7.363-1.725" stroke="#000" stroke-width="2.054" fill="none"/></svg>\') 16 16, auto`
+    var svg = escape(`<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" ><path transform="rotate(${r}, 16, 16)" d="M18.907 3.238l-7.54-2.104s8.35 3.9 8.428 15.367c.08 11.794-7.807 14.49-7.807 14.49l7.363-1.725" stroke="#000" stroke-width="2.054" fill="none"/></svg>`)
+    return `url('data:image/svg+xml;utf8,${svg}') 16 16, all-scroll`
   }
 
   getScaleCursor() {
-
     var FINGERS = ['0100', '0110', '0010', '0011', '0001', '1001', '1000', '1100']
 
-    var {coordinator, transform} = this.props,
-        {pOrigin, finger} = this.state,
-        sideDeg = FINGERS.indexOf(finger) * 45,
-        po = coordinator.localToGlobal(pOrigin),
-        oTweak = {x: pOrigin.x + 1234, y: pOrigin.y},
-        pot = coordinator.localToGlobal(oTweak),
-        baseRad = Math.atan2(pot.y - po.y, pot.x - po.x) + transform.rz,
-        r = sideDeg + (baseRad / Math.PI * 180)
+    var {coordinator, transform} = this.props
+    var {pOrigin, finger} = this.state
+    var sideDeg = FINGERS.indexOf(finger) * 45
+    var po = coordinator.localToGlobal(pOrigin)
+    var oTweak = {x: pOrigin.x + 1234, y: pOrigin.y}
+    var pot = coordinator.localToGlobal(oTweak)
+    var baseRad = Math.atan2(pot.y - po.y, pot.x - po.x) + transform.rz
+    var r = sideDeg + (baseRad / Math.PI * 180)
 
-
-    return `url(\'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32"><path transform="rotate(${r}, 16, 16)" d="M22.406 12.552l5.88 4.18H3.677l5.728 4.36" stroke="#000" stroke-width="2.254" fill="none"/></svg>\') 16 16, auto`
+    var svg = escape(`<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32"><path transform="rotate(${r}, 16, 16)" d="M22.406 12.552l5.88 4.18H3.677l5.728 4.36" stroke="#000" stroke-width="2.254" fill="none"/></svg>`)
+    return `url(data:image/svg+xml;utf8,${svg}) 16 16, all-scroll`
   }
 
   getHitEvents = () => {
