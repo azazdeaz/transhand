@@ -5,7 +5,7 @@
   "main": "lib/index.js",
   "repository": {
     "type": "git",
-    "url": "git://github.com/animachine/transhand.git"
+    "url": "git://github.com/azazdeaz/transhand.git"
   },
   "scripts": {
     "lib": "babel ./src --out-dir lib  --source-maps --source-maps",
@@ -21,9 +21,9 @@
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/animachine/transhand/issues"
+    "url": "https://github.com/azazdeaz/transhand/issues"
   },
-  "homepage": "https://github.com/animachine/transhand",
+  "homepage": "https://github.com/azazdeaz/transhand",
   "peerDependencies": {
     "react": "^0.13.2"
   },
