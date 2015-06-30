@@ -14,25 +14,32 @@ export default class App extends React.Component {
 
   componentDidMount() {
     var iframeWindow = document.querySelector('iframe').contentWindow
-    iframeWindow.addEventListener('click', this.handleIframeSelectClick)
+    iframeWindow.addEventListener('mousedown', this.handleIframeSelectClick)
   }
 
   handleIframeSelectClick = (e) => {
     this.selectFromPoint(e.clientX, e.clientY)
   }
 
-  handleSelectClick = (e) => {
+  handleSelectBehindHanler(e) {
+    this.handleSelectClick(e, false)
+  }
+
+  handleSelectClick = (e, behindHandler) => {
     var br = document.querySelector('iframe').getBoundingClientRect()
     var x = e.clientX - br.left
     var y = e.clientY - br.top
-    this.selectFromPoint(x, y)
+    this.selectFromPoint(x, y, !behindHandler && e)
   }
 
-  selectFromPoint(x, y) {
+  selectFromPoint(x, y, grabEvent) {
     var deTarget = this.elementFromPoint(x, y)
 
     if (deTarget && deTarget._handlerDemo) {
-      this.setState({currDomElem: deTarget})
+      this.setState({
+        grabEvent,
+        currDomElem: deTarget
+      })
     }
     else {
       this.setState({currDomElem: undefined})
@@ -63,7 +70,6 @@ export default class App extends React.Component {
   }
 
   handleChange = (change) => {
-
     console.log('change event:', change)
 
     var { currDomElem } = this.state,
@@ -78,7 +84,6 @@ export default class App extends React.Component {
   }
 
   generateCssTransform(transform) {
-
     var cssTransform = ''
 
     cssTransform += ' translateX(' + transform.tx + 'px)'
@@ -91,7 +96,6 @@ export default class App extends React.Component {
   }
 
   render() {
-
     var {currDomElem} = this.state
 
     if (currDomElem) {
@@ -101,7 +105,7 @@ export default class App extends React.Component {
         deTarget = {currDomElem}
         transform = {currDomElem._handlerParams}
         onChange = {this.handleChange}
-        onClick = {this.handleSelectClick}/>
+        onClick = {this.handleSelectBehindHanler}/>
     }
     else {
       return <div hidden={true}/>

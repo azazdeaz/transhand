@@ -50,6 +50,7 @@ export default class Transhand extends React.Component {
     onClick: React.PropTypes.func,
     onStartDrag: React.PropTypes.func,
     onEndDrag: React.PropTypes.func,
+    grabEvent: React.PropTypes.object,
   }
 
   static defaultProps = {
@@ -70,6 +71,7 @@ export default class Transhand extends React.Component {
       stroke: 'lime',
     },
     DesignComponent: TranshandDesign,
+    grabEvent: null
   }
 
   constructor(prosp) {
@@ -82,14 +84,11 @@ export default class Transhand extends React.Component {
   }
 
   componentWillMount() {
-
     this.refreshPoints()
-
     window.addEventListener('mousemove', e => this.handleMouseMove(e))
   }
 
   componentWillReceiveProps(nextProps) {
-
     this.refreshPoints(nextProps)
   }
 
@@ -108,15 +107,31 @@ export default class Transhand extends React.Component {
       equPoints(points[3], nextState.points[3]))
   }
 
+  componentDidMount() {
+    var {grabEvent} = this.props
+    if (grabEvent) {
+      this.handleNewGrabEvent(grabEvent)
+    }
+  }
 
+  componentDidUpdate(prevProps) {
+    var {grabEvent} = this.props
+    if (grabEvent && grabEvent !== prevProps.grabEvent) {
+      this.handleNewGrabEvent(grabEvent)
+    }
+  }
 
+  handleNewGrabEvent(grabEvent) {
+    this.setState({finger: 'move'}, () => {
+      this.handleMouseDown(grabEvent)
+    })
+  }
 
 
 
 
 
   refreshPoints(props) {
-
     props = props || this.props
 
     var {rect, transform} = props,
@@ -145,16 +160,16 @@ export default class Transhand extends React.Component {
     })
 
     function t(p, x, y) {
-      var dx = (x - tox) * transform.sx,
-          dy = (y - toy) * transform.sy,
-          d = Math.sqrt(dx**2 + dy**2),
-          rad = Math.atan2(dy, dx) + transform.rz,
-          nx = Math.cos(rad),
-          ny = Math.sin(rad),
-          rx = d * nx,
-          ry = d * ny,
-          px = tox + rx,
-          py = toy + ry
+      var dx = (x - tox) * transform.sx
+      var dy = (y - toy) * transform.sy
+      var d = Math.sqrt(dx**2 + dy**2)
+      var rad = Math.atan2(dy, dx) + transform.rz
+      var nx = Math.cos(rad)
+      var ny = Math.sin(rad)
+      var rx = d * nx
+      var ry = d * ny
+      var px = tox + rx
+      var py = toy + ry
 
       p.x = px
       p.y = py
@@ -167,10 +182,12 @@ export default class Transhand extends React.Component {
   // Event Handlers ////////////////////////////////////////////////////////////
 
   handleMouseDown = (e) => {
-
     if (!this.state.finger) {
         return
     }
+
+    e.stopPropagation()
+    e.preventDefault()
 
     this._isDraggedSinceDown = false
     this._isHandle = true
@@ -178,10 +195,10 @@ export default class Transhand extends React.Component {
     React.findDOMNode(this).style.pointerEvents = 'auto'
 
     this._mdPos = {
-        m: this.props.coordinator.globalToLocal({x: e.clientX, y: e.clientY}),
-        transform: cloneDeep(this.props.transform),
-        points: cloneDeep(this.state.points),
-        pOrigin: clone(this.state.pOrigin)
+      m: this.props.coordinator.globalToLocal({x: e.clientX, y: e.clientY}),
+      transform: cloneDeep(this.props.transform),
+      points: cloneDeep(this.state.points),
+      pOrigin: clone(this.state.pOrigin)
     }
 
     window.addEventListener('mouseup', this.handleMouseUp)
@@ -194,7 +211,6 @@ export default class Transhand extends React.Component {
   }
 
   handleMouseMove = (e) => {
-
     this._isDraggedSinceDown = true
 
     if (!this._isHandle && this.state.hoverHitbox) {
@@ -235,7 +251,6 @@ export default class Transhand extends React.Component {
   }
 
   handleDrag = (e) => {
-
     this._onDragMe = e
 
     if (!this._rafOnDragRafId) {
@@ -245,7 +260,6 @@ export default class Transhand extends React.Component {
   }
 
   deferredHandleDrag = () => {
-
     var e = this._onDragMe
     this._onDragMe = undefined
 
@@ -263,42 +277,34 @@ export default class Transhand extends React.Component {
         change = {}
 
     if (finger === 'origin') {
-
       setOrigin()
     }
 
     if (finger === 'move') {
-
       setTransform()
     }
 
     if (finger.charAt(0) === '1') {
-
       setScale(-Math.PI/2, 'sy', -1)
     }
 
     if (finger.charAt(1) === '1') {
-
       setScale(0, 'sx', 1)
     }
 
     if (finger.charAt(2) === '1') {
-
       setScale(Math.PI/2, 'sy', 1)
     }
 
     if (finger.charAt(3) === '1') {
-
       setScale(Math.PI, 'sx', -1)
     }
 
     if (finger === 'rotate') {
-
       setRotation()
     }
 
     if (shift && 'sx' in change && 'sy' in change) {
-
       fixProportion()
     }
 
@@ -313,15 +319,15 @@ export default class Transhand extends React.Component {
 
     function setScale(r, sN, way) {
 
-      var rad = r + md.transform.rz,
-          mdDist = distToPointInAngle(md.pOrigin, md.m, rad),
-          dragDist = distToPointInAngle(md.pOrigin, m, rad),
-          scale = (dragDist / mdDist) * md.transform[sN]
+      var rad = r + md.transform.rz
+      var mdDist = distToPointInAngle(md.pOrigin, md.m, rad)
+      var dragDist = distToPointInAngle(md.pOrigin, m, rad)
+      var scale = (dragDist / mdDist) * md.transform[sN]
 
       if (alt) {
-        var es = (scale - md.transform[sN]) / 2,
-            tN = 't' + sN.charAt(1),
-            dN = sN.charAt(1) === 'x' ? 'w' : 'h'
+        let es = (scale - md.transform[sN]) / 2
+        let tN = 't' + sN.charAt(1)
+        let dN = sN.charAt(1) === 'x' ? 'w' : 'h'
 
         scale -= es
         change[tN] = transform[tN] = md.transform[tN] + rect[dN] * (es / 2) * way
@@ -332,12 +338,12 @@ export default class Transhand extends React.Component {
 
     function fixProportion() {
 
-      var mx = m.x - pOrigin.x,
-          my = m.y - pOrigin.y,
-          mr = Math.abs(radDiff(transform.rz, Math.atan2(my, mx))),
-          isVertical = mr > Math.PI / 4 && mr < Math.PI/4 * 3,
-          spx = transform.sx / md.transform.sx,
-          spy = transform.sy / md.transform.sy
+      var mx = m.x - pOrigin.x
+      var my = m.y - pOrigin.y
+      var mr = Math.abs(radDiff(transform.rz, Math.atan2(my, mx)))
+      var isVertical = mr > Math.PI/4 && mr < Math.PI/4 * 3
+      var spx = transform.sx / md.transform.sx
+      var spy = transform.sy / md.transform.sy
 
       spx *= spx < 0 ? -1 : 1
       spy *= spy < 0 ? -1 : 1

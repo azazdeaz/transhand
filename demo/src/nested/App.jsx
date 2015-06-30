@@ -13,14 +13,21 @@ export default class App extends React.Component {
   }
 
   componentDidMount() {
-    window.addEventListener('click', this.handleSelectClick)
+    window.addEventListener('mousedown', this.handleSelectClick)
   }
 
-  handleSelectClick = (e) => {
-    var deTarget = this.elementFromPoint(e.clientX, e.clientY)
+  handleSelectBehindHanler = (e) => {
+    this.handleSelectClick(e, true)
+  }
 
-    if (deTarget && deTarget._handlerDemo) {
-      this.setState({currDomElem: deTarget})
+  handleSelectClick = (e, behindHandler) => {
+    var domElem = this.elementFromPoint(e.clientX, e.clientY)
+
+    if (domElem && domElem._handlerDemo) {
+      this.setState({
+        currDomElem: domElem,
+        grabEvent: !behindHandler && e
+      })
     }
     else {
       this.setState({currDomElem: undefined})
@@ -46,7 +53,6 @@ export default class App extends React.Component {
   }
 
   handleChange = (change) => {
-
     console.log('change event:', change)
 
     var { currDomElem } = this.state,
@@ -61,7 +67,6 @@ export default class App extends React.Component {
   }
 
   generateCssTransform(transform) {
-
     var cssTransform = ''
 
     cssTransform += ' translateX(' + transform.tx + 'px)'
@@ -74,8 +79,7 @@ export default class App extends React.Component {
   }
 
   render() {
-
-    var {currDomElem} = this.state
+    var {currDomElem, grabEvent} = this.state
 
     if (currDomElem) {
 
@@ -84,7 +88,8 @@ export default class App extends React.Component {
         deTarget = {currDomElem}
         transform = {currDomElem._handlerParams}
         onChange = {this.handleChange}
-        onClick = {this.handleSelectClick}/>
+        grabEvent = {grabEvent}
+        onClick = {this.handleSelectBehindHanler}/>
     }
     else {
       return <div hidden={true}/>
