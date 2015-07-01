@@ -1,25 +1,13 @@
 import React, {PropTypes} from 'react'
 import clone from 'lodash/lang/clone'
 import cloneDeep from 'lodash/lang/cloneDeep'
+import assign from 'lodash/object/assign'
 import shallowEquals from 'shallow-equals'
 import TranshandDesign from './TranshandDesign'
 import DefaultCoordinator from './DefaultCoordinator'
+import Cursor from './Cursor'
 import {radDiff, distToSegment, distToPointInAngle, isInside,
   equPoints} from './utils'
-
-const MOUSESTATES = {
-  'move': 'move',
-  'rotate': '-webkit-grab',
-  'origin': 'crosshair',
-  '1000': 'ns-resize',
-  '1100': 'nesw-resize',
-  '0100': 'ew-resize',
-  '0110': 'nwse-resize',
-  '0010': 'ns-resize',
-  '0011': 'nesw-resize',
-  '0001': 'ew-resize',
-  '1001': 'nwse-resize',
-}
 
 export default class Transhand extends React.Component {
   static propsTypes = {
@@ -51,6 +39,7 @@ export default class Transhand extends React.Component {
     onStartDrag: React.PropTypes.func,
     onEndDrag: React.PropTypes.func,
     grabEvent: React.PropTypes.object,
+    cursor: React.PropTypes.object,
   }
 
   static defaultProps = {
@@ -71,7 +60,8 @@ export default class Transhand extends React.Component {
       stroke: 'lime',
     },
     DesignComponent: TranshandDesign,
-    grabEvent: null
+    grabEvent: null,
+    cursor: new Cursor()
   }
 
   constructor(prosp) {
@@ -159,7 +149,7 @@ export default class Transhand extends React.Component {
       pOrigin: po,
     })
 
-    function t(p, x, y) {
+    function t(point, x, y) {
       var dx = (x - tox) * transform.sx
       var dy = (y - toy) * transform.sy
       var d = Math.sqrt(dx**2 + dy**2)
@@ -171,8 +161,8 @@ export default class Transhand extends React.Component {
       var px = tox + rx
       var py = toy + ry
 
-      p.x = px
-      p.y = py
+      point.x = px
+      point.y = py
     }
   }
 
@@ -203,28 +193,17 @@ export default class Transhand extends React.Component {
 
     window.addEventListener('mouseup', this.handleMouseUp)
     window.addEventListener('mouseleave', this.handleMouseUp)
-    window.addEventListener('mousemove', this.handleDrag)
+    // window.addEventListener('mousemove', this.handleDrag)
 
     if (this.props.onStartDrag) {
       this.props.onStartDrag()
     }
   }
 
-  handleMouseMove = (e) => {
-    this._isDraggedSinceDown = true
-
-    if (!this._isHandle && this.state.hoverHitbox) {
-      this.setFinger(e)
-    }
-    else {
-      // this._th.cursorHint.setHints(null)
-    }
-  }
-
   handleMouseUp = (e) => {
     window.removeEventListener('mouseup', this.handleMouseUp)
     window.removeEventListener('mouseleave', this.handleMouseUp)
-    window.removeEventListener('mousemove', this.handleDrag)
+    // window.removeEventListener('mousemove', this.handleDrag)
 
     e.stopPropagation()
     e.preventDefault()
@@ -250,13 +229,25 @@ export default class Transhand extends React.Component {
     }
   }
 
-  handleDrag = (e) => {
-    this._onDragMe = e
+  handleMouseMove = (e) => {
+    var  {finger} = this.state
 
-    if (!this._rafOnDragRafId) {
+    this._isDraggedSinceDown = true
 
-      this._rafOnDragRafId = requestAnimationFrame(this.deferredHandleDrag)
+    if (this._isHandle) {
+      this._onDragMe = e
+
+      if (!this._rafOnDragRafId) {
+        this._rafOnDragRafId = requestAnimationFrame(this.deferredHandleDrag)
+      }
     }
+    else if (this.state.hoverHitbox) {
+      finger = this.getFinger(e)
+    }
+
+    var cursor = this.getCursor(e, finger)
+    this.setState({cursor, finger})
+    // this._th.cursorHint.setHints(null)
   }
 
   deferredHandleDrag = () => {
@@ -419,111 +410,70 @@ export default class Transhand extends React.Component {
 
 
 
-  setFinger(e) {
+  getFinger(e) {
+    var {rect, transform, coordinator, originRadius} = this.props
+    var {finger} = this.state
+    var p = this.state.points
+    var po = this.state.pOrigin
+    var diff = 3
+    var rDiff = 16
+    var m = coordinator.globalToLocal({x: e.clientX, y: e.clientY})
+    var dox = po.x - m.x
+    var doy = po.y - m.y
+    var dOrigin = Math.sqrt(dox**2 + doy**2)
+    var dTop = distToSegment(m, p[0], p[1])
+    var dLeft = distToSegment(m, p[1], p[2])
+    var dBottom = distToSegment(m, p[2], p[3])
+    var dRight = distToSegment(m, p[3], p[0])
+    var top = dTop < diff
+    var left = dLeft < diff
+    var bottom = dBottom < diff
+    var right = dRight < diff
+    var inside = isInside(m, p)
 
-    var {rect, transform, coordinator, originRadius} = this.props,
-        {finger} = this.state,
-        p = this.state.points,
-        po = this.state.pOrigin,
-        diff = 3,
-        rDiff = 16,
-        m = coordinator.globalToLocal({x: e.clientX, y: e.clientY}),
-        dox = po.x - m.x,
-        doy = po.y - m.y,
-        dOrigin = Math.sqrt(dox**2 + doy**2),
-        dTop = distToSegment(m, p[0], p[1]),
-        dLeft = distToSegment(m, p[1], p[2]),
-        dBottom = distToSegment(m, p[2], p[3]),
-        dRight = distToSegment(m, p[3], p[0]),
-        top = dTop < diff,
-        left = dLeft < diff,
-        bottom = dBottom < diff,
-        right = dRight < diff,
-        inside = isInside(m, p),
-        cursorScale
-
-      if (rect.w * transform.sx < diff * 2 && inside) {
-
-          left = false
-          right = false
-      }
-
-      if (rect.h * transform.sy < diff * 2 && inside) {
-
-          top = false
-          bottom = false
-      }
-
-      if (dOrigin < originRadius) {
-
-          finger = 'origin'
-      }
-      else if (top || right || bottom || left) {
-          //TODO its sould be top-right-bottom-left
-          finger = ('000' + (top * 1000 + left * 100 + bottom * 10 + right * 1)).substr(-4)
-          cursorScale = true
-          // this._th.cursorHint.setHints(hints.scale)
-      }
-      else if (inside) {
-
-          finger = 'move'
-          // this._th.cursorHint.setHints(hints.move)
-      }
-      else if (dTop < rDiff || dRight < rDiff || dBottom < rDiff || dLeft < rDiff || dOrigin < rDiff) {
-
-          finger = 'rotate'
-          // this._th.cursorHint.setHints(hints.rotate)
-      }
-      else {
-          finger = false
-          // this._th.cursorHint.setHints(null)
-      }
-
-      var cursor = this.getCursor(e, finger, cursorScale)
-
-      this.setState({finger, cursorScale, cursor})
-  }
-
-  getCursor(e, finger, cursorScale) {
-
-    var cursor = 'auto'
-
-    if (finger === 'rotate') {
-      cursor = this.getRotateCursor(e.clientX, e.clientY)
-    }
-    else if (cursorScale) {
-      cursor = this.getScaleCursor(e.clientX, e.clientY)
-    }
-    else if (finger) {
-      cursor = MOUSESTATES[finger]
+    if (rect.w * transform.sx < diff * 2 && inside) {
+      left = false
+      right = false
     }
 
-    return cursor
+    if (rect.h * transform.sy < diff * 2 && inside) {
+      top = false
+      bottom = false
+    }
+
+    if (dOrigin < originRadius) {
+      finger = 'origin'
+    }
+    else if (top || right || bottom || left) {
+      //TODO its sould be top-right-bottom-left
+      finger = (top ? '1' : '0') +
+               (left ? '1' : '0') +
+               (bottom ? '1' : '0') +
+               (right ? '1' : '0')
+      // this._th.cursorHint.setHints(hints.scale)
+    }
+    else if (inside) {
+      finger = 'move'
+      // this._th.cursorHint.setHints(hints.move)
+    }
+    else if (dTop < rDiff || dRight < rDiff || dBottom < rDiff || dLeft < rDiff || dOrigin < rDiff) {
+      finger = 'rotate'
+      // this._th.cursorHint.setHints(hints.rotate)
+    }
+    else {
+      finger = false
+      // this._th.cursorHint.setHints(null)
+    }
+
+    return finger
   }
 
-  getRotateCursor(mx, my) {
-
-    var po = this.props.coordinator.localToGlobal(this.state.pOrigin)
-    var r = Math.atan2(my - po.y, mx - po.x) / Math.PI * 180
-
-    var svg = escape(`<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" ><path transform="rotate(${r}, 16, 16)" d="M18.907 3.238l-7.54-2.104s8.35 3.9 8.428 15.367c.08 11.794-7.807 14.49-7.807 14.49l7.363-1.725" stroke="#000" stroke-width="2.054" fill="none"/></svg>`)
-    return `url('data:image/svg+xml;utf8,${svg}') 16 16, all-scroll`
-  }
-
-  getScaleCursor() {
-    var FINGERS = ['0100', '0110', '0010', '0011', '0001', '1001', '1000', '1100']
-
-    var {coordinator, transform} = this.props
-    var {pOrigin, finger} = this.state
-    var sideDeg = FINGERS.indexOf(finger) * 45
-    var po = coordinator.localToGlobal(pOrigin)
-    var oTweak = {x: pOrigin.x + 1234, y: pOrigin.y}
-    var pot = coordinator.localToGlobal(oTweak)
-    var baseRad = Math.atan2(pot.y - po.y, pot.x - po.x) + transform.rz
-    var r = sideDeg + (baseRad / Math.PI * 180)
-
-    var svg = escape(`<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32"><path transform="rotate(${r}, 16, 16)" d="M22.406 12.552l5.88 4.18H3.677l5.728 4.36" stroke="#000" stroke-width="2.254" fill="none"/></svg>`)
-    return `url(data:image/svg+xml;utf8,${svg}) 16 16, all-scroll`
+  getCursor(e, finger) {
+    return this.props.cursor.getCursor(
+      this.props,
+      assign({finger}, this.state),
+      e.clientX,
+      e.clientY)
   }
 
   getHitEvents = () => {
