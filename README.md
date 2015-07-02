@@ -66,6 +66,7 @@ import { CSSTranshand } from 'transhand'
  - ```coordinator = new DefaultCoordinator()```: Use this to change the way as Transhand convert global coordinates into its local coordinate system (ex. mouse positions) and back (ex. render to screen). Coordinator is an object with two functions ```globalToLocal(point):point``` and ```localToGlobal(point):point```.  If you need more detail check out the source.
  - ```stroke = {strokeWidth: '1', stroke: 'lime'}```:  A set of svg attributes to customize drawed svg.
  - ```DesignComponent = TranshandDesign```:  You can replace the basic dumb component that Transhand renders to fully customize its appearance. Please check out [the source](src/TranshandDesign.jsx) for more detail.
+ - ```grabEvent```:  If paramener is presented Transhand will simulate the mouse down event with it. It's useful when you want to drag the target immediately after selecting it with mouse down. See it in use in the [demo sources](demo/src/nested/App.jsx).
  - ```tooltips```: ```//TODO`
  - ```cursors```: ```//TODO`
  - **events:**
