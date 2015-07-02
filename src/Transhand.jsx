@@ -112,9 +112,8 @@ export default class Transhand extends React.Component {
   }
 
   handleNewGrabEvent(grabEvent) {
-    this.setState({finger: 'move'}, () => {
-      this.handleMouseDown(grabEvent)
-    })
+    this._finger = 'move'
+    this.handleMouseDown(grabEvent)
   }
 
 
@@ -172,7 +171,7 @@ export default class Transhand extends React.Component {
   // Event Handlers ////////////////////////////////////////////////////////////
 
   handleMouseDown = (e) => {
-    if (!this.state.finger) {
+    if (!this._finger) {
         return
     }
 
@@ -230,8 +229,6 @@ export default class Transhand extends React.Component {
   }
 
   handleMouseMove = (e) => {
-    var  {finger} = this.state
-
     this._isDraggedSinceDown = true
 
     if (this._isHandle) {
@@ -242,11 +239,11 @@ export default class Transhand extends React.Component {
       }
     }
     else if (this.state.hoverHitbox) {
-      finger = this.getFinger(e)
+      this._finger = this.getFinger(e)
     }
 
-    var cursor = this.getCursor(e, finger)
-    this.setState({cursor, finger})
+    var cursor = this.getCursor(e)
+    this.setState({cursor})
     // this._th.cursorHint.setHints(null)
   }
 
@@ -257,15 +254,16 @@ export default class Transhand extends React.Component {
     window.cancelAnimationFrame(this._rafOnDragRafId)
     this._rafOnDragRafId = undefined
 
-    var {rect, transform, coordinator, onChange} = this.props,
-        {pOrigin, finger} = this.state,
-        md = this._mdPos,
-        m = coordinator.globalToLocal({x: e.clientX, y: e.clientY}),
-        dx = m.x - md.m.x,
-        dy = m.y - md.m.y,
-        alt = e.altKey,
-        shift = e.shiftKey,
-        change = {}
+    var {rect, transform, coordinator, onChange} = this.props
+    var {pOrigin} = this.state
+    var md = this._mdPos
+    var m = coordinator.globalToLocal({x: e.clientX, y: e.clientY})
+    var dx = m.x - md.m.x
+    var dy = m.y - md.m.y
+    var alt = e.altKey
+    var shift = e.shiftKey
+    var change = {}
+    var finger = this._finger
 
     if (finger === 'origin') {
       setOrigin()
@@ -412,7 +410,6 @@ export default class Transhand extends React.Component {
 
   getFinger(e) {
     var {rect, transform, coordinator, originRadius} = this.props
-    var {finger} = this.state
     var p = this.state.points
     var po = this.state.pOrigin
     var diff = 3
@@ -430,6 +427,7 @@ export default class Transhand extends React.Component {
     var bottom = dBottom < diff
     var right = dRight < diff
     var inside = isInside(m, p)
+    var finger
 
     if (rect.w * transform.sx < diff * 2 && inside) {
       left = false
@@ -468,10 +466,10 @@ export default class Transhand extends React.Component {
     return finger
   }
 
-  getCursor(e, finger) {
+  getCursor(e) {
     return this.props.cursor.getCursor(
       this.props,
-      assign({finger}, this.state),
+      assign({finger: this._finger}, this.state),
       e.clientX,
       e.clientY)
   }
