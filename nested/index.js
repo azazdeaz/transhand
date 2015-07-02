@@ -52,15 +52,15 @@
 
 	var _react2 = _interopRequireDefault(_react);
 
-	var _prepare = __webpack_require__(252);
+	var _prepare = __webpack_require__(253);
 
 	var _prepare2 = _interopRequireDefault(_prepare);
 
-	var _App = __webpack_require__(264);
+	var _App = __webpack_require__(265);
 
 	var _App2 = _interopRequireDefault(_App);
 
-	__webpack_require__(265);
+	__webpack_require__(266);
 
 	(0, _prepare2['default'])();
 
@@ -22152,15 +22152,15 @@
 
 	var _Transhand2 = _interopRequireDefault(_Transhand);
 
-	var _CSSCoordinator = __webpack_require__(208);
+	var _CSSCoordinator = __webpack_require__(212);
 
 	var _CSSCoordinator2 = _interopRequireDefault(_CSSCoordinator);
 
-	var _lodashLangIsElement = __webpack_require__(242);
+	var _lodashLangIsElement = __webpack_require__(243);
 
 	var _lodashLangIsElement2 = _interopRequireDefault(_lodashLangIsElement);
 
-	var _lodashObjectAssign = __webpack_require__(239);
+	var _lodashObjectAssign = __webpack_require__(204);
 
 	var _lodashObjectAssign2 = _interopRequireDefault(_lodashObjectAssign);
 
@@ -22284,32 +22284,27 @@
 
 	var _lodashLangCloneDeep2 = _interopRequireDefault(_lodashLangCloneDeep);
 
-	var _shallowEquals = __webpack_require__(204);
+	var _lodashObjectAssign = __webpack_require__(204);
+
+	var _lodashObjectAssign2 = _interopRequireDefault(_lodashObjectAssign);
+
+	var _shallowEquals = __webpack_require__(207);
 
 	var _shallowEquals2 = _interopRequireDefault(_shallowEquals);
 
-	var _TranshandDesign = __webpack_require__(205);
+	var _TranshandDesign = __webpack_require__(208);
 
 	var _TranshandDesign2 = _interopRequireDefault(_TranshandDesign);
 
-	var _DefaultCoordinator = __webpack_require__(206);
+	var _DefaultCoordinator = __webpack_require__(209);
 
 	var _DefaultCoordinator2 = _interopRequireDefault(_DefaultCoordinator);
 
-	var _utils = __webpack_require__(207);
+	var _Cursor = __webpack_require__(210);
 
-	var MOUSESTATES = {
-	  'move': 'move',
-	  'rotate': '-webkit-grab',
-	  'origin': 'crosshair',
-	  '1000': 'ns-resize',
-	  '1100': 'nesw-resize',
-	  '0100': 'ew-resize',
-	  '0110': 'nwse-resize',
-	  '0010': 'ns-resize',
-	  '0011': 'nesw-resize',
-	  '0001': 'ew-resize',
-	  '1001': 'nwse-resize' };
+	var _Cursor2 = _interopRequireDefault(_Cursor);
+
+	var _utils = __webpack_require__(211);
 
 	var Transhand = (function (_React$Component) {
 	  function Transhand(prosp) {
@@ -22320,10 +22315,12 @@
 	    _get(Object.getPrototypeOf(Transhand.prototype), 'constructor', this).call(this, prosp);
 
 	    this.handleMouseDown = function (e) {
-
-	      if (!_this.state.finger) {
+	      if (!_this._finger) {
 	        return;
 	      }
+
+	      e.stopPropagation();
+	      e.preventDefault();
 
 	      _this._isDraggedSinceDown = false;
 	      _this._isHandle = true;
@@ -22339,26 +22336,17 @@
 
 	      window.addEventListener('mouseup', _this.handleMouseUp);
 	      window.addEventListener('mouseleave', _this.handleMouseUp);
-	      window.addEventListener('mousemove', _this.handleDrag);
+	      // window.addEventListener('mousemove', this.handleDrag)
 
 	      if (_this.props.onStartDrag) {
 	        _this.props.onStartDrag();
 	      }
 	    };
 
-	    this.handleMouseMove = function (e) {
-
-	      _this._isDraggedSinceDown = true;
-
-	      if (!_this._isHandle && _this.state.hoverHitbox) {
-	        _this.setFinger(e);
-	      } else {}
-	    };
-
 	    this.handleMouseUp = function (e) {
 	      window.removeEventListener('mouseup', _this.handleMouseUp);
 	      window.removeEventListener('mouseleave', _this.handleMouseUp);
-	      window.removeEventListener('mousemove', _this.handleDrag);
+	      // window.removeEventListener('mousemove', this.handleDrag)
 
 	      e.stopPropagation();
 	      e.preventDefault();
@@ -22384,18 +22372,24 @@
 	      }
 	    };
 
-	    this.handleDrag = function (e) {
+	    this.handleMouseMove = function (e) {
+	      _this._isDraggedSinceDown = true;
 
-	      _this._onDragMe = e;
+	      if (_this._isHandle) {
+	        _this._onDragMe = e;
 
-	      if (!_this._rafOnDragRafId) {
-
-	        _this._rafOnDragRafId = requestAnimationFrame(_this.deferredHandleDrag);
+	        if (!_this._rafOnDragRafId) {
+	          _this._rafOnDragRafId = requestAnimationFrame(_this.deferredHandleDrag);
+	        }
+	      } else if (_this.state.hoverHitbox) {
+	        _this._finger = _this.getFinger(e);
 	      }
+
+	      var cursor = _this.getCursor(e);
+	      _this.setState({ cursor: cursor });
 	    };
 
 	    this.deferredHandleDrag = function () {
-
 	      var e = _this._onDragMe;
 	      _this._onDragMe = undefined;
 
@@ -22406,10 +22400,9 @@
 	      var rect = _props.rect;
 	      var transform = _props.transform;
 	      var coordinator = _props.coordinator;
-	      var onChange = _props.onChange;var _state = _this.state;
-	      var pOrigin = _state.pOrigin;
+	      var onChange = _props.onChange;
+	      var pOrigin = _this.state.pOrigin;
 
-	      var finger = _state.finger;
 	      var md = _this._mdPos;
 	      var m = coordinator.globalToLocal({ x: e.clientX, y: e.clientY });
 	      var dx = m.x - md.m.x;
@@ -22417,44 +22410,37 @@
 	      var alt = e.altKey;
 	      var shift = e.shiftKey;
 	      var change = {};
+	      var finger = _this._finger;
 
 	      if (finger === 'origin') {
-
 	        setOrigin();
 	      }
 
 	      if (finger === 'move') {
-
 	        setTransform();
 	      }
 
 	      if (finger.charAt(0) === '1') {
-
 	        setScale(-Math.PI / 2, 'sy', -1);
 	      }
 
 	      if (finger.charAt(1) === '1') {
-
 	        setScale(0, 'sx', 1);
 	      }
 
 	      if (finger.charAt(2) === '1') {
-
 	        setScale(Math.PI / 2, 'sy', 1);
 	      }
 
 	      if (finger.charAt(3) === '1') {
-
 	        setScale(Math.PI, 'sx', -1);
 	      }
 
 	      if (finger === 'rotate') {
-
 	        setRotation();
 	      }
 
 	      if (shift && 'sx' in change && 'sy' in change) {
-
 	        fixProportion();
 	      }
 
@@ -22464,15 +22450,15 @@
 
 	      function setScale(r, sN, way) {
 
-	        var rad = r + md.transform.rz,
-	            mdDist = (0, _utils.distToPointInAngle)(md.pOrigin, md.m, rad),
-	            dragDist = (0, _utils.distToPointInAngle)(md.pOrigin, m, rad),
-	            scale = dragDist / mdDist * md.transform[sN];
+	        var rad = r + md.transform.rz;
+	        var mdDist = (0, _utils.distToPointInAngle)(md.pOrigin, md.m, rad);
+	        var dragDist = (0, _utils.distToPointInAngle)(md.pOrigin, m, rad);
+	        var scale = dragDist / mdDist * md.transform[sN];
 
 	        if (alt) {
-	          var es = (scale - md.transform[sN]) / 2,
-	              tN = 't' + sN.charAt(1),
-	              dN = sN.charAt(1) === 'x' ? 'w' : 'h';
+	          var es = (scale - md.transform[sN]) / 2;
+	          var tN = 't' + sN.charAt(1);
+	          var dN = sN.charAt(1) === 'x' ? 'w' : 'h';
 
 	          scale -= es;
 	          change[tN] = transform[tN] = md.transform[tN] + rect[dN] * (es / 2) * way;
@@ -22483,12 +22469,12 @@
 
 	      function fixProportion() {
 
-	        var mx = m.x - pOrigin.x,
-	            my = m.y - pOrigin.y,
-	            mr = Math.abs((0, _utils.radDiff)(transform.rz, Math.atan2(my, mx))),
-	            isVertical = mr > Math.PI / 4 && mr < Math.PI / 4 * 3,
-	            spx = transform.sx / md.transform.sx,
-	            spy = transform.sy / md.transform.sy;
+	        var mx = m.x - pOrigin.x;
+	        var my = m.y - pOrigin.y;
+	        var mr = Math.abs((0, _utils.radDiff)(transform.rz, Math.atan2(my, mx)));
+	        var isVertical = mr > Math.PI / 4 && mr < Math.PI / 4 * 3;
+	        var spx = transform.sx / md.transform.sx;
+	        var spy = transform.sy / md.transform.sy;
 
 	        spx *= spx < 0 ? -1 : 1;
 	        spy *= spy < 0 ? -1 : 1;
@@ -22581,7 +22567,6 @@
 	      var _this2 = this;
 
 	      this.refreshPoints();
-
 	      window.addEventListener('mousemove', function (e) {
 	        return _this2.handleMouseMove(e);
 	      });
@@ -22589,22 +22574,44 @@
 	  }, {
 	    key: 'componentWillReceiveProps',
 	    value: function componentWillReceiveProps(nextProps) {
-
 	      this.refreshPoints(nextProps);
 	    }
 	  }, {
 	    key: 'shouldComponentUpdate',
 	    value: function shouldComponentUpdate(nextProps, nextState) {
-	      var _state2 = this.state;
-	      var points = _state2.points;
-	      var pOrigin = _state2.pOrigin;
+	      var _state = this.state;
+	      var points = _state.points;
+	      var pOrigin = _state.pOrigin;
 
 	      return !((0, _shallowEquals2['default'])(this.props, nextProps) && (0, _shallowEquals2['default'])(this.state, nextState) && (0, _shallowEquals2['default'])(this.props.stroke, nextProps.stroke) && (0, _utils.equPoints)(pOrigin, nextState.pOrigin) && (0, _utils.equPoints)(points[0], nextState.points[0]) && (0, _utils.equPoints)(points[1], nextState.points[1]) && (0, _utils.equPoints)(points[2], nextState.points[2]) && (0, _utils.equPoints)(points[3], nextState.points[3]));
 	    }
 	  }, {
+	    key: 'componentDidMount',
+	    value: function componentDidMount() {
+	      var grabEvent = this.props.grabEvent;
+
+	      if (grabEvent) {
+	        this.handleNewGrabEvent(grabEvent);
+	      }
+	    }
+	  }, {
+	    key: 'componentDidUpdate',
+	    value: function componentDidUpdate(prevProps) {
+	      var grabEvent = this.props.grabEvent;
+
+	      if (grabEvent && grabEvent !== prevProps.grabEvent) {
+	        this.handleNewGrabEvent(grabEvent);
+	      }
+	    }
+	  }, {
+	    key: 'handleNewGrabEvent',
+	    value: function handleNewGrabEvent(grabEvent) {
+	      this._finger = 'move';
+	      this.handleMouseDown(grabEvent);
+	    }
+	  }, {
 	    key: 'refreshPoints',
 	    value: function refreshPoints(props) {
-
 	      props = props || this.props;
 
 	      var rect = props.rect;
@@ -22634,31 +22641,31 @@
 	        points: p,
 	        pOrigin: po });
 
-	      function t(p, x, y) {
-	        var dx = (x - tox) * transform.sx,
-	            dy = (y - toy) * transform.sy,
-	            d = Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2)),
-	            rad = Math.atan2(dy, dx) + transform.rz,
-	            nx = Math.cos(rad),
-	            ny = Math.sin(rad),
-	            rx = d * nx,
-	            ry = d * ny,
-	            px = tox + rx,
-	            py = toy + ry;
+	      function t(point, x, y) {
+	        var dx = (x - tox) * transform.sx;
+	        var dy = (y - toy) * transform.sy;
+	        var d = Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2));
+	        var rad = Math.atan2(dy, dx) + transform.rz;
+	        var nx = Math.cos(rad);
+	        var ny = Math.sin(rad);
+	        var rx = d * nx;
+	        var ry = d * ny;
+	        var px = tox + rx;
+	        var py = toy + ry;
 
-	        p.x = px;
-	        p.y = py;
+	        point.x = px;
+	        point.y = py;
 	      }
 	    }
 	  }, {
-	    key: 'setFinger',
-	    value: function setFinger(e) {
+	    key: 'getFinger',
+	    value: function getFinger(e) {
 	      var _props2 = this.props;
 	      var rect = _props2.rect;
 	      var transform = _props2.transform;
 	      var coordinator = _props2.coordinator;
 	      var originRadius = _props2.originRadius;
-	      var finger = this.state.finger;
+
 	      var p = this.state.points;
 	      var po = this.state.pOrigin;
 	      var diff = 3;
@@ -22676,36 +22683,30 @@
 	      var bottom = dBottom < diff;
 	      var right = dRight < diff;
 	      var inside = (0, _utils.isInside)(m, p);
-	      var cursorScale;
+	      var finger;
 
 	      if (rect.w * transform.sx < diff * 2 && inside) {
-
 	        left = false;
 	        right = false;
 	      }
 
 	      if (rect.h * transform.sy < diff * 2 && inside) {
-
 	        top = false;
 	        bottom = false;
 	      }
 
 	      if (dOrigin < originRadius) {
-
 	        finger = 'origin';
 	      } else if (top || right || bottom || left) {
 	        //TODO its sould be top-right-bottom-left
-	        finger = ('000' + (top * 1000 + left * 100 + bottom * 10 + right * 1)).substr(-4);
-	        cursorScale = true
+	        finger = (top ? '1' : '0') + (left ? '1' : '0') + (bottom ? '1' : '0') + (right ? '1' : '0')
 	        // this._th.cursorHint.setHints(hints.scale)
 	        ;
 	      } else if (inside) {
-
 	        finger = 'move'
 	        // this._th.cursorHint.setHints(hints.move)
 	        ;
 	      } else if (dTop < rDiff || dRight < rDiff || dBottom < rDiff || dLeft < rDiff || dOrigin < rDiff) {
-
 	        finger = 'rotate'
 	        // this._th.cursorHint.setHints(hints.rotate)
 	        ;
@@ -22715,70 +22716,25 @@
 	        ;
 	      }
 
-	      var cursor = this.getCursor(e, finger, cursorScale);
-
-	      this.setState({ finger: finger, cursorScale: cursorScale, cursor: cursor });
+	      return finger;
 	    }
 	  }, {
 	    key: 'getCursor',
-	    value: function getCursor(e, finger, cursorScale) {
-
-	      var cursor = 'auto';
-
-	      if (finger === 'rotate') {
-	        cursor = this.getRotateCursor(e.clientX, e.clientY);
-	      } else if (cursorScale) {
-	        cursor = this.getScaleCursor(e.clientX, e.clientY);
-	      } else if (finger) {
-	        cursor = MOUSESTATES[finger];
-	      }
-
-	      return cursor;
-	    }
-	  }, {
-	    key: 'getRotateCursor',
-	    value: function getRotateCursor(mx, my) {
-
-	      var po = this.props.coordinator.localToGlobal(this.state.pOrigin);
-	      var r = Math.atan2(my - po.y, mx - po.x) / Math.PI * 180;
-
-	      var svg = escape('<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" ><path transform="rotate(' + r + ', 16, 16)" d="M18.907 3.238l-7.54-2.104s8.35 3.9 8.428 15.367c.08 11.794-7.807 14.49-7.807 14.49l7.363-1.725" stroke="#000" stroke-width="2.054" fill="none"/></svg>');
-	      return 'url(\'data:image/svg+xml;utf8,' + svg + '\') 16 16, all-scroll';
-	    }
-	  }, {
-	    key: 'getScaleCursor',
-	    value: function getScaleCursor() {
-	      var FINGERS = ['0100', '0110', '0010', '0011', '0001', '1001', '1000', '1100'];
-
-	      var _props3 = this.props;
-	      var coordinator = _props3.coordinator;
-	      var transform = _props3.transform;
-	      var _state3 = this.state;
-	      var pOrigin = _state3.pOrigin;
-	      var finger = _state3.finger;
-
-	      var sideDeg = FINGERS.indexOf(finger) * 45;
-	      var po = coordinator.localToGlobal(pOrigin);
-	      var oTweak = { x: pOrigin.x + 1234, y: pOrigin.y };
-	      var pot = coordinator.localToGlobal(oTweak);
-	      var baseRad = Math.atan2(pot.y - po.y, pot.x - po.x) + transform.rz;
-	      var r = sideDeg + baseRad / Math.PI * 180;
-
-	      var svg = escape('<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32"><path transform="rotate(' + r + ', 16, 16)" d="M22.406 12.552l5.88 4.18H3.677l5.728 4.36" stroke="#000" stroke-width="2.254" fill="none"/></svg>');
-	      return 'url(data:image/svg+xml;utf8,' + svg + ') 16 16, all-scroll';
+	    value: function getCursor(e) {
+	      return this.props.cursor.getCursor(this.props, (0, _lodashObjectAssign2['default'])({ finger: this._finger }, this.state), e.clientX, e.clientY);
 	    }
 	  }, {
 	    key: 'render',
 	    value: function render() {
-	      var _props4 = this.props;
-	      var DesignComponent = _props4.DesignComponent;
+	      var _props3 = this.props;
+	      var DesignComponent = _props3.DesignComponent;
 
-	      var props = _objectWithoutProperties(_props4, ['DesignComponent']);
+	      var props = _objectWithoutProperties(_props3, ['DesignComponent']);
 
-	      var _state4 = this.state;
-	      var cursor = _state4.cursor;
-	      var points = _state4.points;
-	      var pOrigin = _state4.pOrigin;
+	      var _state2 = this.state;
+	      var cursor = _state2.cursor;
+	      var points = _state2.points;
+	      var pOrigin = _state2.pOrigin;
 
 	      return _react2['default'].createElement(DesignComponent, _extends({}, props, {
 	        cursor: cursor,
@@ -22812,7 +22768,9 @@
 	      onChange: _react2['default'].PropTypes.func,
 	      onClick: _react2['default'].PropTypes.func,
 	      onStartDrag: _react2['default'].PropTypes.func,
-	      onEndDrag: _react2['default'].PropTypes.func },
+	      onEndDrag: _react2['default'].PropTypes.func,
+	      grabEvent: _react2['default'].PropTypes.object,
+	      cursor: _react2['default'].PropTypes.object },
 	    enumerable: true
 	  }, {
 	    key: 'defaultProps',
@@ -22830,7 +22788,10 @@
 	      stroke: {
 	        strokeWidth: '1',
 	        stroke: 'lime' },
-	      DesignComponent: _TranshandDesign2['default'] },
+	      DesignComponent: _TranshandDesign2['default'],
+	      grabEvent: null,
+	      cursor: new _Cursor2['default']()
+	    },
 	    enumerable: true
 	  }]);
 
@@ -22907,6 +22868,143 @@
 
 /***/ },
 /* 204 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var assignWith = __webpack_require__(205),
+	    baseAssign = __webpack_require__(171),
+	    createAssigner = __webpack_require__(206);
+
+	/**
+	 * Assigns own enumerable properties of source object(s) to the destination
+	 * object. Subsequent sources overwrite property assignments of previous sources.
+	 * If `customizer` is provided it is invoked to produce the assigned values.
+	 * The `customizer` is bound to `thisArg` and invoked with five arguments:
+	 * (objectValue, sourceValue, key, object, source).
+	 *
+	 * **Note:** This method mutates `object` and is based on
+	 * [`Object.assign`](https://people.mozilla.org/~jorendorff/es6-draft.html#sec-object.assign).
+	 *
+	 * @static
+	 * @memberOf _
+	 * @alias extend
+	 * @category Object
+	 * @param {Object} object The destination object.
+	 * @param {...Object} [sources] The source objects.
+	 * @param {Function} [customizer] The function to customize assigned values.
+	 * @param {*} [thisArg] The `this` binding of `customizer`.
+	 * @returns {Object} Returns `object`.
+	 * @example
+	 *
+	 * _.assign({ 'user': 'barney' }, { 'age': 40 }, { 'user': 'fred' });
+	 * // => { 'user': 'fred', 'age': 40 }
+	 *
+	 * // using a customizer callback
+	 * var defaults = _.partialRight(_.assign, function(value, other) {
+	 *   return _.isUndefined(value) ? other : value;
+	 * });
+	 *
+	 * defaults({ 'user': 'barney' }, { 'age': 36 }, { 'user': 'fred' });
+	 * // => { 'user': 'barney', 'age': 36 }
+	 */
+	var assign = createAssigner(function(object, source, customizer) {
+	  return customizer
+	    ? assignWith(object, source, customizer)
+	    : baseAssign(object, source);
+	});
+
+	module.exports = assign;
+
+
+/***/ },
+/* 205 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var keys = __webpack_require__(173);
+
+	/**
+	 * A specialized version of `_.assign` for customizing assigned values without
+	 * support for argument juggling, multiple sources, and `this` binding `customizer`
+	 * functions.
+	 *
+	 * @private
+	 * @param {Object} object The destination object.
+	 * @param {Object} source The source object.
+	 * @param {Function} customizer The function to customize assigned values.
+	 * @returns {Object} Returns `object`.
+	 */
+	function assignWith(object, source, customizer) {
+	  var index = -1,
+	      props = keys(source),
+	      length = props.length;
+
+	  while (++index < length) {
+	    var key = props[index],
+	        value = object[key],
+	        result = customizer(value, source[key], key, object, source);
+
+	    if ((result === result ? (result !== value) : (value === value)) ||
+	        (value === undefined && !(key in object))) {
+	      object[key] = result;
+	    }
+	  }
+	  return object;
+	}
+
+	module.exports = assignWith;
+
+
+/***/ },
+/* 206 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var bindCallback = __webpack_require__(192),
+	    isIterateeCall = __webpack_require__(160),
+	    restParam = __webpack_require__(199);
+
+	/**
+	 * Creates a function that assigns properties of source object(s) to a given
+	 * destination object.
+	 *
+	 * **Note:** This function is used to create `_.assign`, `_.defaults`, and `_.merge`.
+	 *
+	 * @private
+	 * @param {Function} assigner The function to assign values.
+	 * @returns {Function} Returns the new assigner function.
+	 */
+	function createAssigner(assigner) {
+	  return restParam(function(object, sources) {
+	    var index = -1,
+	        length = object == null ? 0 : sources.length,
+	        customizer = length > 2 ? sources[length - 2] : undefined,
+	        guard = length > 2 ? sources[2] : undefined,
+	        thisArg = length > 1 ? sources[length - 1] : undefined;
+
+	    if (typeof customizer == 'function') {
+	      customizer = bindCallback(customizer, thisArg, 5);
+	      length -= 2;
+	    } else {
+	      customizer = typeof thisArg == 'function' ? thisArg : undefined;
+	      length -= (customizer ? 1 : 0);
+	    }
+	    if (guard && isIterateeCall(sources[0], sources[1], guard)) {
+	      customizer = length < 3 ? undefined : customizer;
+	      length = 1;
+	    }
+	    while (++index < length) {
+	      var source = sources[index];
+	      if (source) {
+	        assigner(object, source, customizer);
+	      }
+	    }
+	    return object;
+	  });
+	}
+
+	module.exports = createAssigner;
+
+
+/***/ },
+/* 207 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = shallow
@@ -22986,7 +23084,7 @@
 
 
 /***/ },
-/* 205 */
+/* 208 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -23098,7 +23196,7 @@
 	module.exports = exports['default'];
 
 /***/ },
-/* 206 */
+/* 209 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -23135,7 +23233,91 @@
 	module.exports = exports["default"];
 
 /***/ },
-/* 207 */
+/* 210 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, '__esModule', {
+	  value: true
+	});
+
+	var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+	var Cursor = (function () {
+	  function Cursor() {
+	    _classCallCheck(this, Cursor);
+
+	    this.FINGER2CURSOR = {
+	      'move': 'move',
+	      'rotate': getRotateCursor,
+	      'origin': 'crosshair',
+	      '1000': 'ns-resize',
+	      '1100': 'nesw-resize',
+	      '0100': 'ew-resize',
+	      '0110': 'nwse-resize',
+	      '0010': 'ns-resize',
+	      '0011': 'nesw-resize',
+	      '0001': 'ew-resize',
+	      '1001': 'nwse-resize' };
+	  }
+
+	  _createClass(Cursor, [{
+	    key: 'getCursor',
+	    value: function getCursor(props, state, x, y) {
+	      var finger = state.finger;
+
+	      var cursor = this.FINGER2CURSOR[finger];
+
+	      if (typeof cursor === 'string' && cursor.indexOf('resize') !== -1) {
+	        cursor = getScaleCursor;
+	      }
+
+	      if (typeof cursor === 'function') {
+	        cursor = cursor(props, state, x, y);
+	      }
+
+	      return cursor;
+	    }
+	  }]);
+
+	  return Cursor;
+	})();
+
+	exports['default'] = Cursor;
+
+	function getRotateCursor(props, state, mx, my) {
+	  var po = props.coordinator.localToGlobal(state.pOrigin);
+	  var r = Math.atan2(my - po.y, mx - po.x) / Math.PI * 180;
+
+	  var svg = escape('<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" ><path transform="rotate(' + r + ', 16, 16)" d="M18.907 3.238l-7.54-2.104s8.35 3.9 8.428 15.367c.08 11.794-7.807 14.49-7.807 14.49l7.363-1.725" stroke="#000" stroke-width="2.054" fill="none"/></svg>');
+	  return 'url(\'data:image/svg+xml;utf8,' + svg + '\') 16 16, all-scroll';
+	}
+
+	function getScaleCursor(props, state) {
+	  var FINGERS = ['0100', '0110', '0010', '0011', '0001', '1001', '1000', '1100'];
+
+	  var coordinator = props.coordinator;
+	  var transform = props.transform;
+	  var pOrigin = state.pOrigin;
+	  var finger = state.finger;
+
+	  var sideDeg = FINGERS.indexOf(finger) * 45;
+	  var po = coordinator.localToGlobal(pOrigin);
+	  var oTweak = { x: pOrigin.x + 1234, y: pOrigin.y };
+	  var pot = coordinator.localToGlobal(oTweak);
+	  var baseRad = Math.atan2(pot.y - po.y, pot.x - po.x) + transform.rz;
+	  var r = sideDeg + baseRad / Math.PI * 180;
+
+	  var svg = escape('<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32"><path transform="rotate(' + r + ', 16, 16)" d="M22.406 12.552l5.88 4.18H3.677l5.728 4.36" stroke="#000" stroke-width="2.254" fill="none"/></svg>');
+	  return 'url(data:image/svg+xml;utf8,' + svg + ') 16 16, all-scroll';
+	}
+	module.exports = exports['default'];
+
+/***/ },
+/* 211 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -23229,7 +23411,7 @@
 	}
 
 /***/ },
-/* 208 */
+/* 212 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -23250,19 +23432,19 @@
 
 	var _react2 = _interopRequireDefault(_react);
 
-	var _heuristicGlobalToLocal = __webpack_require__(209);
+	var _heuristicGlobalToLocal = __webpack_require__(213);
 
 	var _heuristicGlobalToLocal2 = _interopRequireDefault(_heuristicGlobalToLocal);
 
-	var _getGlobalBoundingClientRect = __webpack_require__(210);
+	var _getGlobalBoundingClientRect = __webpack_require__(214);
 
 	var _getGlobalBoundingClientRect2 = _interopRequireDefault(_getGlobalBoundingClientRect);
 
-	var _lodashCollectionFindWhere = __webpack_require__(211);
+	var _lodashCollectionFindWhere = __webpack_require__(215);
 
 	var _lodashCollectionFindWhere2 = _interopRequireDefault(_lodashCollectionFindWhere);
 
-	var _lodashObjectAssign = __webpack_require__(239);
+	var _lodashObjectAssign = __webpack_require__(204);
 
 	var _lodashObjectAssign2 = _interopRequireDefault(_lodashObjectAssign);
 
@@ -23545,7 +23727,7 @@
 	module.exports = exports['default'];
 
 /***/ },
-/* 209 */
+/* 213 */
 /***/ function(module, exports, __webpack_require__) {
 
 	//convert a global position into the local coordinate system of a
@@ -23650,7 +23832,7 @@
 	module.exports = exports['default'];
 
 /***/ },
-/* 210 */
+/* 214 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -23662,7 +23844,7 @@
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
-	var _lodashCollectionFindWhere = __webpack_require__(211);
+	var _lodashCollectionFindWhere = __webpack_require__(215);
 
 	var _lodashCollectionFindWhere2 = _interopRequireDefault(_lodashCollectionFindWhere);
 
@@ -23697,11 +23879,11 @@
 	module.exports = exports['default'];
 
 /***/ },
-/* 211 */
+/* 215 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var baseMatches = __webpack_require__(212),
-	    find = __webpack_require__(224);
+	var baseMatches = __webpack_require__(216),
+	    find = __webpack_require__(228);
 
 	/**
 	 * Performs a deep comparison between each element in `collection` and the
@@ -23740,11 +23922,11 @@
 
 
 /***/ },
-/* 212 */
+/* 216 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var baseIsMatch = __webpack_require__(213),
-	    getMatchData = __webpack_require__(221),
+	var baseIsMatch = __webpack_require__(217),
+	    getMatchData = __webpack_require__(225),
 	    toObject = __webpack_require__(186);
 
 	/**
@@ -23776,10 +23958,10 @@
 
 
 /***/ },
-/* 213 */
+/* 217 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var baseIsEqual = __webpack_require__(214),
+	var baseIsEqual = __webpack_require__(218),
 	    toObject = __webpack_require__(186);
 
 	/**
@@ -23834,10 +24016,10 @@
 
 
 /***/ },
-/* 214 */
+/* 218 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var baseIsEqualDeep = __webpack_require__(215),
+	var baseIsEqualDeep = __webpack_require__(219),
 	    isObject = __webpack_require__(166);
 
 	/**
@@ -23867,14 +24049,14 @@
 
 
 /***/ },
-/* 215 */
+/* 219 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var equalArrays = __webpack_require__(216),
-	    equalByTag = __webpack_require__(218),
-	    equalObjects = __webpack_require__(219),
+	var equalArrays = __webpack_require__(220),
+	    equalByTag = __webpack_require__(222),
+	    equalObjects = __webpack_require__(223),
 	    isArray = __webpack_require__(181),
-	    isTypedArray = __webpack_require__(220);
+	    isTypedArray = __webpack_require__(224);
 
 	/** `Object#toString` result references. */
 	var argsTag = '[object Arguments]',
@@ -23975,10 +24157,10 @@
 
 
 /***/ },
-/* 216 */
+/* 220 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var arraySome = __webpack_require__(217);
+	var arraySome = __webpack_require__(221);
 
 	/**
 	 * A specialized version of `baseIsEqualDeep` for arrays with support for
@@ -24032,7 +24214,7 @@
 
 
 /***/ },
-/* 217 */
+/* 221 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -24061,7 +24243,7 @@
 
 
 /***/ },
-/* 218 */
+/* 222 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/** `Object#toString` result references. */
@@ -24115,7 +24297,7 @@
 
 
 /***/ },
-/* 219 */
+/* 223 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var keys = __webpack_require__(173);
@@ -24188,7 +24370,7 @@
 
 
 /***/ },
-/* 220 */
+/* 224 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var isLength = __webpack_require__(164),
@@ -24268,11 +24450,11 @@
 
 
 /***/ },
-/* 221 */
+/* 225 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var isStrictComparable = __webpack_require__(222),
-	    pairs = __webpack_require__(223);
+	var isStrictComparable = __webpack_require__(226),
+	    pairs = __webpack_require__(227);
 
 	/**
 	 * Gets the propery names, values, and compare flags of `object`.
@@ -24295,7 +24477,7 @@
 
 
 /***/ },
-/* 222 */
+/* 226 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var isObject = __webpack_require__(166);
@@ -24316,7 +24498,7 @@
 
 
 /***/ },
-/* 223 */
+/* 227 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var keys = __webpack_require__(173),
@@ -24355,11 +24537,11 @@
 
 
 /***/ },
-/* 224 */
+/* 228 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var baseEach = __webpack_require__(225),
-	    createFind = __webpack_require__(227);
+	var baseEach = __webpack_require__(229),
+	    createFind = __webpack_require__(231);
 
 	/**
 	 * Iterates over elements of `collection`, returning the first element
@@ -24417,11 +24599,11 @@
 
 
 /***/ },
-/* 225 */
+/* 229 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var baseForOwn = __webpack_require__(183),
-	    createBaseEach = __webpack_require__(226);
+	    createBaseEach = __webpack_require__(230);
 
 	/**
 	 * The base implementation of `_.forEach` without support for callback
@@ -24438,7 +24620,7 @@
 
 
 /***/ },
-/* 226 */
+/* 230 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var getLength = __webpack_require__(162),
@@ -24475,12 +24657,12 @@
 
 
 /***/ },
-/* 227 */
+/* 231 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var baseCallback = __webpack_require__(228),
-	    baseFind = __webpack_require__(237),
-	    baseFindIndex = __webpack_require__(238),
+	var baseCallback = __webpack_require__(232),
+	    baseFind = __webpack_require__(241),
+	    baseFindIndex = __webpack_require__(242),
 	    isArray = __webpack_require__(181);
 
 	/**
@@ -24506,14 +24688,14 @@
 
 
 /***/ },
-/* 228 */
+/* 232 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var baseMatches = __webpack_require__(212),
-	    baseMatchesProperty = __webpack_require__(229),
+	var baseMatches = __webpack_require__(216),
+	    baseMatchesProperty = __webpack_require__(233),
 	    bindCallback = __webpack_require__(192),
 	    identity = __webpack_require__(193),
-	    property = __webpack_require__(235);
+	    property = __webpack_require__(239);
 
 	/**
 	 * The base implementation of `_.callback` which supports specifying the
@@ -24547,18 +24729,18 @@
 
 
 /***/ },
-/* 229 */
+/* 233 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var baseGet = __webpack_require__(230),
-	    baseIsEqual = __webpack_require__(214),
-	    baseSlice = __webpack_require__(231),
+	var baseGet = __webpack_require__(234),
+	    baseIsEqual = __webpack_require__(218),
+	    baseSlice = __webpack_require__(235),
 	    isArray = __webpack_require__(181),
-	    isKey = __webpack_require__(232),
-	    isStrictComparable = __webpack_require__(222),
-	    last = __webpack_require__(233),
+	    isKey = __webpack_require__(236),
+	    isStrictComparable = __webpack_require__(226),
+	    last = __webpack_require__(237),
 	    toObject = __webpack_require__(186),
-	    toPath = __webpack_require__(234);
+	    toPath = __webpack_require__(238);
 
 	/**
 	 * The base implementation of `_.matchesProperty` which does not which does
@@ -24599,7 +24781,7 @@
 
 
 /***/ },
-/* 230 */
+/* 234 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var toObject = __webpack_require__(186);
@@ -24634,7 +24816,7 @@
 
 
 /***/ },
-/* 231 */
+/* 235 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -24672,7 +24854,7 @@
 
 
 /***/ },
-/* 232 */
+/* 236 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var isArray = __webpack_require__(181),
@@ -24706,7 +24888,7 @@
 
 
 /***/ },
-/* 233 */
+/* 237 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -24731,7 +24913,7 @@
 
 
 /***/ },
-/* 234 */
+/* 238 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var baseToString = __webpack_require__(177),
@@ -24765,12 +24947,12 @@
 
 
 /***/ },
-/* 235 */
+/* 239 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var baseProperty = __webpack_require__(163),
-	    basePropertyDeep = __webpack_require__(236),
-	    isKey = __webpack_require__(232);
+	    basePropertyDeep = __webpack_require__(240),
+	    isKey = __webpack_require__(236);
 
 	/**
 	 * Creates a function which returns the property value at `path` on a
@@ -24802,11 +24984,11 @@
 
 
 /***/ },
-/* 236 */
+/* 240 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var baseGet = __webpack_require__(230),
-	    toPath = __webpack_require__(234);
+	var baseGet = __webpack_require__(234),
+	    toPath = __webpack_require__(238);
 
 	/**
 	 * A specialized version of `baseProperty` which supports deep paths.
@@ -24827,7 +25009,7 @@
 
 
 /***/ },
-/* 237 */
+/* 241 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -24858,7 +25040,7 @@
 
 
 /***/ },
-/* 238 */
+/* 242 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -24887,149 +25069,12 @@
 
 
 /***/ },
-/* 239 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var assignWith = __webpack_require__(240),
-	    baseAssign = __webpack_require__(171),
-	    createAssigner = __webpack_require__(241);
-
-	/**
-	 * Assigns own enumerable properties of source object(s) to the destination
-	 * object. Subsequent sources overwrite property assignments of previous sources.
-	 * If `customizer` is provided it is invoked to produce the assigned values.
-	 * The `customizer` is bound to `thisArg` and invoked with five arguments:
-	 * (objectValue, sourceValue, key, object, source).
-	 *
-	 * **Note:** This method mutates `object` and is based on
-	 * [`Object.assign`](https://people.mozilla.org/~jorendorff/es6-draft.html#sec-object.assign).
-	 *
-	 * @static
-	 * @memberOf _
-	 * @alias extend
-	 * @category Object
-	 * @param {Object} object The destination object.
-	 * @param {...Object} [sources] The source objects.
-	 * @param {Function} [customizer] The function to customize assigned values.
-	 * @param {*} [thisArg] The `this` binding of `customizer`.
-	 * @returns {Object} Returns `object`.
-	 * @example
-	 *
-	 * _.assign({ 'user': 'barney' }, { 'age': 40 }, { 'user': 'fred' });
-	 * // => { 'user': 'fred', 'age': 40 }
-	 *
-	 * // using a customizer callback
-	 * var defaults = _.partialRight(_.assign, function(value, other) {
-	 *   return _.isUndefined(value) ? other : value;
-	 * });
-	 *
-	 * defaults({ 'user': 'barney' }, { 'age': 36 }, { 'user': 'fred' });
-	 * // => { 'user': 'barney', 'age': 36 }
-	 */
-	var assign = createAssigner(function(object, source, customizer) {
-	  return customizer
-	    ? assignWith(object, source, customizer)
-	    : baseAssign(object, source);
-	});
-
-	module.exports = assign;
-
-
-/***/ },
-/* 240 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var keys = __webpack_require__(173);
-
-	/**
-	 * A specialized version of `_.assign` for customizing assigned values without
-	 * support for argument juggling, multiple sources, and `this` binding `customizer`
-	 * functions.
-	 *
-	 * @private
-	 * @param {Object} object The destination object.
-	 * @param {Object} source The source object.
-	 * @param {Function} customizer The function to customize assigned values.
-	 * @returns {Object} Returns `object`.
-	 */
-	function assignWith(object, source, customizer) {
-	  var index = -1,
-	      props = keys(source),
-	      length = props.length;
-
-	  while (++index < length) {
-	    var key = props[index],
-	        value = object[key],
-	        result = customizer(value, source[key], key, object, source);
-
-	    if ((result === result ? (result !== value) : (value === value)) ||
-	        (value === undefined && !(key in object))) {
-	      object[key] = result;
-	    }
-	  }
-	  return object;
-	}
-
-	module.exports = assignWith;
-
-
-/***/ },
-/* 241 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var bindCallback = __webpack_require__(192),
-	    isIterateeCall = __webpack_require__(160),
-	    restParam = __webpack_require__(199);
-
-	/**
-	 * Creates a function that assigns properties of source object(s) to a given
-	 * destination object.
-	 *
-	 * **Note:** This function is used to create `_.assign`, `_.defaults`, and `_.merge`.
-	 *
-	 * @private
-	 * @param {Function} assigner The function to assign values.
-	 * @returns {Function} Returns the new assigner function.
-	 */
-	function createAssigner(assigner) {
-	  return restParam(function(object, sources) {
-	    var index = -1,
-	        length = object == null ? 0 : sources.length,
-	        customizer = length > 2 ? sources[length - 2] : undefined,
-	        guard = length > 2 ? sources[2] : undefined,
-	        thisArg = length > 1 ? sources[length - 1] : undefined;
-
-	    if (typeof customizer == 'function') {
-	      customizer = bindCallback(customizer, thisArg, 5);
-	      length -= 2;
-	    } else {
-	      customizer = typeof thisArg == 'function' ? thisArg : undefined;
-	      length -= (customizer ? 1 : 0);
-	    }
-	    if (guard && isIterateeCall(sources[0], sources[1], guard)) {
-	      customizer = length < 3 ? undefined : customizer;
-	      length = 1;
-	    }
-	    while (++index < length) {
-	      var source = sources[index];
-	      if (source) {
-	        assigner(object, source, customizer);
-	      }
-	    }
-	    return object;
-	  });
-	}
-
-	module.exports = createAssigner;
-
-
-/***/ },
-/* 242 */
+/* 243 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var isObjectLike = __webpack_require__(178),
-	    isPlainObject = __webpack_require__(243),
-	    support = __webpack_require__(246);
+	    isPlainObject = __webpack_require__(244),
+	    support = __webpack_require__(247);
 
 	/** Used for native method references. */
 	var objectProto = Object.prototype;
@@ -25071,11 +25116,11 @@
 
 
 /***/ },
-/* 243 */
+/* 244 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var getNative = __webpack_require__(174),
-	    shimIsPlainObject = __webpack_require__(244);
+	    shimIsPlainObject = __webpack_require__(245);
 
 	/** `Object#toString` result references. */
 	var objectTag = '[object Object]';
@@ -25138,10 +25183,10 @@
 
 
 /***/ },
-/* 244 */
+/* 245 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var baseForIn = __webpack_require__(245),
+	var baseForIn = __webpack_require__(246),
 	    isObjectLike = __webpack_require__(178);
 
 	/** `Object#toString` result references. */
@@ -25194,7 +25239,7 @@
 
 
 /***/ },
-/* 245 */
+/* 246 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var baseFor = __webpack_require__(184),
@@ -25217,7 +25262,7 @@
 
 
 /***/ },
-/* 246 */
+/* 247 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(global) {/** Used to detect DOM support. */
@@ -25258,12 +25303,12 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
 
 /***/ },
-/* 247 */,
 /* 248 */,
 /* 249 */,
 /* 250 */,
 /* 251 */,
-/* 252 */
+/* 252 */,
+/* 253 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -25272,7 +25317,7 @@
 	  value: true
 	});
 	exports['default'] = scatterThings;
-	__webpack_require__(253);
+	__webpack_require__(254);
 	var random = __webpack_require__(158);
 	var clone = __webpack_require__(167);
 	var pullAt = __webpack_require__(194);
@@ -25384,20 +25429,20 @@
 	module.exports = exports['default'];
 
 /***/ },
-/* 253 */
+/* 254 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var map = {
-		"./obj_cookiejar001.png": 254,
-		"./obj_fan001.png": 255,
-		"./obj_kettle001.png": 256,
-		"./obj_mixer001.png": 257,
-		"./obj_radio001.png": 258,
-		"./obj_speaker001.png": 259,
-		"./obj_speaker002.png": 260,
-		"./obj_toaster001.png": 261,
-		"./obj_tv001.png": 262,
-		"./obj_tv002.png": 263
+		"./obj_cookiejar001.png": 255,
+		"./obj_fan001.png": 256,
+		"./obj_kettle001.png": 257,
+		"./obj_mixer001.png": 258,
+		"./obj_radio001.png": 259,
+		"./obj_speaker001.png": 260,
+		"./obj_speaker002.png": 261,
+		"./obj_toaster001.png": 262,
+		"./obj_tv001.png": 263,
+		"./obj_tv002.png": 264
 	};
 	function webpackContext(req) {
 		return __webpack_require__(webpackContextResolve(req));
@@ -25410,71 +25455,71 @@
 	};
 	webpackContext.resolve = webpackContextResolve;
 	module.exports = webpackContext;
-	webpackContext.id = 253;
+	webpackContext.id = 254;
 
-
-/***/ },
-/* 254 */
-/***/ function(module, exports, __webpack_require__) {
-
-	module.exports = __webpack_require__.p + "nested/assets/obj_cookiejar001.png"
 
 /***/ },
 /* 255 */
 /***/ function(module, exports, __webpack_require__) {
 
-	module.exports = __webpack_require__.p + "nested/assets/obj_fan001.png"
+	module.exports = __webpack_require__.p + "nested/assets/obj_cookiejar001.png"
 
 /***/ },
 /* 256 */
 /***/ function(module, exports, __webpack_require__) {
 
-	module.exports = __webpack_require__.p + "nested/assets/obj_kettle001.png"
+	module.exports = __webpack_require__.p + "nested/assets/obj_fan001.png"
 
 /***/ },
 /* 257 */
 /***/ function(module, exports, __webpack_require__) {
 
-	module.exports = __webpack_require__.p + "nested/assets/obj_mixer001.png"
+	module.exports = __webpack_require__.p + "nested/assets/obj_kettle001.png"
 
 /***/ },
 /* 258 */
 /***/ function(module, exports, __webpack_require__) {
 
-	module.exports = __webpack_require__.p + "nested/assets/obj_radio001.png"
+	module.exports = __webpack_require__.p + "nested/assets/obj_mixer001.png"
 
 /***/ },
 /* 259 */
 /***/ function(module, exports, __webpack_require__) {
 
-	module.exports = __webpack_require__.p + "nested/assets/obj_speaker001.png"
+	module.exports = __webpack_require__.p + "nested/assets/obj_radio001.png"
 
 /***/ },
 /* 260 */
 /***/ function(module, exports, __webpack_require__) {
 
-	module.exports = __webpack_require__.p + "nested/assets/obj_speaker002.png"
+	module.exports = __webpack_require__.p + "nested/assets/obj_speaker001.png"
 
 /***/ },
 /* 261 */
 /***/ function(module, exports, __webpack_require__) {
 
-	module.exports = __webpack_require__.p + "nested/assets/obj_toaster001.png"
+	module.exports = __webpack_require__.p + "nested/assets/obj_speaker002.png"
 
 /***/ },
 /* 262 */
 /***/ function(module, exports, __webpack_require__) {
 
-	module.exports = __webpack_require__.p + "nested/assets/obj_tv001.png"
+	module.exports = __webpack_require__.p + "nested/assets/obj_toaster001.png"
 
 /***/ },
 /* 263 */
 /***/ function(module, exports, __webpack_require__) {
 
-	module.exports = __webpack_require__.p + "nested/assets/obj_tv002.png"
+	module.exports = __webpack_require__.p + "nested/assets/obj_tv001.png"
 
 /***/ },
 /* 264 */
+/***/ function(module, exports, __webpack_require__) {
+
+	module.exports = __webpack_require__.p + "nested/assets/obj_tv002.png"
+
+/***/ },
+/* 265 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -25501,7 +25546,7 @@
 
 	var _SRCCSSTranshand2 = _interopRequireDefault(_SRCCSSTranshand);
 
-	var _lodashObjectAssign = __webpack_require__(239);
+	var _lodashObjectAssign = __webpack_require__(204);
 
 	var _lodashObjectAssign2 = _interopRequireDefault(_lodashObjectAssign);
 
@@ -25513,18 +25558,24 @@
 
 	    _get(Object.getPrototypeOf(App.prototype), 'constructor', this).call(this, props);
 
-	    this.handleSelectClick = function (e) {
-	      var deTarget = _this.elementFromPoint(e.clientX, e.clientY);
+	    this.handleSelectBehindHanler = function (e) {
+	      _this.handleSelectClick(e, true);
+	    };
 
-	      if (deTarget && deTarget._handlerDemo) {
-	        _this.setState({ currDomElem: deTarget });
+	    this.handleSelectClick = function (e, behindHandler) {
+	      var domElem = _this.elementFromPoint(e.clientX, e.clientY);
+
+	      if (domElem && domElem._handlerDemo) {
+	        _this.setState({
+	          currDomElem: domElem,
+	          grabEvent: !behindHandler && e
+	        });
 	      } else {
 	        _this.setState({ currDomElem: undefined });
 	      }
 	    };
 
 	    this.handleChange = function (change) {
-
 	      console.log('change event:', change);
 
 	      var currDomElem = _this.state.currDomElem;
@@ -25547,7 +25598,7 @@
 	  _createClass(App, [{
 	    key: 'componentDidMount',
 	    value: function componentDidMount() {
-	      window.addEventListener('click', this.handleSelectClick);
+	      window.addEventListener('mousedown', this.handleSelectClick);
 	    }
 	  }, {
 	    key: 'elementFromPoint',
@@ -25572,7 +25623,6 @@
 	  }, {
 	    key: 'generateCssTransform',
 	    value: function generateCssTransform(transform) {
-
 	      var cssTransform = '';
 
 	      cssTransform += ' translateX(' + transform.tx + 'px)';
@@ -25586,7 +25636,9 @@
 	  }, {
 	    key: 'render',
 	    value: function render() {
-	      var currDomElem = this.state.currDomElem;
+	      var _state = this.state;
+	      var currDomElem = _state.currDomElem;
+	      var grabEvent = _state.grabEvent;
 
 	      if (currDomElem) {
 
@@ -25595,7 +25647,8 @@
 	          deTarget: currDomElem,
 	          transform: currDomElem._handlerParams,
 	          onChange: this.handleChange,
-	          onClick: this.handleSelectClick });
+	          grabEvent: grabEvent,
+	          onClick: this.handleSelectBehindHanler });
 	      } else {
 	        return _react2['default'].createElement('div', { hidden: true });
 	      }
@@ -25609,7 +25662,7 @@
 	module.exports = exports['default'];
 
 /***/ },
-/* 265 */
+/* 266 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = __webpack_require__.p + "nested/index.html"
