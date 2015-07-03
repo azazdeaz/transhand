@@ -61,7 +61,19 @@ export default class Transhand extends React.Component {
     },
     DesignComponent: TranshandDesign,
     grabEvent: null,
-    cursor: new Cursor()
+    cursor: new Cursor(),
+    hints: {
+      scale: [
+        'shift - keep proportion',
+        'alt - from the opposite side'
+      ],
+      rotate: [
+        'shift - 15° steps'
+      ],
+      move: [
+        'shift - move in one dimension'
+      ],
+    }
   }
 
   constructor(prosp) {
@@ -165,7 +177,14 @@ export default class Transhand extends React.Component {
     }
   }
 
+  setHint(name) {
+    console.log('setHint', name)
+    var {hints} = this.props
 
+    this.setState({
+      activeHint: hints && hints[name]
+    })
+  }
 
 
   // Event Handlers ////////////////////////////////////////////////////////////
@@ -237,6 +256,7 @@ export default class Transhand extends React.Component {
       if (!this._rafOnDragRafId) {
         this._rafOnDragRafId = requestAnimationFrame(this.deferredHandleDrag)
       }
+      this.setHint(null)
     }
     else if (this.state.hoverHitbox) {
       this._finger = this.getFinger(e)
@@ -244,7 +264,6 @@ export default class Transhand extends React.Component {
 
     var cursor = this.getCursor(e)
     this.setState({cursor})
-    // this._th.cursorHint.setHints(null)
   }
 
   deferredHandleDrag = () => {
@@ -448,19 +467,19 @@ export default class Transhand extends React.Component {
                (left ? '1' : '0') +
                (bottom ? '1' : '0') +
                (right ? '1' : '0')
-      // this._th.cursorHint.setHints(hints.scale)
+      this.setHint('scale')
     }
     else if (inside) {
       finger = 'move'
-      // this._th.cursorHint.setHints(hints.move)
+      this.setHint('move')
     }
     else if (dTop < rDiff || dRight < rDiff || dBottom < rDiff || dLeft < rDiff || dOrigin < rDiff) {
       finger = 'rotate'
-      // this._th.cursorHint.setHints(hints.rotate)
+      this.setHint('rotate')
     }
     else {
       finger = false
-      // this._th.cursorHint.setHints(null)
+      this.setHint(null)
     }
 
     return finger
@@ -485,12 +504,13 @@ export default class Transhand extends React.Component {
 
   render() {
     var {DesignComponent, ...props} = this.props
-    var {cursor, points, pOrigin} = this.state
+    var {cursor, points, pOrigin, activeHint} = this.state
 
     return <DesignComponent
       {...props}
       cursor={cursor}
       points={points}
+      hint={activeHint}
       pOrigin={pOrigin}
       getHitEvents={this.getHitEvents}/>
   }
