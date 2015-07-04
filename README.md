@@ -61,19 +61,25 @@ import { CSSTranshand } from 'transhand'
 ####Transhand
  - ```transform```: [see above](#basic-usage)
  - ```rect```: [see above](#basic-usage)
+ - ```stroke = {strokeWidth: '1', stroke: 'lime'}```:  A set of svg attributes to customize drawed svg.
+
+**events:**
+ - ```onChange(change)```: [see above](#basic-usage)
+ - ```onClick(mouseEvent)```: Called on the user just clicks on the handler and not changing it. Useful for selecting items behind the handler.
+ - ```onStartDrag```: Called on the user grab the handler.
+ - ```onEndDrag```: Called on the user release the handler. 
+
+**advanced customization:**
  - ```rotateFingerDist = 16```: The width of the rotate hit area.
  - ```originRadius = 6```: The radius of the transform origin hit area.
- - ```coordinator = new DefaultCoordinator()```: Use this to change the way as Transhand convert global coordinates into its local coordinate system (ex. mouse positions) and back (ex. render to screen). Coordinator is an object with two functions ```globalToLocal(point):point``` and ```localToGlobal(point):point```.  If you need more detail check out the source.
- - ```stroke = {strokeWidth: '1', stroke: 'lime'}```:  A set of svg attributes to customize drawed svg.
- - ```DesignComponent = TranshandDesign```:  You can replace the basic dumb component that Transhand renders to fully customize its appearance. Please check out [the source](src/TranshandDesign.jsx) for more detail.
+ - ```coordinator = ```[```new DefaultCoordinator()```](src/DefaultCoordinator.js): Use this to change the way as Transhand convert global coordinates into its local coordinate system (ex. mouse positions) and back (ex. render to screen). Coordinator is an object with two functions ```globalToLocal(point):point``` and ```localToGlobal(point):point```.  If you need more detail check out the source.
  - ```grabEvent```:  If paramener is presented Transhand will simulate the mouse down event with it. It's useful when you want to drag the target immediately after selecting it with mouse down. See it in use in the [demo sources](demo/src/nested/App.jsx).
- - ```tooltips```: ```//TODO`
- - ```cursors```: ```//TODO`
- - **events:**
-   - ```onChange(change)```: [see above](#basic-usage)
-   - ```onClick(mouseEvent)```: Called on the user just clicks on the handler and not changing it. Useful for selecting items behind the handler.
-   - ```onStartDrag```: Called on the user grab the handler.
-   - ```onEndDrag```: Called on the user release the handler. ``
+ - ```hints = ```[```default```](src/Transhand.jsx#L67):  Map of tooltips for the different transformation types.  
+ - ```cursors = ```[```new Cursors()```](src/Cursor.js):  Map of cursors for the different transformation types.
+ - ```DesignComponent = ```[```TranshandDesign```](src/TranshandDesign.jsx):  You can replace the basic ```Component``` that Transhand renders to fully customize its appearance.
+ - ```CursorHintDesignComponent = ```[```CursorHintDesign```](src/cursorHint/CursorHintDesign.jsx):  You can replace the basic ```Component``` that CursorHint renders to fully customize its appearance.
 
 ####CSSTranshand
   Inherits all the properties of transhand but replaces ```coordinator``` and ```rect```  with an extra property called ```deTarget```.  [see above](#basic-usage-with-css-transform)
+ 
+Although it's already usable, most of the features are still in progress. If you find something that is may not working as expected or you miss something do not hesitate to open an issue!
