@@ -63,8 +63,11 @@ export default class Transhand extends React.Component {
     grabEvent: null,
     cursor: new Cursor(),
     hints: {
-      scale: [
+      scaleXY: [
         'shift - keep proportion',
+        'alt - from the opposite side'
+      ],
+      scaleXorY: [
         'alt - from the opposite side'
       ],
       rotate: [
@@ -460,6 +463,7 @@ export default class Transhand extends React.Component {
 
     if (dOrigin < originRadius) {
       finger = 'origin'
+      this.setHint(null)
     }
     else if (top || right || bottom || left) {
       //TODO its sould be top-right-bottom-left
@@ -467,7 +471,12 @@ export default class Transhand extends React.Component {
                (left ? '1' : '0') +
                (bottom ? '1' : '0') +
                (right ? '1' : '0')
-      this.setHint('scale')
+      if ((finger + finger).indexOf('11') !== -1) {
+        this.setHint('scaleXY')
+      }
+      else {
+        this.setHint('scaleXorY')
+      }
     }
     else if (inside) {
       finger = 'move'

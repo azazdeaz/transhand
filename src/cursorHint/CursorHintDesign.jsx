@@ -31,7 +31,7 @@ export default class Content extends React.Component {
 
     return <ul style={ulStyle}>
       {hint.map((line, idx) => {
-        return <li key={idx}>{line}</li>
+        return <li style={styles.li} key={idx}>{line}</li>
       })}
     </ul>
   }
