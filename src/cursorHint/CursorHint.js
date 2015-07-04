@@ -4,7 +4,7 @@ import CursorHintDesign from './CursorHintDesign'
 export default class CursorHint extends React.Component {
   static defaultProps = {
     delay: 879,
-    CursorHintDesignComponent: CursorHintDesign,
+    DesignComponent: CursorHintDesign,
     hints: null,
   }
 
@@ -44,10 +44,10 @@ export default class CursorHint extends React.Component {
 
   render() {
     var {hint} = this.props
-    var {CursorHintDesignComponent} = this.props
+    var {DesignComponent} = this.props
     var {show, x, y} = this.state
 
     return show && hint ?
-      <CursorHintDesignComponent hint={hint} x={x} y={y}/> : <div hidden/>
+      <DesignComponent hint={hint} x={x} y={y}/> : <div hidden/>
   }
 }

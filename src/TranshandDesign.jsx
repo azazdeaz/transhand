@@ -78,7 +78,7 @@ export default class TranshandDesign extends React.Component {
       {this.renderHandler()}
       <CursorHint
         hint={hint}
-        ContentComponent={CursorHintDesignComponent}/>
+        DesignComponent={CursorHintDesignComponent}/>
     </div>
   }
 }

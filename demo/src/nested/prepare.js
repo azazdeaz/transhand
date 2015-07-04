@@ -24,6 +24,7 @@ export default function scatterThings() {
   var takeOne = arr => pullAt(arr, random(arr.length - 1))
 
   var rootNode = document.querySelector('#stuffs')
+  document.body.style.backgroundColor = takeOne(colors)
 
   for (let i = 0; i < 3; ++i) {
     let deParent = rootNode

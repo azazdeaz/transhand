@@ -21,7 +21,7 @@ export default class App extends React.Component {
     this.selectFromPoint(e.clientX, e.clientY)
   }
 
-  handleSelectBehindHanler(e) {
+  handleSelectBehindHanler = (e) => {
     this.handleSelectClick(e, false)
   }
 

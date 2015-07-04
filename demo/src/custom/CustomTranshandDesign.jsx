@@ -1,4 +1,5 @@
 import React from 'react'
+import {CursorHint} from 'transhand'
 
 const styles = {
   root: {
@@ -16,7 +17,7 @@ export default class CustomTranshandDesign extends React.Component {
     e.stopPropagation()
   }
 
-  render() {
+  renderHandler() {
     var {rotateFingerDist, originRadius, stroke, getHitEvents,
           coordinator, cursor, points, pOrigin} = this.props,
         p = points.map(point => coordinator.localToGlobal(point)),
@@ -88,5 +89,16 @@ export default class CustomTranshandDesign extends React.Component {
         }}
         {...getHitEvents()}/>
     </svg>
+  }
+
+  render() {
+    var {CursorHintDesignComponent, hint} = this.props
+
+    return <div>
+      {this.renderHandler()}
+      <CursorHint
+        hint={hint}
+        DesignComponent={CursorHintDesignComponent}/>
+    </div>
   }
 }

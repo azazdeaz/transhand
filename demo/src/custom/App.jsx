@@ -88,7 +88,7 @@ export default class App extends React.Component {
         deTarget = {currDomElem}
         transform = {currDomElem._handlerParams}
         onChange = {this.handleChange}
-        onClick = {this.handleSelectClick}
+        onClick = {this.handleSelectBehindHanler}
         grabEvent = {grabEvent}
         {...currDomElem.transhandProps}/>
     }

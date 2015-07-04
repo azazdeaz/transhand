@@ -17,6 +17,7 @@ export default function scatterThings() {
   var takeOne = arr => pullAt(arr, random(arr.length - 1))
 
   var rootNode = document.querySelector('#stuffs')
+  document.body.style.backgroundColor = takeOne(colors)
 
   // for (let j = 0; j < 7; ++j) {
   //   createElement(63, 63, 'div', rootNode)
@@ -29,8 +30,9 @@ export default function scatterThings() {
     rootNode,
     function (e) {
       var iframe = e.target
+      iframe.style.border = 'sans-serif'
       iframe.style.border = 'none'
-      iframe.contentDocument.write('this is an iframe')
+      iframe.contentDocument.write('this is an iframe (WIP)')
       for (let j = 0; j < 3; ++j) {
         createElement(63, 63, 'div', iframe.contentDocument.body)
       }

@@ -8,8 +8,8 @@ Developed as part of the [Animachine project](https://github.com/animachine/anim
 
 ###Demos
 [nested](http://azazdeaz.github.io/transhand/nested/),
-[iframe](http://azazdeaz.github.io/transhand/iframe/),
-[custom](http://azazdeaz.github.io/transhand/custom/)
+[custom](http://azazdeaz.github.io/transhand/custom/),
+[iframe](http://azazdeaz.github.io/transhand/iframe/)
 
 ###Install
 ```
@@ -74,6 +74,6 @@ import { CSSTranshand } from 'transhand'
    - ```onClick(mouseEvent)```: Called on the user just clicks on the handler and not changing it. Useful for selecting items behind the handler.
    - ```onStartDrag```: Called on the user grab the handler.
    - ```onEndDrag```: Called on the user release the handler. ``
- 
+
 ####CSSTranshand
   Inherits all the properties of transhand but replaces ```coordinator``` and ```rect```  with an extra property called ```deTarget```.  [see above](#basic-usage-with-css-transform)

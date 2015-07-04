@@ -34,6 +34,8 @@ export default class Transhand extends React.Component {
     }),
     stroke: PropTypes.object,
     DesignComponent: React.PropTypes.func,
+    hitns: React.PropTypes.object,
+    CursorHintDesignComponent: React.PropTypes.func,
     onChange: React.PropTypes.func,
     onClick: React.PropTypes.func,
     onStartDrag: React.PropTypes.func,
@@ -181,7 +183,6 @@ export default class Transhand extends React.Component {
   }
 
   setHint(name) {
-    console.log('setHint', name)
     var {hints} = this.props
 
     this.setState({

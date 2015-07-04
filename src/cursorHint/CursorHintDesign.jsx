@@ -20,7 +20,7 @@ const styles = {
   }
 }
 
-export default class Content extends React.Component {
+export default class CursorHintDesign extends React.Component {
   render() {
     var {hint, x, y} = this.props
 

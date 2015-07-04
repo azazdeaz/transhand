@@ -49,6 +49,7 @@
     "gulp-util": "^3.0.4",
     "gulp-watch": "^4.2.4",
     "node-libs-browser": "^0.5.0",
+    "react-matterkit": "0.0.24",
     "vinyl-buffer": "^1.0.0",
     "vinyl-source-stream": "^1.1.0",
     "watchify": "^3.2.1",
