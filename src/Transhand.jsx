@@ -10,7 +10,7 @@ import {radDiff, distToSegment, distToPointInAngle, isInside,
   equPoints} from './utils'
 
 export default class Transhand extends React.Component {
-  static propsTypes = {
+  static propTypes = {
     transform: PropTypes.shape({
       tx: PropTypes.number.isRequired,
       ty: PropTypes.number.isRequired,
@@ -20,6 +20,7 @@ export default class Transhand extends React.Component {
       ox: PropTypes.number.isRequired,
       oy: PropTypes.number.isRequired,
     }).isRequired,
+    transformTypes: PropTypes.array,
     rect: PropTypes.shape({
       x: PropTypes.number.isRequired,
       y: PropTypes.number.isRequired,
@@ -54,6 +55,7 @@ export default class Transhand extends React.Component {
     rect: {
       x: 0, y: 0, w: 0, h: 0,
     },
+    transformTypes: ['translate', 'rotate', 'scale', 'origin'],
     rotateFingerDist: 16,
     originRadius: 6,
     coordinator: new DefaultCoordinator(),
@@ -133,6 +135,9 @@ export default class Transhand extends React.Component {
     this.handleMouseDown(grabEvent)
   }
 
+  allowed(transformType) {
+    return this.props.transformTypes.indexOf(transformType) !== -1
+  }
 
 
 
@@ -450,7 +455,7 @@ export default class Transhand extends React.Component {
     var bottom = dBottom < diff
     var right = dRight < diff
     var inside = isInside(m, p)
-    var finger
+    var finger = null
 
     if (rect.w * transform.sx < diff * 2 && inside) {
       left = false
@@ -463,10 +468,12 @@ export default class Transhand extends React.Component {
     }
 
     if (dOrigin < originRadius) {
-      finger = 'origin'
-      this.setHint(null)
+      if (this.allowed('origin')) {
+        finger = 'origin'
+        this.setHint(null)
+      }
     }
-    else if (top || right || bottom || left) {
+    else if (this.allowed('scale') && (top || right || bottom || left)) {
       //TODO its sould be top-right-bottom-left
       finger = (top ? '1' : '0') +
                (left ? '1' : '0') +
@@ -480,15 +487,19 @@ export default class Transhand extends React.Component {
       }
     }
     else if (inside) {
-      finger = 'move'
-      this.setHint('move')
+      if (this.allowed('translate')) {
+        finger = 'move'
+        this.setHint('move')
+      }
     }
     else if (dTop < rDiff || dRight < rDiff || dBottom < rDiff || dLeft < rDiff || dOrigin < rDiff) {
-      finger = 'rotate'
-      this.setHint('rotate')
+      if (this.allowed('rotate')) {
+        finger = 'rotate'
+        this.setHint('rotate')
+      }
     }
-    else {
-      finger = false
+
+    if (finger === null) {
       this.setHint(null)
     }
 

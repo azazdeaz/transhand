@@ -12,7 +12,7 @@ const INIT_TRANSFORM = {
 export default function scatterThings() {
   var colors = ['#7FDBFF', '#0074D9', '#001F3F', '#39CCCC', '#3D9970',
     '#FF4136', '#85144B', '#FF851B', '#B10DC9', '#FFDC00', '#F012BE',
-    '#aaa', '#fff', '#111', '#ddd']
+    '#aaa', '#fff', '#ddd']
 
   var takeOne = arr => pullAt(arr, random(arr.length - 1))
 

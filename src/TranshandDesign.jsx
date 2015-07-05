@@ -19,7 +19,7 @@ export default class TranshandDesign extends React.Component {
 
   renderHandler() {
     var {rotateFingerDist, originRadius, stroke, getHitEvents,
-          coordinator, cursor, points, pOrigin} = this.props,
+          coordinator, cursor, points, pOrigin, transformTypes} = this.props,
         p = points.map(point => coordinator.localToGlobal(point)),
         po = coordinator.localToGlobal(pOrigin),
         or = originRadius
@@ -32,6 +32,18 @@ export default class TranshandDesign extends React.Component {
 
     styles.root.cursor = cursor
 
+    function renderOrigin() {
+      if (transformTypes.indexOf('origin') !== -1) {
+        return [
+          <line key='h' x1={po.x - or} y1={po.y} x2={po.x + or} y2={po.y} {...stroke}/>,
+          <line key='v' x1={po.x} y1={po.y - or} x2={po.x} y2={po.y + or} {...stroke}/>
+        ]
+      }
+      else {
+        return null
+      }
+    }
+
     return <svg
       style = {styles.root}
       onClick = {this.stopPropagation}>
@@ -42,8 +54,7 @@ export default class TranshandDesign extends React.Component {
         points = {boxHitPoints}>
       </polygon>
 
-      <line x1={po.x - or} y1={po.y} x2={po.x + or} y2={po.y} {...stroke}/>
-      <line x1={po.x} y1={po.y - or} x2={po.x} y2={po.y + or} {...stroke}/>
+      {renderOrigin()}
 
       <polygon ref='boxHit'
         fill="black" opacity="0"

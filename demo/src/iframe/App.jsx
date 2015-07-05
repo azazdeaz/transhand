@@ -99,13 +99,19 @@ export default class App extends React.Component {
     var {currDomElem} = this.state
 
     if (currDomElem) {
+      let props = {
+        ref: 'handler',
+        deTarget: currDomElem,
+        transform: currDomElem._handlerParams,
+        onChange: this.handleChange,
+        onClick: this.handleSelectBehindHanler,
+      }
 
-      return <CSSTranshand
-        ref = 'handler'
-        deTarget = {currDomElem}
-        transform = {currDomElem._handlerParams}
-        onChange = {this.handleChange}
-        onClick = {this.handleSelectBehindHanler}/>
+      if (currDomElem.tagName === 'IFRAME') {
+        props.transformTypes = ['translate']
+      }
+
+      return <CSSTranshand {...props}/>
     }
     else {
       return <div hidden={true}/>
