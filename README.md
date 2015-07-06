@@ -9,7 +9,7 @@ Developed as part of the [Animachine project](https://github.com/animachine/anim
 ###Demos
 [nested](http://azazdeaz.github.io/transhand/nested/),
 [custom](http://azazdeaz.github.io/transhand/custom/),
-[iframe](http://azazdeaz.github.io/transhand/iframe/)
+[iframe(wip)](http://azazdeaz.github.io/transhand/iframe/)
 
 ###Install
 ```
@@ -18,8 +18,8 @@ npm install --save transhand
 
 ###Current features
 - translate, rotate, scale, move transform origin
-- shift + scale/move/rotate
-- alt + scale from the origin or opposite side
+- shift + guided scale/move/rotate
+- alt + scale from the opposite side
 
 
 ###Basic usage
@@ -78,6 +78,7 @@ import { CSSTranshand } from 'transhand'
  - ```cursors = ```[```new Cursors()```](src/Cursor.js):  Map of cursors for the different transformation types.
  - ```DesignComponent = ```[```TranshandDesign```](src/TranshandDesign.jsx):  You can replace the basic ```Component``` that Transhand renders to fully customize its appearance.
  - ```CursorHintDesignComponent = ```[```CursorHintDesign```](src/cursorHint/CursorHintDesign.jsx):  You can replace the basic ```Component``` that CursorHint renders to fully customize its appearance.
+ - ```transformTypes = ['translate', 'rotate', 'scale', 'origin']```: List of the allowed transform functions.
 
 ####CSSTranshand
   Inherits all the properties of transhand but replaces ```coordinator``` and ```rect```  with an extra property called ```deTarget```.  [see above](#basic-usage-with-css-transform)
