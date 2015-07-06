@@ -5,15 +5,20 @@ import isElement from 'lodash/lang/isElement'
 import assign from 'lodash/object/assign'
 
 export default class CSSTranshand extends React.Component {
-  static propTypes = assign(Transhand.propTypes, {
-    deTarget: (props, name) => {
-      if (!isElement(props[name])) {
-        return new Error('deTarget should be a DOM Element!')
-      }
-    },
-    rect: PropTypes.oneOf([undefined]),
-    coordinator: PropTypes.oneOf([undefined])
-  })
+  static propTypes = (() => {
+    var pt = assign(Transhand.propTypes, {
+      deTarget: (props, name) => {
+        if (!isElement(props[name])) {
+          return new Error('deTarget should be a DOM Element!')
+        }
+      },
+    })
+
+    delete pt.rect
+    delete pt.coordinator
+
+    return pt
+  })()
 
   constructor(props) {
     super(props)
@@ -60,10 +65,10 @@ export default class CSSTranshand extends React.Component {
     }
 
     var {rect} = this.state
-
-    return <Transhand
+console.log({grabEvent: this.props.grabEvent})
+    return rect ? <Transhand
       {...this.props}
       rect = {rect}
-      coordinator = {this.coordinator}/>
+      coordinator = {this.coordinator}/> : <div hidden/>
   }
 }

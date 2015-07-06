@@ -46,6 +46,30 @@ export default class CustomTranshandDesign extends React.Component {
 
     styles.root.cursor = cursor
 
+    var decoration = (idx) => {
+      var x = p[idx].x
+      var y = p[idx].y
+
+      return renderDecoration(x, y)
+    }
+    var decorationBtwn = (aIdx, bIdx) => {
+      var ax = p[aIdx].x
+      var ay = p[aIdx].y
+      var bx = p[bIdx].x
+      var by = p[bIdx].y
+      var x = ax + ((bx - ax) / 2)
+      var y = ay + ((by - ay) / 2)
+
+      return renderDecoration(x, y)
+    }
+    var renderDecoration = (x, y) => {
+      return <circle
+        cx = {x}
+        cy = {y}
+        r = {3}
+        {...stroke}/>
+    }
+
     return <svg
       style = {styles.root}
       onClick = {this.stopPropagation}>
@@ -77,6 +101,15 @@ export default class CustomTranshandDesign extends React.Component {
           pointerEvents: 'auto',
         }}
         {...getHitEvents()}/>
+
+      {decoration(0)}
+      {decoration(1)}
+      {decoration(2)}
+      {decoration(3)}
+      {decorationBtwn(0, 1)}
+      {decorationBtwn(1, 2)}
+      {decorationBtwn(2, 3)}
+      {decorationBtwn(3, 0)}
 
       <circle ref='originHit'
         fill="black" opacity="0"

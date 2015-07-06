@@ -26,7 +26,7 @@ export default class App extends React.Component {
     if (domElem && domElem._handlerDemo) {
       this.setState({
         currDomElem: domElem,
-        grabEvent: !behindHandler && e
+        grabEvent: !behindHandler ? e : undefined
       })
     }
     else {

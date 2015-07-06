@@ -26,7 +26,7 @@ export default class Transhand extends React.Component {
       y: PropTypes.number.isRequired,
       w: PropTypes.number.isRequired,
       h: PropTypes.number.isRequired,
-    }).isRequired,
+    }),
     rotateFingerDist: PropTypes.number,
     originRadius: PropTypes.number,
     coordinator: PropTypes.shape({
@@ -41,7 +41,7 @@ export default class Transhand extends React.Component {
     onClick: React.PropTypes.func,
     onStartDrag: React.PropTypes.func,
     onEndDrag: React.PropTypes.func,
-    grabEvent: React.PropTypes.object,
+    grabEvent: React.PropTypes.any,
     cursor: React.PropTypes.object,
   }
 
