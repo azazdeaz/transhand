@@ -1,6 +1,6 @@
 {
   "name": "transhand",
-  "version": "0.1.10",
+  "version": "0.1.11",
   "description": "A transform tool for web applications",
   "main": "lib/index.js",
   "repository": {
