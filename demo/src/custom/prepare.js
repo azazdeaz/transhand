@@ -1,6 +1,7 @@
 var random = require('lodash/number/random')
 var clone = require('lodash/lang/clone')
 var pullAt = require('lodash/array/pullAt')
+var CustomCursor   = require('./CustomCursor')
 var CustomTranshandDesign = require('./CustomTranshandDesign')
 var CustomCursorHintDesign   = require('./CustomCursorHintDesign')
 
@@ -29,6 +30,7 @@ export default function scatterThings() {
       strokeWidth: 3,
       strokeDasharray: '20,10,5,5,5,10',
     },
+    cursor: new CustomCursor('#FFDC00'),
     CursorHintDesignComponent: CustomCursorHintDesign,
   }
 
@@ -38,6 +40,7 @@ export default function scatterThings() {
       stroke: '#FF851B',
       strokeWidth: 1,
     },
+    cursor: new CustomCursor('#FF851B'),
     DesignComponent: CustomTranshandDesign,
     CursorHintDesignComponent: CustomCursorHintDesign,
   }

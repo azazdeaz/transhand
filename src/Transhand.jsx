@@ -6,6 +6,7 @@ import shallowEquals from 'shallow-equals'
 import TranshandDesign from './TranshandDesign'
 import DefaultCoordinator from './DefaultCoordinator'
 import Cursor from './Cursor'
+import CursorHint from './cursorHint/CursorHint'
 import {radDiff, distToSegment, distToPointInAngle, isInside,
   equPoints} from './utils'
 
@@ -209,7 +210,7 @@ export default class Transhand extends React.Component {
     this._isDraggedSinceDown = false
     this._isHandle = true
 
-    React.findDOMNode(this).style.pointerEvents = 'auto'
+    // React.findDOMNode(this).style.pointerEvents = 'auto'
 
     this._mdPos = {
       m: this.props.coordinator.globalToLocal({x: e.clientX, y: e.clientY}),
@@ -242,10 +243,10 @@ export default class Transhand extends React.Component {
     this._isHandle = false
 
     //hack! fix to click behind the handler on releasing it
-    var deRoot = React.findDOMNode(this)
-    setTimeout(() => {
-      deRoot.style.pointerEvents = 'none'
-    })
+    // var deRoot = React.findDOMNode(this)
+    // setTimeout(() => {
+    //   deRoot.style.pointerEvents = 'none'
+    // })
 
     if (this.props.onEndDrag) {
       this.props.onEndDrag()
@@ -524,15 +525,34 @@ export default class Transhand extends React.Component {
   }
 
   render() {
-    var {DesignComponent, ...props} = this.props
+    var {DesignComponent, CursorHintDesignComponent, ...props} = this.props
     var {cursor, points, pOrigin, activeHint} = this.state
 
-    return <DesignComponent
-      {...props}
-      cursor={cursor}
-      points={points}
-      hint={activeHint}
-      pOrigin={pOrigin}
-      getHitEvents={this.getHitEvents}/>
+    var style = {
+      cursor,
+      position: 'fixed',
+      pointerEvents: this._isHandle ? 'auto' : 'none',
+      left: '0px',
+      top: '0px',
+      width: '100%',
+      height: '100%',
+    }
+
+    return <div>
+      <svg
+        style = {style}
+        onClick = {e => e.stopPropagation()}>
+
+        <DesignComponent
+          {...props}
+          cursor = {cursor}
+          points = {points}
+          pOrigin = {pOrigin}
+          getHitEvents = {this.getHitEvents}/>
+      </svg>
+      <CursorHint
+        hint = {activeHint}
+        DesignComponent = {CursorHintDesignComponent}/>
+    </div>
   }
 }

@@ -1,23 +1,7 @@
 import React from 'react'
-import CursorHint from './cursorHint/CursorHint'
-
-const styles = {
-  root: {
-    position: 'fixed',
-    pointerEvents: 'none',
-    left: '0px',
-    top: '0px',
-    width: '100%',
-    height: '100%',
-  }
-}
 
 export default class TranshandDesign extends React.Component {
-  stopPropagation = (e) => {
-    e.stopPropagation()
-  }
-
-  renderHandler() {
+  render() {
     var {rotateFingerDist, originRadius, stroke, getHitEvents,
           coordinator, cursor, points, pOrigin, transformTypes} = this.props,
         p = points.map(point => coordinator.localToGlobal(point)),
@@ -29,8 +13,6 @@ export default class TranshandDesign extends React.Component {
       `${p[1].x} ,${p[1].y} ` +
       `${p[2].x} ,${p[2].y} ` +
       `${p[3].x} ,${p[3].y}`
-
-    styles.root.cursor = cursor
 
     function renderOrigin() {
       if (transformTypes.indexOf('origin') !== -1) {
@@ -44,10 +26,7 @@ export default class TranshandDesign extends React.Component {
       }
     }
 
-    return <svg
-      style = {styles.root}
-      onClick = {this.stopPropagation}>
-
+    return <g>
       <polygon
         fill='none'
         {...stroke}
@@ -79,17 +58,6 @@ export default class TranshandDesign extends React.Component {
           pointerEvents: 'auto',
         }}
         {...getHitEvents()}/>
-    </svg>
-  }
-
-  render() {
-    var {CursorHintDesignComponent, hint} = this.props
-
-    return <div>
-      {this.renderHandler()}
-      <CursorHint
-        hint={hint}
-        DesignComponent={CursorHintDesignComponent}/>
-    </div>
+    </g>
   }
 }
