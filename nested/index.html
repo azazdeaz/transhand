@@ -9,19 +9,31 @@
         transition: background-color 0.4s;
     	  height: 100%;
     	  margin: 0;
+        font-family: sans-serif;
     	}
-        #stuffs{
-          width: 100%;
-          height: 100%;
-        }
-        #scroll{
-          height: 10%;
-        }
+      #source{
+        position: fixed;
+        top: 0px;
+        padding-left: 7px;
+      }
+      #source > a{
+        color: #fff;
+        transition: color 0.4s;
+        cursor: pointer;
+      }
+      #stuffs{
+        width: 100%;
+        height: 100%;
+      }
+      #scroll{
+        height: 10%;
+      }
     </style>
   </head>
   <body>
     <div id="stuffs"></div>
     <div id="mount-app"></div>
+    <h3 id="source"><a href="https://github.com/azazdeaz/transhand/tree/master/demo/src/nested">Browse the source</a></h3>
     <div id="scroll"></div>
     <script src="./index.js"></script>
   </body>
