@@ -65,7 +65,7 @@ export default class CSSTranshand extends React.Component {
     }
 
     var {rect} = this.state
-console.log({grabEvent: this.props.grabEvent})
+
     return rect ? <Transhand
       {...this.props}
       rect = {rect}

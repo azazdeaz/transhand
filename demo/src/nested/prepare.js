@@ -2,6 +2,7 @@ require.context('./assets', false, /\.png$/)
 var random = require('lodash/number/random')
 var clone = require('lodash/lang/clone')
 var pullAt = require('lodash/array/pullAt')
+var tinycolor = require('tinycolor2')
 
 const INIT_TRANSFORM = {
   tx: 0, ty: 0,
@@ -25,6 +26,10 @@ export default function scatterThings() {
 
   var rootNode = document.querySelector('#stuffs')
   document.body.style.backgroundColor = takeOne(colors)
+  document.querySelector('#source > a').style.color = tinycolor.mostReadable(
+    document.body.style.backgroundColor,
+    colors
+  ).toHexString()
 
   for (let i = 0; i < 3; ++i) {
     let deParent = rootNode

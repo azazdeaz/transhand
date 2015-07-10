@@ -1,9 +1,8 @@
-var random = require('lodash/number/random')
 var clone = require('lodash/lang/clone')
-var pullAt = require('lodash/array/pullAt')
-var CustomCursor   = require('./CustomCursor')
+var CustomCursor = require('./CustomCursor')
 var CustomTranshandDesign = require('./CustomTranshandDesign')
-var CustomCursorHintDesign   = require('./CustomCursorHintDesign')
+var CustomCursorHintDesign = require('./CustomCursorHintDesign')
+var tinycolor = require('tinycolor2')
 
 const INIT_TRANSFORM = {
   tx: 0, ty: 0,
@@ -14,14 +13,18 @@ const INIT_TRANSFORM = {
 
 export default function scatterThings() {
 
-  // var colors = ['#7FDBFF', '#0074D9', '#01FF70', '#001F3F', '#39CCCC', '#3D9970',
-  //   '#2ECC40', '#FF4136', '#85144B', '#FF851B', '#B10DC9', '#FFDC00', '#F012BE',
-  //   '#aaa', '#fff', '#111', '#ddd']
-  //
+  var colors = ['#7FDBFF', '#0074D9', '#01FF70', '#001F3F', '#39CCCC', '#3D9970',
+    '#2ECC40', '#FF4136', '#85144B', '#FF851B', '#B10DC9', '#FFDC00', '#F012BE',
+    '#aaa', '#fff', '#111', '#ddd']
+
   // var takeOne = arr => pullAt(arr, random(arr.length - 1))
 
   var rootNode = document.querySelector('#stuffs')
   document.body.style.backgroundColor = '#2ECC40'
+  document.querySelector('#source > a').style.color = tinycolor.mostReadable(
+    document.body.style.backgroundColor,
+    colors
+  ).toHexString()
 
   var red = createDiv(122, 122, rootNode, '#aaa')
   red.transhandProps = {

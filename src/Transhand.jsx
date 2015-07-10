@@ -69,7 +69,7 @@ export default class Transhand extends React.Component {
     cursor: new Cursor(),
     hints: {
       scaleXY: [
-        'shift - keep proportion',
+        'shift - keep shape',
         'alt - from the opposite side'
       ],
       scaleXorY: [
