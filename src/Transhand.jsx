@@ -84,8 +84,8 @@ export default class Transhand extends React.Component {
     }
   }
 
-  constructor(prosp) {
-    super(prosp)
+  constructor(props) {
+    super(props)
 
     this.state = {
       points: [{}, {}, {}, {}],
