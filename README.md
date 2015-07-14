@@ -2,14 +2,14 @@
 
 Transhand is a React based 2d transformation tool. It's aiming to have all the features that you would expect from a transform handler in a modern graphic editor.
 
-Developed as part of the [Animachine project](https://github.com/animachine/animachine).
-
-![](http://fat.gfycat.com/SilverExhaustedEquestrian.gif)
-
 ###Demos
 [nested](http://azazdeaz.github.io/transhand/nested/),
 [custom](http://azazdeaz.github.io/transhand/custom/),
 [iframe(wip)](http://azazdeaz.github.io/transhand/iframe/)
+
+![](http://fat.gfycat.com/SilverExhaustedEquestrian.gif)
+
+Developed as part of the [Animachine project](https://github.com/animachine/animachine).
 
 ###Install
 ```
