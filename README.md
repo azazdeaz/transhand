@@ -1,4 +1,4 @@
-![](https://img.shields.io/badge/status-beta-orange.svg?style=flat-square)
+![](https://img.shields.io/badge/status-beta-orange.svg?style=flat-square) [![npm](https://img.shields.io/npm/dm/transhand.svg?style=flat-square)](https://www.npmjs.com/package/transhand)
 
 Transhand is a React based 2d transformation tool. It's aiming to have all the features that you would expect from a transform handler in a modern graphic editor.
 
