@@ -73,7 +73,7 @@ import { CSSTranshand } from 'transhand'
  - ```rotateFingerDist = 16```: The width of the rotate hit area.
  - ```originRadius = 6```: The radius of the transform origin hit area.
  - ```coordinator = ```[```new DefaultCoordinator()```](src/DefaultCoordinator.js): Use this to change the way as Transhand convert global coordinates into its local coordinate system (ex. mouse positions) and back (ex. render to screen). Coordinator is an object with two functions ```globalToLocal(point):point``` and ```localToGlobal(point):point```.  If you need more detail check out the source.
- - ```grabEvent```:  If paramener is presented Transhand will simulate the mouse down event with it. It's useful when you want to drag the target immediately after selecting it with mouse down. See it in use in the [demo sources](demo/src/nested/App.jsx).
+ - ```grabEvent```:  If this parameter is presented Transhand will simulate the mouse down event with it. It's useful when you want to drag the target immediately after selecting it with mouse down. See it in use in the [demo sources](demo/src/nested/App.jsx).
  - ```hints = ```[```default```](src/Transhand.jsx#L67):  Map of tooltips for the different transformation types.  
  - ```cursors = ```[```new Cursors()```](src/Cursor.js):  Map of cursors for the different transformation types.
  - ```DesignComponent = ```[```TranshandDesign```](src/TranshandDesign.jsx):  You can replace the basic ```Component``` that Transhand renders to fully customize its appearance.
