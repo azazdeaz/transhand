@@ -51,7 +51,7 @@ var onChange = (change) => {
 import { CSSTranshand } from 'transhand'
 
 <CSSTranshand
-  transforms = {transforms}
+  transform = {transform}
   deTarget = {transformedDOMElement}
   onChange = {onChange}/>
 ```
