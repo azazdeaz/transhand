@@ -1,4 +1,4 @@
-import React, {PropTypes} from 'react'
+import React from 'react'
 import Transhand from './Transhand'
 import CSSCoordinator from './CSSCoordinator'
 import isElement from 'lodash/lang/isElement'
@@ -41,14 +41,13 @@ export default class CSSTranshand extends React.Component {
   }
 
   takeNextDeTarget(nextDeTarget) {
-
     if (this._lastTakenDeTarget !== nextDeTarget) {
 
       this._lastTakenDeTarget = nextDeTarget
 
       this.coordinator.setLocalRoot(
         nextDeTarget.parentElement, nextDeTarget, (rect) => {
-          this.setState({rect, foo: 3})
+          this.setState({rect})
         }
       )
     }
@@ -59,7 +58,6 @@ export default class CSSTranshand extends React.Component {
   }
 
   render() {
-
     if (this.coordinator.isProcessing) {
       return <div hidden={true}/>
     }
