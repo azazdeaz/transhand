@@ -1,4 +1,4 @@
-import React from 'react'
+import React, {PropTypes} from 'react'
 import Transhand from './Transhand'
 import CSSCoordinator from './CSSCoordinator'
 import isElement from 'lodash/lang/isElement'
@@ -12,6 +12,7 @@ export default class CSSTranshand extends React.Component {
           return new Error('deTarget should be a DOM Element!')
         }
       },
+      autoUpdateCoordinatorFrequency: PropTypes.number
     })
 
     delete pt.rect
@@ -36,21 +37,47 @@ export default class CSSTranshand extends React.Component {
     this.takeNextDeTarget(nextProps.deTarget)
   }
 
+  componentDidUnmount() {
+    this.startAutoUpdateCoordinator()
+  }
+
+  componentDidUpdate() {
+    this.startAutoUpdateCoordinator()
+  }
+
   componentWillUnmount() {
     this.coordinator.destroy()
   }
 
   takeNextDeTarget(nextDeTarget) {
     if (this._lastTakenDeTarget !== nextDeTarget) {
-
       this._lastTakenDeTarget = nextDeTarget
-
-      this.coordinator.setLocalRoot(
-        nextDeTarget.parentElement, nextDeTarget, (rect) => {
-          this.setState({rect})
-        }
-      )
+      this.updateCoordinator(nextDeTarget)
     }
+  }
+
+  startAutoUpdateCoordinator() {
+    clearTimeout(this._autoUpdateCoordinatorSetT)
+
+    if (!this.props.autoUpdateCoordinatorFrequency) {
+      return
+    }
+
+    this._autoUpdateCoordinatorSetT = setTimeout(
+      () => {
+        this.updateCoordinator(this.props.deTarget)
+        this.startAutoUpdateCoordinator()
+      },
+      this.props.autoUpdateCoordinatorFrequency
+    )
+  }
+
+  updateCoordinator(deTarget) {
+    this.coordinator.setLocalRoot(
+      deTarget.parentElement, deTarget, (rect) => {
+        this.setState({rect})
+      }
+    )
   }
 
   shouldComponentUpdate() {
