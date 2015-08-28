@@ -1,5 +1,5 @@
 import React from 'react'
-import CSSTranshand from 'SRC/CSSTranshand'
+import {CSSTranshand} from 'transhand'
 import assign from 'lodash/object/assign'
 
 export default class App extends React.Component {

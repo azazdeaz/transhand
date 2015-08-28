@@ -1,4 +1,5 @@
 import React from 'react'
+import {fixCursorStyle} from 'transhand'
 
 export default class CustomTranshandDesign extends React.Component {
   render() {
@@ -101,5 +102,10 @@ export default class CustomTranshandDesign extends React.Component {
         }}
         {...getHitEvents()}/>
     </g>
+  }
+
+  componentDidUpdate() {
+    fixCursorStyle(this.refs.boxHit, this.props.cursor)//HACK
+    fixCursorStyle(this.refs.originHit, this.props.cursor)//HACK
   }
 }

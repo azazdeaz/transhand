@@ -6,6 +6,7 @@ import shallowEquals from 'shallow-equals'
 import TranshandDesign from './TranshandDesign'
 import DefaultCoordinator from './DefaultCoordinator'
 import Cursor from './Cursor'
+import fixCursorStyle from './fixCursorStyle'
 import CursorHint from './cursorHint/CursorHint'
 import {radDiff, distToSegment, distToPointInAngle, isInside,
   equPoints} from './utils'
@@ -541,6 +542,7 @@ export default class Transhand extends React.Component {
     return <div>
       <svg
         style = {style}
+        ref = 'root'
         onClick = {e => e.stopPropagation()}>
 
         <DesignComponent
@@ -554,5 +556,9 @@ export default class Transhand extends React.Component {
         hint = {activeHint}
         DesignComponent = {CursorHintDesignComponent}/>
     </div>
+  }
+
+  componentDidUpdate() {
+    fixCursorStyle(this.refs.root, this.state.cursor)//HACK
   }
 }
