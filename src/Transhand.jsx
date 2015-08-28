@@ -269,7 +269,7 @@ export default class Transhand extends React.Component {
       }
       this.setHint(null)
     }
-    else if (this.state.hoverHitbox) {
+    else /*if (this.state.hoverHitbox)*/ {
       this._finger = this.getFinger(e)
     }
 
@@ -303,19 +303,19 @@ export default class Transhand extends React.Component {
       setTransform()
     }
 
-    if (finger.charAt(0) === '1') {
+    if (finger && finger.charAt(0) === '1') {
       setScale(-Math.PI/2, 'sy', -1)
     }
 
-    if (finger.charAt(1) === '1') {
+    if (finger && finger.charAt(1) === '1') {
       setScale(0, 'sx', 1)
     }
 
-    if (finger.charAt(2) === '1') {
+    if (finger && finger.charAt(2) === '1') {
       setScale(Math.PI/2, 'sy', 1)
     }
 
-    if (finger.charAt(3) === '1') {
+    if (finger && finger.charAt(3) === '1') {
       setScale(Math.PI, 'sx', -1)
     }
 
@@ -513,7 +513,8 @@ export default class Transhand extends React.Component {
       this.props,
       assign({finger: this._finger}, this.state),
       e.clientX,
-      e.clientY)
+      e.clientY
+    )
   }
 
   getHitEvents = () => {

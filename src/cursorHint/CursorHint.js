@@ -14,16 +14,17 @@ export default class CursorHint extends React.Component {
     this.state = {}
   }
 
+  getParentWindow() {
+    const node = React.findDOMNode(this)
+    return node.ownerDocument.defaultView
+  }
+
   componentDidMount() {
-    var node = React.findDOMNode(this)
-    node.parentNode.addEventListener('mousemove', this.handleMouseMove)
+    this.getParentWindow().addEventListener('mousemove', this.handleMouseMove)
   }
 
   componentWillUnmount() {
-    var node = React.findDOMNode(this)
-    if (node.parentNode) {
-      node.parentNode.removeEventListener('mousemove', this.handleMouseMove)
-    }
+    this.getParentWindow().removeEventListener('mousemove', this.handleMouseMove)
   }
 
   show = () => {
