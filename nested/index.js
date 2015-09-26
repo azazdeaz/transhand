@@ -22093,12 +22093,13 @@
 	  _createClass(Transhand, [{
 	    key: 'componentWillMount',
 	    value: function componentWillMount() {
-	      var _this2 = this;
-
 	      this.refreshPoints();
-	      window.addEventListener('mousemove', function (e) {
-	        return _this2.handleMouseMove(e);
-	      });
+	      window.addEventListener('mousemove', this.handleMouseMove);
+	    }
+	  }, {
+	    key: 'componentWillUnmount',
+	    value: function componentWillUnmount() {
+	      window.removeEventListener('mousemove', this.handleMouseMove);
 	    }
 	  }, {
 	    key: 'componentWillReceiveProps',
