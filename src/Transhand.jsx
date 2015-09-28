@@ -96,7 +96,11 @@ export default class Transhand extends React.Component {
 
   componentWillMount() {
     this.refreshPoints()
-    window.addEventListener('mousemove', e => this.handleMouseMove(e))
+    window.addEventListener('mousemove', this.handleMouseMove)
+  }
+
+  componentWillUnmount() {
+    window.removeEventListener('mousemove', this.handleMouseMove)
   }
 
   componentWillReceiveProps(nextProps) {
