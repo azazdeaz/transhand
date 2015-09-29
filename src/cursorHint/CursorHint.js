@@ -24,6 +24,7 @@ export default class CursorHint extends React.Component {
   }
 
   componentWillUnmount() {
+    clearTimeout(this._showSetT)
     this.getParentWindow().removeEventListener('mousemove', this.handleMouseMove)
   }
 

@@ -46,6 +46,7 @@ export default class CSSTranshand extends React.Component {
   }
 
   componentWillUnmount() {
+    this.stopAutoUpdateCoordinator()
     this.coordinator.destroy()
   }
 
@@ -57,7 +58,7 @@ export default class CSSTranshand extends React.Component {
   }
 
   startAutoUpdateCoordinator() {
-    clearTimeout(this._autoUpdateCoordinatorSetT)
+    this.stopAutoUpdateCoordinator()
 
     if (!this.props.autoUpdateCoordinatorFrequency) {
       return
@@ -70,6 +71,10 @@ export default class CSSTranshand extends React.Component {
       },
       this.props.autoUpdateCoordinatorFrequency
     )
+  }
+
+  stopAutoUpdateCoordinator() {
+    clearTimeout(this._autoUpdateCoordinatorSetT)
   }
 
   updateCoordinator(deTarget) {
