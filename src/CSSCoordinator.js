@@ -7,6 +7,7 @@ import assign from 'lodash/object/assign'
 const TRANSFORM_PROPS = ['transform', 'transformOrigin', 'prespective',
   'prespectiveOrigin', 'transformStyle']
 const NULL_VALUES = ['none', 'matrix(1, 0, 0, 1, 0, 0)']
+const NULL_TRANSFORM = 'matrix(1, 0, 0, 1, 0, 0)' //none dosen't alwasy trigger a refresh in Chrome
 
 export default class CSSCoordinator {
   constructor() {
@@ -118,14 +119,14 @@ export default class CSSCoordinator {
           transformeds.unshift(reg)
         }
 
-        de.style.transform = 'none'
+        de.style.transform = NULL_TRANSFORM
         reg.style[propName] = value
       }
     }
 
     var setRect = () => {
       let inlineTransform = deTarget.style.transform
-      deTarget.style.transform = 'none'
+      deTarget.style.transform = NULL_TRANSFORM
 
       let brA = getGlobalBoundingClientRect(deTarget)
 
