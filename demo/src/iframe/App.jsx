@@ -73,7 +73,7 @@ export default class App extends React.Component {
     console.log('change event:', change)
 
     var { currDomElem } = this.state,
-        transform = currDomElem._handlerParams
+        transform = currDomElem._handlerTransform
 
     assign(transform, change)
 
@@ -102,7 +102,7 @@ export default class App extends React.Component {
       let props = {
         ref: 'handler',
         deTarget: currDomElem,
-        transform: currDomElem._handlerParams,
+        transform: currDomElem._handlerTransform,
         onChange: this.handleChange,
         onClick: this.handleSelectBehindHanler,
       }

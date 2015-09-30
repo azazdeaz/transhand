@@ -54,16 +54,9 @@ export default function scatterThings() {
     div.style.height = h + 'px'
     div.style.backgroundColor = takeOne(colors)
     div.style.boxShadow = '1px 1px 4px 0px rgba(50, 50, 50, 0.75)'
-    div._handlerParams = clone(INIT_TRANSFORM)
+    div._handlerTransform = clone(INIT_TRANSFORM)
 
     place(div, deParent)
-
-    div._handlerBase = {
-      x: div.offsetLeft,
-      y: div.offsetTop,
-      w: div.offsetWidth,
-      h: div.offsetHeight,
-    }
 
     return div
   }
@@ -71,29 +64,9 @@ export default function scatterThings() {
   function createImg(deParent) {
     var img = new Image()
 
-    img._handlerParams = clone(INIT_TRANSFORM)
+    img._handlerTransform = clone(INIT_TRANSFORM)
 
     img.onload = function () {
-
-      var transformSave
-
-      if (img.style.transform) {
-
-        transformSave = img.style.transform
-        img.style.transform = ''
-      }
-
-      var br = img.getBoundingClientRect()
-
-      img.style.transform = transformSave
-
-      img._handlerBase = {
-        x: br.left,
-        y: br.top,
-        w: br.width,
-        h: br.height,
-      }
-
       place(img, deParent)
     }
 

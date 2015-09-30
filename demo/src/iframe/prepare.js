@@ -49,18 +49,11 @@ export default function scatterThings() {
     de.style.height = h + 'px'
     de.style.backgroundColor = takeOne(colors)
     de.style.boxShadow = '1px 1px 4px 0px rgba(50, 50, 50, 0.75)'
-    de._handlerParams = clone(INIT_TRANSFORM)
+    de._handlerTransform = clone(INIT_TRANSFORM)
 
     de.onload = onload
 
     place(de, deParent)
-
-    de._handlerBase = {
-      x: de.offsetLeft,
-      y: de.offsetTop,
-      w: de.offsetWidth,
-      h: de.offsetHeight,
-    }
 
     return de
   }
