@@ -264,7 +264,9 @@
 	        currentQueue = queue;
 	        queue = [];
 	        while (++queueIndex < len) {
-	            currentQueue[queueIndex].run();
+	            if (currentQueue) {
+	                currentQueue[queueIndex].run();
+	            }
 	        }
 	        queueIndex = -1;
 	        len = queue.length;
@@ -316,7 +318,6 @@
 	    throw new Error('process.binding is not supported');
 	};
 
-	// TODO(shtylman)
 	process.cwd = function () { return '/' };
 	process.chdir = function (dir) {
 	    throw new Error('process.chdir is not supported');
@@ -23024,6 +23025,7 @@
 	  }, {
 	    key: 'componentWillUnmount',
 	    value: function componentWillUnmount() {
+	      clearTimeout(this._showSetT);
 	      this.getParentWindow().removeEventListener('mousemove', this.handleMouseMove);
 	    }
 	  }, {
@@ -23330,6 +23332,7 @@
 	  }, {
 	    key: 'componentWillUnmount',
 	    value: function componentWillUnmount() {
+	      this.stopAutoUpdateCoordinator();
 	      this.coordinator.destroy();
 	    }
 	  }, {
@@ -23345,7 +23348,7 @@
 	    value: function startAutoUpdateCoordinator() {
 	      var _this2 = this;
 
-	      clearTimeout(this._autoUpdateCoordinatorSetT);
+	      this.stopAutoUpdateCoordinator();
 
 	      if (!this.props.autoUpdateCoordinatorFrequency) {
 	        return;
@@ -23355,6 +23358,11 @@
 	        _this2.updateCoordinator(_this2.props.deTarget);
 	        _this2.startAutoUpdateCoordinator();
 	      }, this.props.autoUpdateCoordinatorFrequency);
+	    }
+	  }, {
+	    key: 'stopAutoUpdateCoordinator',
+	    value: function stopAutoUpdateCoordinator() {
+	      clearTimeout(this._autoUpdateCoordinatorSetT);
 	    }
 	  }, {
 	    key: 'updateCoordinator',
@@ -23433,6 +23441,7 @@
 
 	var TRANSFORM_PROPS = ['transform', 'transformOrigin', 'prespective', 'prespectiveOrigin', 'transformStyle'];
 	var NULL_VALUES = ['none', 'matrix(1, 0, 0, 1, 0, 0)'];
+	var NULL_TRANSFORM = 'matrix(1, 0, 0, 1, 0, 0)'; //none dosen't alwasy trigger a refresh in Chrome
 
 	var CSSCoordinator = (function () {
 	  function CSSCoordinator() {
@@ -23550,14 +23559,14 @@
 	            transformeds.unshift(reg);
 	          }
 
-	          de.style.transform = 'none';
+	          de.style.transform = NULL_TRANSFORM;
 	          reg.style[propName] = value;
 	        }
 	      };
 
 	      var setRect = function setRect() {
 	        var inlineTransform = deTarget.style.transform;
-	        deTarget.style.transform = 'none';
+	        deTarget.style.transform = NULL_TRANSFORM;
 
 	        var brA = (0, _getGlobalBoundingClientRect2['default'])(deTarget);
 
@@ -26528,18 +26537,11 @@
 	    de.style.height = h + 'px';
 	    de.style.backgroundColor = takeOne(colors);
 	    de.style.boxShadow = '1px 1px 4px 0px rgba(50, 50, 50, 0.75)';
-	    de._handlerParams = clone(INIT_TRANSFORM);
+	    de._handlerTransform = clone(INIT_TRANSFORM);
 
 	    de.onload = onload;
 
 	    place(de, deParent);
-
-	    de._handlerBase = {
-	      x: de.offsetLeft,
-	      y: de.offsetTop,
-	      w: de.offsetWidth,
-	      h: de.offsetHeight
-	    };
 
 	    return de;
 	  }
@@ -26953,7 +26955,7 @@
 	      console.log('change event:', change);
 
 	      var currDomElem = _this.state.currDomElem;
-	      var transform = currDomElem._handlerParams;
+	      var transform = currDomElem._handlerTransform;
 
 	      (0, _lodashObjectAssign2['default'])(transform, change);
 
@@ -27035,7 +27037,7 @@
 	        var props = {
 	          ref: 'handler',
 	          deTarget: currDomElem,
-	          transform: currDomElem._handlerParams,
+	          transform: currDomElem._handlerTransform,
 	          onChange: this.handleChange,
 	          onClick: this.handleSelectBehindHanler
 	        };

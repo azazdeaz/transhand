@@ -264,7 +264,9 @@
 	        currentQueue = queue;
 	        queue = [];
 	        while (++queueIndex < len) {
-	            currentQueue[queueIndex].run();
+	            if (currentQueue) {
+	                currentQueue[queueIndex].run();
+	            }
 	        }
 	        queueIndex = -1;
 	        len = queue.length;
@@ -316,7 +318,6 @@
 	    throw new Error('process.binding is not supported');
 	};
 
-	// TODO(shtylman)
 	process.cwd = function () { return '/' };
 	process.chdir = function (dir) {
 	    throw new Error('process.chdir is not supported');
@@ -20502,16 +20503,9 @@
 	    div.style.height = h + 'px';
 	    div.style.backgroundColor = color;
 	    div.style.boxShadow = '1px 1px 4px 0px rgba(50, 50, 50, 0.75)';
-	    div._handlerParams = clone(INIT_TRANSFORM);
+	    div._handlerTransform = clone(INIT_TRANSFORM);
 
 	    place(div, deParent);
-
-	    div._handlerBase = {
-	      x: div.offsetLeft,
-	      y: div.offsetTop,
-	      w: div.offsetWidth,
-	      h: div.offsetHeight
-	    };
 
 	    return div;
 	  }
@@ -23343,6 +23337,7 @@
 	  }, {
 	    key: 'componentWillUnmount',
 	    value: function componentWillUnmount() {
+	      clearTimeout(this._showSetT);
 	      this.getParentWindow().removeEventListener('mousemove', this.handleMouseMove);
 	    }
 	  }, {
@@ -23649,6 +23644,7 @@
 	  }, {
 	    key: 'componentWillUnmount',
 	    value: function componentWillUnmount() {
+	      this.stopAutoUpdateCoordinator();
 	      this.coordinator.destroy();
 	    }
 	  }, {
@@ -23664,7 +23660,7 @@
 	    value: function startAutoUpdateCoordinator() {
 	      var _this2 = this;
 
-	      clearTimeout(this._autoUpdateCoordinatorSetT);
+	      this.stopAutoUpdateCoordinator();
 
 	      if (!this.props.autoUpdateCoordinatorFrequency) {
 	        return;
@@ -23674,6 +23670,11 @@
 	        _this2.updateCoordinator(_this2.props.deTarget);
 	        _this2.startAutoUpdateCoordinator();
 	      }, this.props.autoUpdateCoordinatorFrequency);
+	    }
+	  }, {
+	    key: 'stopAutoUpdateCoordinator',
+	    value: function stopAutoUpdateCoordinator() {
+	      clearTimeout(this._autoUpdateCoordinatorSetT);
 	    }
 	  }, {
 	    key: 'updateCoordinator',
@@ -23752,6 +23753,7 @@
 
 	var TRANSFORM_PROPS = ['transform', 'transformOrigin', 'prespective', 'prespectiveOrigin', 'transformStyle'];
 	var NULL_VALUES = ['none', 'matrix(1, 0, 0, 1, 0, 0)'];
+	var NULL_TRANSFORM = 'matrix(1, 0, 0, 1, 0, 0)'; //none dosen't alwasy trigger a refresh in Chrome
 
 	var CSSCoordinator = (function () {
 	  function CSSCoordinator() {
@@ -23869,14 +23871,14 @@
 	            transformeds.unshift(reg);
 	          }
 
-	          de.style.transform = 'none';
+	          de.style.transform = NULL_TRANSFORM;
 	          reg.style[propName] = value;
 	        }
 	      };
 
 	      var setRect = function setRect() {
 	        var inlineTransform = deTarget.style.transform;
-	        deTarget.style.transform = 'none';
+	        deTarget.style.transform = NULL_TRANSFORM;
 
 	        var brA = (0, _getGlobalBoundingClientRect2['default'])(deTarget);
 
@@ -32347,7 +32349,7 @@
 	  pattern = opts.caseSensitive && pattern || pattern.toLowerCase();
 
 	  // For each character in the string, either add it to the result
-	  // or wrap in template if its the next string in the pattern
+	  // or wrap in template if it's the next string in the pattern
 	  for(var idx = 0; idx < len; idx++) {
 	    ch = string[idx];
 	    if(compareString[idx] === pattern[patternIdx]) {
@@ -32389,8 +32391,8 @@
 	//        // string to put after matching character
 	//      , post:    '</b>'
 	//
-	//        // Optional function. Input is an element from the passed in
-	//        // `arr`, output should be the string to test `pattern` against.
+	//        // Optional function. Input is an entry in the given arr`,
+	//        // output should be the string to test `pattern` against.
 	//        // In this example, if `arr = [{crying: 'koala'}]` we would return
 	//        // 'koala'.
 	//      , extract: function(arg) { return arg.crying; }
@@ -32398,31 +32400,31 @@
 	fuzzy.filter = function(pattern, arr, opts) {
 	  opts = opts || {};
 	  return arr
-	          .reduce(function(prev, element, idx, arr) {
-	            var str = element;
-	            if(opts.extract) {
-	              str = opts.extract(element);
-	            }
-	            var rendered = fuzzy.match(pattern, str, opts);
-	            if(rendered != null) {
-	              prev[prev.length] = {
-	                  string: rendered.rendered
-	                , score: rendered.score
-	                , index: idx
-	                , original: element
-	              };
-	            }
-	            return prev;
-	          }, [])
+	    .reduce(function(prev, element, idx, arr) {
+	      var str = element;
+	      if(opts.extract) {
+	        str = opts.extract(element);
+	      }
+	      var rendered = fuzzy.match(pattern, str, opts);
+	      if(rendered != null) {
+	        prev[prev.length] = {
+	            string: rendered.rendered
+	          , score: rendered.score
+	          , index: idx
+	          , original: element
+	        };
+	      }
+	      return prev;
+	    }, [])
 
-	          // Sort by score. Browsers are inconsistent wrt stable/unstable
-	          // sorting, so force stable by using the index in the case of tie.
-	          // See http://ofb.net/~sethml/is-sort-stable.html
-	          .sort(function(a,b) {
-	            var compare = b.score - a.score;
-	            if(compare) return compare;
-	            return a.index - b.index;
-	          });
+	    // Sort by score. Browsers are inconsistent wrt stable/unstable
+	    // sorting, so force stable by using the index in the case of tie.
+	    // See http://ofb.net/~sethml/is-sort-stable.html
+	    .sort(function(a,b) {
+	      var compare = b.score - a.score;
+	      if(compare) return compare;
+	      return a.index - b.index;
+	    });
 	};
 
 
@@ -34729,7 +34731,7 @@
 	      console.log('change event:', change);
 
 	      var currDomElem = _this.state.currDomElem;
-	      var transform = currDomElem._handlerParams;
+	      var transform = currDomElem._handlerTransform;
 
 	      (0, _lodashObjectAssign2['default'])(transform, change);
 
@@ -34794,7 +34796,7 @@
 	        return _react2['default'].createElement(_transhand.CSSTranshand, _extends({
 	          ref: 'handler',
 	          deTarget: currDomElem,
-	          transform: currDomElem._handlerParams,
+	          transform: currDomElem._handlerTransform,
 	          onChange: this.handleChange,
 	          onClick: this.handleSelectBehindHanler,
 	          grabEvent: grabEvent
