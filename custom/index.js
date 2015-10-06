@@ -23751,7 +23751,7 @@
 
 	var _lodashObjectAssign2 = _interopRequireDefault(_lodashObjectAssign);
 
-	var TRANSFORM_PROPS = ['transform', 'transformOrigin', 'prespective', 'prespectiveOrigin', 'transformStyle'];
+	var TRANSFORM_PROPS = ['transform', 'transform-origin', 'prespective', 'prespective-origin', 'transform-style'];
 	var NULL_VALUES = ['none', 'matrix(1, 0, 0, 1, 0, 0)'];
 	var NULL_TRANSFORM = 'matrix(1, 0, 0, 1, 0, 0)'; //none dosen't alwasy trigger a refresh in Chrome
 
