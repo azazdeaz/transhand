@@ -215,7 +215,7 @@ export default class Transhand extends React.Component {
     this._isDraggedSinceDown = false
     this._isHandle = true
 
-    // React.findDOMNode(this).style.pointerEvents = 'auto'
+    // ReactDOM.findDOMNode(this).style.pointerEvents = 'auto'
 
     this._mdPos = {
       m: this.props.coordinator.globalToLocal({x: e.clientX, y: e.clientY}),
@@ -248,7 +248,7 @@ export default class Transhand extends React.Component {
     this._isHandle = false
 
     //hack! fix to click behind the handler on releasing it
-    // var deRoot = React.findDOMNode(this)
+    // var deRoot = ReactDOM.findDOMNode(this)
     // setTimeout(() => {
     //   deRoot.style.pointerEvents = 'none'
     // })

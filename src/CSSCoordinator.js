@@ -1,4 +1,5 @@
 import React from 'react'
+import ReactDOM from 'react-dom'
 import heuristicGlobalToLocal from './heuristicGlobalToLocal'
 import getGlobalBoundingClientRect from './getGlobalBoundingClientRect'
 import findWhere from 'lodash/collection/findWhere'
@@ -178,7 +179,7 @@ export default class CSSCoordinator {
         y: brParent.top - brLastTransformed.top,
       }
 
-      React.render(<MockDiv
+      ReactDOM.render(<MockDiv
         parentOffsetFromLastTransformed = {parentOffsetFromLastTransformed}
         parentLeft = {-window.scrollX}
         parentTop = {-window.scrollY}

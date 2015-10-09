@@ -1,4 +1,5 @@
 import React from 'react'
+import ReactDOM from 'react-dom'
 import CursorHintDesign from './CursorHintDesign'
 
 export default class CursorHint extends React.Component {
@@ -15,7 +16,7 @@ export default class CursorHint extends React.Component {
   }
 
   getParentWindow() {
-    const node = React.findDOMNode(this)
+    const node = ReactDOM.findDOMNode(this)
     return node.ownerDocument.defaultView
   }
 

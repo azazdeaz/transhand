@@ -1,4 +1,5 @@
 import React from 'react'
+import ReactDOM from 'react-dom'
 import {CSSTranshand} from 'transhand'
 import assign from 'lodash/object/assign'
 
@@ -34,7 +35,7 @@ export default class App extends React.Component {
   }
 
   elementFromPoint(x, y) {
-    var deHandler = React.findDOMNode(this.refs.handler)
+    var deHandler = ReactDOM.findDOMNode(this.refs.handler)
     var deTarget
     var get = () => deTarget = document.elementFromPoint(x, y)
 
