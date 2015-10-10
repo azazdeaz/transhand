@@ -37,10 +37,6 @@ export default class CSSTranshand extends React.Component {
     this.takeNextDeTarget(nextProps.deTarget)
   }
 
-  componentDidUnmount() {
-    this.startAutoUpdateCoordinator()
-  }
-
   componentDidUpdate() {
     this.startAutoUpdateCoordinator()
   }
