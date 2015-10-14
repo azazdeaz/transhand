@@ -3,7 +3,8 @@ import ReactDOM from 'react'
 import heuristicGlobalToLocal from './heuristicGlobalToLocal'
 import getGlobalBoundingClientRect from './getGlobalBoundingClientRect'
 import findWhere from 'lodash/collection/findWhere'
-import assign from 'lodash/object/assign'
+import mapKeys from 'lodash/object/mapKeys'
+import camelCase from 'lodash/string/camelCase'
 
 const TRANSFORM_PROPS = ['transform', 'transform-origin', 'prespective',
   'prespective-origin', 'transform-style']
@@ -239,13 +240,14 @@ class MockDiv extends React.Component {
       }
     }
 
-    return <div style={assign({
+    return <div style={{
       position: 'absolute',
       left: br.left - parentLeft,
       top: br.top - parentTop,
       width: br.width,
       height: br.height,
-    }, transformReg.style)}>
+      ...mapKeys(transformReg.style, (value, key) => camelCase(key))
+    }}>
 
       {renderChild()}
     </div>
