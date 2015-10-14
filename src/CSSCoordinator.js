@@ -1,5 +1,5 @@
 import React from 'react'
-import ReactDOM from 'react-dom'
+import ReactDOM from 'react'
 import heuristicGlobalToLocal from './heuristicGlobalToLocal'
 import getGlobalBoundingClientRect from './getGlobalBoundingClientRect'
 import findWhere from 'lodash/collection/findWhere'

@@ -1,5 +1,5 @@
 import React from 'react'
-import ReactDOM from 'react-dom'
+import ReactDOM from 'react'
 import CursorHintDesign from './CursorHintDesign'
 
 export default class CursorHint extends React.Component {
