@@ -1,6 +1,6 @@
 {
   "name": "transhand",
-  "version": "0.1.25",
+  "version": "0.1.26",
   "description": "A 2d transformation manager for graphic editor tools",
   "main": "lib/index.js",
   "repository": {
