@@ -1,4 +1,5 @@
-import React, {PropTypes} from 'react'
+import React from 'react'
+import PropTypes from 'prop-types'
 import Transhand from './Transhand'
 import CSSCoordinator from './CSSCoordinator'
 import isElement from 'lodash/lang/isElement'
