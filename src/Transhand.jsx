@@ -1,4 +1,5 @@
-import React, {PropTypes} from 'react'
+import React from 'react'
+import PropTypes from 'prop-types'
 import clone from 'lodash/lang/clone'
 import cloneDeep from 'lodash/lang/cloneDeep'
 import assign from 'lodash/object/assign'
@@ -36,15 +37,15 @@ export default class Transhand extends React.Component {
       globalToLocal: PropTypes.func.isRequired,
     }),
     stroke: PropTypes.object,
-    DesignComponent: React.PropTypes.func,
-    hitns: React.PropTypes.object,
-    CursorHintDesignComponent: React.PropTypes.func,
-    onChange: React.PropTypes.func,
-    onClick: React.PropTypes.func,
-    onStartDrag: React.PropTypes.func,
-    onEndDrag: React.PropTypes.func,
-    grabEvent: React.PropTypes.any,
-    cursor: React.PropTypes.object,
+    DesignComponent:PropTypes.func,
+    hitns:PropTypes.object,
+    CursorHintDesignComponent:PropTypes.func,
+    onChange:PropTypes.func,
+    onClick:PropTypes.func,
+    onStartDrag:PropTypes.func,
+    onEndDrag:PropTypes.func,
+    grabEvent:PropTypes.any,
+    cursor:PropTypes.object,
   }
 
   static defaultProps = {

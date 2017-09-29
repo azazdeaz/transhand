@@ -26,7 +26,8 @@
   "homepage": "https://github.com/azazdeaz/transhand",
   "dependencies": {
     "lodash": "^3.8.0",
-    "shallow-equals": "0.0.0"
+    "shallow-equals": "0.0.0",
+    "prop-types": "^15.6.0"
   },
   "devDependencies": {
     "babel": "^5.4.3",
