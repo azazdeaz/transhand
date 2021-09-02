@@ -2,27 +2,27 @@
 
 Transhand is a React based 2d transformation tool. It's aiming to have all the features that you would expect from a transform handler in a modern graphic editor.
 
-###Demos
+### Demos
 [nested](http://azazdeaz.github.io/transhand/nested/),
 [custom](http://azazdeaz.github.io/transhand/custom/),
 [iframe(wip)](http://azazdeaz.github.io/transhand/iframe/)
 
-![](http://fat.gfycat.com/SilverExhaustedEquestrian.gif)
+![Demo](https://user-images.githubusercontent.com/2298371/131869160-d929b6ce-b4b7-4855-bc7f-c53537a896fb.gif)
 
 Developed as part of the [Animachine project](https://github.com/animachine/animachine).
 
-###Install
+### Install
 ```
 npm install --save transhand
 ```
 
-###Current features
+### Current features
 - translate, rotate, scale, move transform origin
 - shift + guided scale/move/rotate
 - alt + scale from the opposite side
 
 
-###Basic usage
+### Basic usage
 ```javascript
 import { Transhand } from 'transhand'
 
@@ -46,7 +46,7 @@ var onChange = (change) => {
   onChange = {onChange}/>
 ```
 
-###Basic usage with CSS Transform
+### Basic usage with CSS Transform
 ```javascript
 import { CSSTranshand } from 'transhand'
 
@@ -57,8 +57,8 @@ import { CSSTranshand } from 'transhand'
 ```
 ```CSSTranshand``` is a wrapper for ```Transhand```. It use the provided DOM Element to calculate the ```rect``` and handle if the parent elements are onalso transformed and when ```deTarget``` is inside an iframe.
 
-###API
-####Transhand
+### API
+#### Transhand
  - ```transform```: [see above](#basic-usage)
  - ```rect```: [see above](#basic-usage)
  - ```stroke = {strokeWidth: '1', stroke: 'lime'}```:  A set of svg attributes to customize drawed svg.
@@ -80,7 +80,7 @@ import { CSSTranshand } from 'transhand'
  - ```CursorHintDesignComponent = ```[```CursorHintDesign```](src/cursorHint/CursorHintDesign.jsx):  You can replace the basic ```Component``` that CursorHint renders to fully customize its appearance.
  - ```transformTypes = ['translate', 'rotate', 'scale', 'origin']```: List of the allowed transform functions.
 
-####CSSTranshand
+#### CSSTranshand
   Inherits all the properties of transhand but replaces ```coordinator``` and ```rect```  with an extra property called ```deTarget```.  [see above](#basic-usage-with-css-transform)
  
 Although it's already usable, most of the features are still in progress. If you find something that is may not working as expected or you miss something do not hesitate to open an issue!
